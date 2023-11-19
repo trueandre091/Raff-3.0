@@ -109,7 +109,7 @@ async def заказ(inter, сообщение: str):
 
     if inter.channel.id != CONFIG["CHANNEL_RPBAR"]:
 
-        await inter.send(f"Эта команда может быть использована только в канале {channel}!")
+        await inter.send(f"Эта команда может быть использована только в канале {channel.mention}!")
 
     else:
 
