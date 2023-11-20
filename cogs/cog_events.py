@@ -81,7 +81,7 @@ class Events(commands.Cog):
         await channel.send(message)
 
     @commands.Cog.listener()
-    async def on_guild_scheduled_event_update(self, event):
+    async def on_guild_scheduled_event_update(self, before, after):
         channel = self.bot.get_channel(CONFIG["CHANNEL_EVENTS"])
         async for message in channel.history(limit=1):
             await message.delete()
@@ -92,16 +92,18 @@ class Events(commands.Cog):
         special = []
         flag1 = False
         flag2 = False
-        for event in event.guild.scheduled_events:
-            if "недель" in event.name:
-                flag1 = True
-                weekly.append(event)
-            elif "актив" in event.name:
-                flag1 = True
-                weekly.append(event)
-            else:
-                flag2 = True
-                special.append(event)
+        for event in after.guild.scheduled_events:
+            if str(event.status) not in ['canceled', 'completed']:
+                if "недель" in event.name:
+                    flag1 = True
+                    weekly.append(event)
+                elif "актив" in event.name:
+                    flag1 = True
+                    weekly.append(event)
+                else:
+                    flag2 = True
+                    special.append(event)
+
         message = "# БЛИЖАЙШИЕ ИВЕНТЫ\n"
         if flag1:
             message += "* Еженедельные ивенты:\n"

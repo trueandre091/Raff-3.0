@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 import disnake
 from disnake.ext import commands
@@ -77,26 +78,72 @@ async def on_message(message):
             await message.add_reaction(like)
             await message.add_reaction(dislike)
 
-    elif message.author.id == 1172283927713562716:
-        print(message.embeds[0].description)
-        member = message.embeds[0].description.split()[0]
-        member_id = member.strip('<@>')
-        with(open('data/likers.json', 'r', encoding='utf-8') as f):
-            data = load(f)
+    elif message.author.id == 575776004233232386:
+        print(message.embeds[0].to_dict())
+        if '|' in message.embeds[0].to_dict()['description']:
+            member = message.embeds[0].to_dict()['description'].split()[0]
+            member_id = member.strip('<@>')
+            with(open('data/likers.json', 'r', encoding='utf-8') as f):
+                data = load(f)
 
-        if str(member_id) not in data:
-            data[member_id] = 1
-        else:
-            data[member_id] += 1
+            if str(member_id) not in data:
+                data[member_id] = 1
+            else:
+                data[member_id] += 1
 
-        with(open('data/likers.json', 'w', encoding='utf-8') as f):
-            dump(data, f)
+            with(open('data/likers.json', 'w', encoding='utf-8') as f):
+                dump(data, f)
 
     elif message.channel.id == CONFIG["CHANNEL_EVENTS"]:
 
         await message.add_reaction(tick)
         await message.add_reaction(like)
         await message.add_reaction(dislike)
+
+    ############################################################################################
+
+    elif message.attachments:
+        if 'gif' in message.attachments[0].url:
+            channel = message.channel
+
+            flag = False
+            c = False
+            async for msg in channel.history(limit=CONFIG["SETTINGS"]["MESSAGES_FOR_GIF"] + 1):
+                if c:
+                    if msg.attachments:
+                        if 'gif' in msg.attachments[0].url:
+                            flag = True
+                            break
+                    if 'gif' in msg.content:
+                        flag = True
+                        break
+                c = True
+
+            if flag:
+                await message.reply(f"*Гифки можно отправлять раз в {CONFIG['SETTINGS']['MESSAGES_FOR_GIF']} "
+                                    f"сообщений* <a:A_heart1:993383076363239444>", delete_after=3)
+                await message.delete()
+
+    elif 'gif' in message.content:
+        channel = message.channel
+
+        flag = False
+        c = False
+        async for msg in channel.history(limit=CONFIG["SETTINGS"]["MESSAGES_FOR_GIF"] + 1):
+            if c:
+                if msg.attachments:
+                    if 'gif' in msg.attachments[0].url:
+                        flag = True
+                        break
+                if 'gif' in msg.content:
+                    flag = True
+                    break
+            c = True
+
+        if flag:
+            await message.reply(f"*Гифки можно отправлять раз в {CONFIG['SETTINGS']['MESSAGES_FOR_GIF']} "
+                                    f"сообщений* <a:A_heart1:993383076363239444>", delete_after=3)
+            await message.delete()
 
 
 ############################################################################################
