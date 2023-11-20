@@ -1,16 +1,16 @@
-import asyncio
 from datetime import datetime
 import disnake
 from disnake.ext import commands
 from json import load, dump
 
-bot = commands.Bot(command_prefix=".", help_command=None, intents=disnake.Intents.all(),
+bot = commands.Bot(command_prefix="ff", help_command=None, intents=disnake.Intents.all(),
                    test_guilds=[785312593614209055], chunk_guilds_at_startup=False)
 
 bot.load_extension("cogs.cog_scores")
 bot.load_extension("cogs.cog_requests")
 bot.load_extension("cogs.cog_events")
 bot.load_extension("cogs.cog_games")
+bot.load_extension("cogs.cog_orders")
 
 with (open("config.json", "r", encoding="utf-8") as file):
     CONFIG = load(file)
@@ -53,7 +53,6 @@ async def on_member_join(member):
 
 @bot.event
 async def on_member_remove(member):
-
     channel = bot.get_channel(CONFIG["CHANNEL_BYE"])
     await channel.send(f"{member.mention} / {member.name} / {member.nick} ушёл.")
 
@@ -74,11 +73,10 @@ async def on_message(message):
         await message.create_thread(name="Комментарии")
 
         if message.channel.id == CONFIG["CHANNEL_SUGGEST"]:
-
             await message.add_reaction(like)
             await message.add_reaction(dislike)
 
-    elif message.author.id == 575776004233232386:
+    elif message.author.id == 1172283927713562716:
         print(message.embeds[0].to_dict())
         if '|' in message.embeds[0].to_dict()['description']:
             member = message.embeds[0].to_dict()['description'].split()[0]
@@ -99,6 +97,35 @@ async def on_message(message):
         await message.add_reaction(tick)
         await message.add_reaction(like)
         await message.add_reaction(dislike)
+
+    ############################################################################################
+
+    elif '/заказ ' in message.content:
+        channel = bot.get_channel(CONFIG["CHANNEL_RPBAR"])
+        barmen_role = "<@&829082636705595433>"
+
+        if message.channel.id != CONFIG["CHANNEL_RPBAR"]:
+
+            await message.reply(
+                f"Эта команда может быть использована только в канале {channel.mention}!",
+                delete_after=5
+            )
+
+        else:
+
+            embed = disnake.Embed(
+                title="Новый заказ 📥",
+                description=f"{message.author.mention}\n{message.content.strip('/заказ ')}",
+                color=0x2b2d31,
+                timestamp=datetime.now()
+            )
+            embed.set_footer(text="Тоже хочешь заказать что-нибудь? Пропиши /заказ через нашего бота!")
+
+            await message.reply(
+                f"Доброго времени суток {message.author.mention}! Бармен скоро подойдёт 🐥",
+                delete_after=20.0
+            )
+            await channel.send(barmen_role, embed=embed)
 
     ############################################################################################
 
@@ -142,35 +169,8 @@ async def on_message(message):
 
         if flag:
             await message.reply(f"*Гифки можно отправлять раз в {CONFIG['SETTINGS']['MESSAGES_FOR_GIF']} "
-                                    f"сообщений* <a:A_heart1:993383076363239444>", delete_after=3)
+                                f"сообщений* <a:A_heart1:993383076363239444>", delete_after=3)
             await message.delete()
-
-
-############################################################################################
-
-
-@bot.slash_command(description="Сделать заказ в баре")  # команда для заказа в рп баре
-async def заказ(inter, сообщение: str):
-    channel = bot.get_channel(CONFIG["CHANNEL_RPBAR"])
-    barmen_role = "<@&829082636705595433>"
-
-    if inter.channel.id != CONFIG["CHANNEL_RPBAR"]:
-
-        await inter.send(f"Эта команда может быть использована только в канале {channel.mention}!")
-
-    else:
-
-        embed = disnake.Embed(
-            title="Новый заказ 📥",
-            description=f"{inter.author.mention}\n{сообщение}",
-            color=0x2b2d31,
-            timestamp=datetime.now()
-        )
-
-        embed.set_footer(text="Тоже хочешь заказать что-нибудь? Пропиши /заказ через нашего бота!")
-
-        await channel.send(barmen_role, embed=embed)
-        await inter.send(f"Доброго времени суток {inter.author.mention}! Бармен скоро подойдёт 🐥", delete_after=20.0)
 
 
 ############################################################################################
