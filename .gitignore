@@ -1,6 +1,2 @@
 /config.json
 /.idea
-cogs/__pycache__
-*.pyc
-cogs/__pycache__/cog_scores.cpython-311.pyc
-cogs/__pycache__/cog_events.cpython-311.pyc
