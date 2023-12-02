@@ -3,7 +3,7 @@ import disnake
 from disnake.ext import commands
 from json import load, dump
 
-bot = commands.Bot(command_prefix="ff", help_command=None, intents=disnake.Intents.all(),
+bot = commands.Bot(command_prefix="none", help_command=None, intents=disnake.Intents.all(),
                    test_guilds=[785312593614209055], chunk_guilds_at_startup=False)
 
 bot.load_extension("cogs.cog_scores")
@@ -11,6 +11,8 @@ bot.load_extension("cogs.cog_requests")
 bot.load_extension("cogs.cog_events")
 bot.load_extension("cogs.cog_games")
 bot.load_extension("cogs.cog_orders")
+bot.load_extension("cogs.cog_autoupdate")
+bot.load_extension("cogs.cog_counters")
 
 with (open("config.json", "r", encoding="utf-8") as file):
     CONFIG = load(file)
@@ -60,15 +62,63 @@ async def on_member_remove(member):
 ############################################################################################
 
 
+async def add_orders_counter():
+    with (open(f"data/counters.json", "r", encoding="utf-8") as f):
+        data = load(f)
+
+    data["ORDERS"] += 1
+
+    with (open(f"data/counters.json", "w", encoding="utf-8") as f):
+        dump(data, f)
+
+
+async def add_failed_gif_counter():
+    with (open(f"data/counters.json", "r", encoding="utf-8") as f):
+        data = load(f)
+
+    data["FAILED_GIF_TRY"] += 1
+
+    with (open(f"data/counters.json", "w", encoding="utf-8") as f):
+        dump(data, f)
+
+
+async def add_number_of_events_counter():
+    with (open(f"data/counters.json", "r", encoding="utf-8") as f):
+        data = load(f)
+
+    data["NUMBER_OF_EVENTS"] += 1
+
+    with (open(f"data/counters.json", "w", encoding="utf-8") as f):
+        dump(data, f)
+
+
+############################################################################################
+
+
 @bot.event  # автосоздание веток и реакций (лайк и дизлайк)
 async def on_message(message):
     channels = [CONFIG[key] for key in ["CHANNEL_ANNOUNCE", "CHANNEL_SUGGEST"]]
+    boost_bots = CONFIG["BOOST_BOTS"]
 
-    like = "<:B_00like:1001544330613375026>"
-    dislike = "<:B_00likenot:1001544295532204082>"
-    tick = "✅"
+    author_id = message.author.id
+
+    if not message.author.bot:
+        with(open("data/lb_messages_data.json", 'r', encoding='utf-8') as f):
+            data = load(f)
+
+        if str(author_id) not in data:
+            data[str(author_id)] = 1
+        else:
+            data[str(author_id)] += 1
+
+        with(open("data/lb_messages_data.json", 'w', encoding='utf-8') as f):
+            dump(data, f)
+
+    ############################################################################################
 
     if message.channel.id in channels:
+        like = "<:B_00like:1001544330613375026>"
+        dislike = "<:B_00likenot:1001544295532204082>"
 
         await message.create_thread(name="Комментарии")
 
@@ -76,23 +126,50 @@ async def on_message(message):
             await message.add_reaction(like)
             await message.add_reaction(dislike)
 
-    elif message.author.id == 1172283927713562716:
-        print(message.embeds[0].to_dict())
-        if '|' in message.embeds[0].to_dict()['description']:
-            member = message.embeds[0].to_dict()['description'].split()[0]
-            member_id = member.strip('<@>')
-            with(open('data/likers.json', 'r', encoding='utf-8') as f):
-                data = load(f)
+    elif message.type == disnake.MessageType.application_command and author_id in boost_bots:
 
-            if str(member_id) not in data:
-                data[member_id] = 1
-            else:
-                data[member_id] += 1
+        if author_id == boost_bots[1]:
+            flag = True
+            async for msg in message.channel.history(limit=50):
+                if msg.type == disnake.MessageType.application_command and msg.interaction.name == "up":
+                    flag = False
+                if msg.author.id == 478321260481478677 and "/up" in msg.content:
+                    break
+            if flag:
 
-            with(open('data/likers.json', 'w', encoding='utf-8') as f):
-                dump(data, f)
+                member_id = message.interaction.user.id
+
+                with(open('data/counters.json', 'r', encoding='utf-8') as f):
+                    data = load(f)
+
+                if str(member_id) not in data["LIKERS"]:
+                    data["LIKERS"][str(member_id)] = 1
+                else:
+                    data["LIKERS"][str(member_id)] += 1
+
+                with(open('data/counters.json', 'w', encoding='utf-8') as f):
+                    dump(data, f)
+
+        if author_id == boost_bots[0]:
+            if "Вы успешно лайкнули сервер." in message.embeds[-1].to_dict()["description"]:
+
+                member_id = message.interaction.user.id
+
+                with(open('data/counters.json', 'r', encoding='utf-8') as f):
+                    data = load(f)
+
+                if str(member_id) not in data["LIKERS"]:
+                    data["LIKERS"][str(member_id)] = 1
+                else:
+                    data["LIKERS"][str(member_id)] += 1
+
+                with(open('data/counters.json', 'w', encoding='utf-8') as f):
+                    dump(data, f)
 
     elif message.channel.id == CONFIG["CHANNEL_EVENTS"]:
+        tick = "✅"
+        like = "<:B_00like:1001544330613375026>"
+        dislike = "<:B_00likenot:1001544295532204082>"
 
         await message.add_reaction(tick)
         await message.add_reaction(like)
@@ -101,6 +178,7 @@ async def on_message(message):
     ############################################################################################
 
     elif '/заказ ' in message.content:
+
         channel = bot.get_channel(CONFIG["CHANNEL_RPBAR"])
         barmen_role = "<@&829082636705595433>"
 
@@ -112,6 +190,8 @@ async def on_message(message):
             )
 
         else:
+
+            await add_orders_counter()
 
             embed = disnake.Embed(
                 title="Новый заказ 📥",
@@ -147,6 +227,8 @@ async def on_message(message):
                 c = True
 
             if flag:
+                await add_failed_gif_counter()
+
                 await message.reply(f"*Гифки можно отправлять раз в {CONFIG['SETTINGS']['MESSAGES_FOR_GIF']} "
                                     f"сообщений* <a:A_heart1:993383076363239444>", delete_after=3)
                 await message.delete()
@@ -168,6 +250,8 @@ async def on_message(message):
             c = True
 
         if flag:
+            await add_failed_gif_counter()
+
             await message.reply(f"*Гифки можно отправлять раз в {CONFIG['SETTINGS']['MESSAGES_FOR_GIF']} "
                                 f"сообщений* <a:A_heart1:993383076363239444>", delete_after=3)
             await message.delete()

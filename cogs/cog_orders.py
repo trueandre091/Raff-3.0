@@ -1,5 +1,5 @@
 from datetime import datetime
-from json import load
+from json import load, dump
 from os import getcwd
 import disnake
 from disnake.ext import commands
@@ -8,6 +8,16 @@ FOLDER = getcwd()
 
 with (open(f"{FOLDER}/config.json", "r", encoding="utf-8") as file):
     CONFIG = load(file)
+
+
+async def add_orders_counter():
+    with (open(f"{FOLDER}/data/counters.json", "r", encoding="utf-8") as f):
+        data = load(f)
+
+    data["ORDERS"] += 1
+
+    with (open(f"{FOLDER}/data/counters.json", "w", encoding="utf-8") as f):
+        dump(data, f)
 
 
 class Commands(commands.Cog):
@@ -24,6 +34,8 @@ class Commands(commands.Cog):
             await inter.send(f"Эта команда может быть использована только в канале {channel.mention}!")
 
         else:
+
+            await add_orders_counter()
 
             embed = disnake.Embed(
                 title="Новый заказ 📥",
