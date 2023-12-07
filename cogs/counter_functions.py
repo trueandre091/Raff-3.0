@@ -53,7 +53,7 @@ def count_number_of_events_counter() -> None:
 
 
 def count_every_message(message) -> None:
-    """Counting every users' messages to data base"""
+    """Counting every users' messages to database"""
     if not message.author.bot:
         author_id = message.author.id
         with(open(f"{FOLDER}/data/lb_messages_data.json", 'r', encoding='utf-8') as f):
