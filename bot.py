@@ -1,20 +1,20 @@
 from datetime import datetime
 import disnake
 from disnake.ext import commands
-from json import load, dump
-
 import config as cfg
 from cogs.counter_functions import *
 from cogs.on_message_functions import *
 
-bot = commands.Bot(command_prefix="none", help_command=None, intents=disnake.Intents.all(), chunk_guilds_at_startup=False)
+bot = commands.Bot(
+    command_prefix="none", help_command=None, intents=disnake.Intents.all(), chunk_guilds_at_startup=False
+)
 
-# bot.load_extension("cogs")
+bot.load_extension("cogs.cog_games_update")
 
 
 @bot.event
 async def on_ready():
-    '''Bot writes in console when it starts'''
+    """Bot writes in console when it starts"""
     print(f"Bot {bot.user} is ready to work!")
 
 
@@ -27,13 +27,13 @@ async def on_member_join(member):
     settings = cfg.WELCOME_SETTINGS
 
     channel = bot.get_channel(settings["CHANNEL"])
-    member = str(member.mention)
+    member = member.mention
 
     embed_dict = {
         "title": settings["TITLE"],
         "description": member + settings["EMBED"]["DESCRIPTION"],
         "color": settings["EMBED"]["COLOR"],
-        "timestamp": datetime.now(),
+        "timestamp": datetime.now()
     }
 
     try:
@@ -62,7 +62,6 @@ async def on_member_remove(member):
 async def on_message(message):
     """On every sent message functions"""
 
-    boost_bots = cfg.BOOST_BOTS
     author_id = message.author.id
 
     count_every_message(message)
@@ -73,58 +72,12 @@ async def on_message(message):
 
     await boosts_check(message, cfg.BOOSTS_COUNTING)
 
-    # if message.type == disnake.MessageType.application_command and author_id in boost_bots:
+    if '/заказ' in message.content:
 
-    #     if author_id == boost_bots[1]:
-    #         flag = True
-    #         skip_first_flag = False
-    #         async for msg in message.channel.history(limit=50):
-    #             if skip_first_flag:
-    #                 if msg.type == disnake.MessageType.application_command and msg.interaction.name == "up":
-    #                     flag = False
-    #                 if msg.author.id == 478321260481478677 and "/up" in msg.content:
-    #                     break
-    #             skip_first_flag = False
-    #         if flag:
-
-    #             member_id = message.interaction.user.id
-
-    #             with(open('data/counters.json', 'r', encoding='utf-8') as f):
-    #                 data = load(f)
-
-    #             if str(member_id) not in data["LIKERS"]:
-    #                 data["LIKERS"][str(member_id)] = 1
-    #             else:
-    #                 data["LIKERS"][str(member_id)] += 1
-
-    #             with(open('data/counters.json', 'w', encoding='utf-8') as f):
-    #                 dump(data, f)
-
-    #     if author_id == boost_bots[0]:
-    #         if "Вы успешно лайкнули сервер." in message.embeds[-1].to_dict()["description"]:
-
-    #             member_id = message.interaction.user.id
-
-    #             with(open('data/counters.json', 'r', encoding='utf-8') as f):
-    #                 data = load(f)
-
-    #             if str(member_id) not in data["LIKERS"]:
-    #                 data["LIKERS"][str(member_id)] = 1
-    #             else:
-    #                 data["LIKERS"][str(member_id)] += 1
-
-    #             with(open('data/counters.json', 'w', encoding='utf-8') as f):
-    #                 dump(data, f)
-
-
-    ############################################################################################
-
-    if '/заказ' in message.content.split()[0]:
-
-        channel = bot.get_channel(cfg.CHANNELS_SETTING["CHANNEL_RPBAR"])
+        channel = bot.get_channel(cfg.CHANNELS_SETTINGS["CHANNEL_RPBAR"])
         barmen_role = "<@&829082636705595433>"
 
-        if message.channel.id != cfg.CHANNELS_SETTING["CHANNEL_RPBAR"]:
+        if message.channel.id != cfg.CHANNELS_SETTINGS["CHANNEL_RPBAR"]:
 
             await message.reply(
                 f"Эта команда может быть использована только в канале {channel.mention}!",
@@ -133,7 +86,7 @@ async def on_message(message):
 
         else:
 
-            counter_fn.count_orders_counter()
+            count_orders_counter()
 
             embed = disnake.Embed(
                 title="Новый заказ 📥",
@@ -170,7 +123,7 @@ async def on_message(message):
 
             if flag:
 
-                counter_fn.count_failed_gif_counter()
+                count_failed_gif_counter()
 
                 await message.reply(f"Гифки можно отправлять раз в {cfg.SETTINGS['MESSAGES_FOR_GIF']} "
                                     f"сообщений <a:A_heart1:993383076363239444>", delete_after=3)
@@ -193,7 +146,7 @@ async def on_message(message):
             c = True
 
         if flag:
-            counter_fn.count_failed_gif_counter()
+            count_failed_gif_counter()
 
             await message.reply(f"Гифки можно отправлять раз в {cfg.SETTINGS['MESSAGES_FOR_GIF']} "
                                 f"сообщений <a:A_heart1:993383076363239444>", delete_after=3)

@@ -1,6 +1,5 @@
 from os import getcwd
 import disnake
-from disnake.ext import commands
 from json import load, dump
 
 FOLDER = getcwd()
