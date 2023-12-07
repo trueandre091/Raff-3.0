@@ -52,3 +52,33 @@ async def boosts_check(message: disnake.Message, settings_dict) -> None:
 
                 counter_functions.count_users_boosts(message.interaction.user.id)
 
+
+if '/заказ' in message.content:
+
+        channel = bot.get_channel(cfg.CHANNELS_SETTINGS["CHANNEL_RPBAR"])
+        barmen_role = "<@&829082636705595433>"
+
+        if message.channel.id != cfg.CHANNELS_SETTINGS["CHANNEL_RPBAR"]:
+
+            await message.reply(
+                f"Эта команда может быть использована только в канале {channel.mention}!",
+                delete_after=5
+            )
+
+        else:
+
+            count_orders_counter()
+
+            embed = disnake.Embed(
+                title="Новый заказ 📥",
+                description=f"{message.author.mention}\n{message.content.strip('/заказ ')}",
+                color=0x2b2d31,
+                timestamp=datetime.now()
+            )
+            embed.set_footer(text="Тоже хочешь заказать что-нибудь? Пропиши /заказ через нашего бота!")
+
+            await message.reply(
+                f"Доброго времени суток {message.author.mention}! Бармен скоро подойдёт 🐥",
+                delete_after=20.0
+            )
+            await channel.send(barmen_role, embed=embed)

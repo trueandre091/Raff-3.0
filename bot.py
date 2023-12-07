@@ -9,7 +9,7 @@ bot = commands.Bot(
     command_prefix="none", help_command=None, intents=disnake.Intents.all(), chunk_guilds_at_startup=False
 )
 
-bot.load_extension("cogs.cog_games_update")
+bot.load_extensions("cogs")
 
 
 @bot.event
@@ -51,7 +51,7 @@ async def on_member_remove(member):
     """Farewell to members when they leave"""
     settings = cfg.FAREWELL_SETTINGS
 
-    channel = bot.get_channel(settings["CHANNEL"])
+    channels = bot.get_channel(settings["CHANNEL"])
     await channel.send(f"{member.mention} / {member.name} / {member.nick} ушёл.")
 
 
@@ -68,7 +68,7 @@ async def on_message(message):
 
     ############################################################################################
 
-    await reactions_thread_check(message, cfg.ADDING_REACTIONS_THREADS)
+    await reactions_thread_check(message, cfg.ADDING_REACTIONS_THREADS_SETTINGS)
 
     await boosts_check(message, cfg.BOOSTS_COUNTING)
 
