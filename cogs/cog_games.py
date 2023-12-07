@@ -9,6 +9,8 @@ import config as cfg
 from cogs.counter_functions import count_lose_scores
 
 
+FOLDER = getcwd()
+
 def return_corr_embed(inter):
     embed_dict = {
         "title": "",
@@ -277,7 +279,7 @@ class GameBlackJack:
 
     player_start is returning the firs card when the game starting
 
-    return_scores is converting name of the card and returning score that player have recieved after first taking
+    return_scores is converting name of the card and returning score that player have received after first taking
     """
     list_of_objects = []
 
