@@ -67,6 +67,7 @@ def count_every_message(message) -> None:
         with(open(f"{FOLDER}/data/lb_messages_data.json", 'w', encoding='utf-8') as f):
             dump(data, f)
 
+
 def count_users_boosts(message) -> None:
     """Counting users' boost on the monitoring sites"""
     author_id = message.author.id
