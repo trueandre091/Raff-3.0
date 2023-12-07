@@ -41,6 +41,16 @@ def count_failed_gif_counter() -> None:
         dump(data, f)
 
 
+def count_lose_scores(scores: int):
+    with (open(f"{FOLDER}/data/counters.json", "r", encoding="utf-8") as f):
+        data = load(f)
+
+    data["LOSE_SCORES"] += scores
+
+    with (open(f"{FOLDER}/data/counters.json", "w", encoding="utf-8") as f):
+        dump(data, f)
+
+
 def count_number_of_events_counter() -> None:
     """Сounting the number of events"""
     with (open(f"{FOLDER}/data/counters.json", "r", encoding="utf-8") as f):
