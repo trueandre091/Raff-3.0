@@ -71,14 +71,14 @@ class CheckCommands(commands.Cog):
                     "value": f'{data["ORDERS"]}'
                 })
                 c += 1
-            elif key == "LIKERS":
+            elif key == "BOOSTS":
                 embed_dict["fields"].append({
                     "name": "Кол-во бустов сервера:",
                     "value": ''
                 })
 
                 c1 = 1
-                for k, v in data["LIKERS"].items():
+                for k, v in data["BOOSTS"].items():
                     member = self.bot.get_user(int(k))
                     embed_dict["fields"][c]["value"] += f"`{c1}.` {member.mention} - {v}\n"
                     c1 += 1

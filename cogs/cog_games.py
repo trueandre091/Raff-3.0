@@ -193,7 +193,7 @@ class BlackJack(commands.Cog):
 
                     await interaction.message.edit(embed=disnake.Embed.from_dict(embed_dict))
 
-    @commands.cooldown(1, 20)
+    @commands.cooldown(1, 10)
     @commands.slash_command(description="Сыграть в BlackJack на свои очки (/rep)")
     async def блекджек(self, inter: disnake.ApplicationCommandInteraction, ставка: int):
 
@@ -253,7 +253,7 @@ class BlackJack(commands.Cog):
             await interaction.response.send_message("Потерпи 💀", delete_after=5, ephemeral=True)
 
 
-class Games(commands.Cog):
+class Roulette(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
@@ -331,5 +331,5 @@ class Games(commands.Cog):
 
 
 def setup(bot: commands.Bot):
-    bot.add_cog(Games(bot))
+    bot.add_cog(Roulette(bot))
     bot.add_cog(BlackJack(bot))

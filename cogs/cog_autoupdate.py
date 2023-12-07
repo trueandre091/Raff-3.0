@@ -1,3 +1,5 @@
+"""Автообновление всех топов на сервере"""
+
 from os import getcwd
 import disnake
 from disnake.ext import commands, tasks
@@ -58,12 +60,12 @@ class AutoUpdateMessagesTop(commands.Cog):
             'footer': {'text': channel.guild.name, 'icon_url': channel.guild.icon.url}
         }
 
-        c = 1
+        place = 1
         for key, value in data.items():
-            if value > 5:
+            if place <= 10:
                 member = guild.get_member(int(key))
-                embed_dict['description'] += f"`{c}.` {member.mention} — `{value} `\n"
-                c += 1
+                embed_dict['description'] += f"`{place}.` {member.mention} - {value}\n"
+                place += 1
 
         flag = True
         async for msg in channel.history(limit=3):
