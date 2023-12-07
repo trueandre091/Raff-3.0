@@ -26,35 +26,35 @@ def return_corr_embed(inter):
     return embed_dict
 
 
-async def bj_designed_embed_start(embed_dict: dict, inter: disnake.ApplicationCommandInteraction, bet: int):
+async def bj_designed_embed_start(embed_dict: dict, interaction: disnake.ApplicationCommandInteraction, bet: int):
     embed_dict["title"] = "Привет, приятель"
 
-    await inter.response.send_message(embed=disnake.Embed.from_dict(embed_dict))
+    await interaction.response.send_message(embed=disnake.Embed.from_dict(embed_dict))
     await asyncio.sleep(1)
 
     embed_dict["title"] = "Захотел поиграть в BlackJack?"
     embed_dict["description"] = "Ты хотя бы играть то умеешь?"
 
-    await inter.edit_original_response(embed=disnake.Embed.from_dict(embed_dict))
+    await interaction.edit_original_response(embed=disnake.Embed.from_dict(embed_dict))
     await asyncio.sleep(2)
 
     embed_dict["title"] = "Вижу, ты поставил свои честно заработанные очки"
     embed_dict["description"] = f"Аж {bet} оч... пойдёт"
 
-    await inter.edit_original_response(embed=disnake.Embed.from_dict(embed_dict))
+    await interaction.edit_original_response(embed=disnake.Embed.from_dict(embed_dict))
     await asyncio.sleep(2)
 
     embed_dict["title"] = "НАЧИНАЕМ!"
     embed_dict["description"] = ""
 
-    await inter.edit_original_response(embed=disnake.Embed.from_dict(embed_dict))
+    await interaction.edit_original_response(embed=disnake.Embed.from_dict(embed_dict))
 
 
-async def bj_designed_embed(embed_dict: dict, inter: disnake.ApplicationCommandInteraction, current, score):
+async def bj_designed_embed(embed_dict: dict, interaction: disnake.ApplicationCommandInteraction, current, score):
     embed_dict["title"] = f"Тебе досталась карта {current} "
     embed_dict["description"] = f"У вас {score} оч.\n\n**Будешь брать карту?**"
 
-    await inter.edit_original_response(
+    await interaction.edit_original_response(
         embed=disnake.Embed.from_dict(embed_dict),
         components=[
             disnake.ui.Button(
@@ -71,38 +71,37 @@ async def bj_designed_embed(embed_dict: dict, inter: disnake.ApplicationCommandI
     )
 
 
-async def bj_designed_embed_after_take(embed_dict: dict, inter, current, score):
+async def bj_designed_embed_after_take(embed_dict: dict, interaction, current, score):
     embed_dict["title"] = f"Тебе досталась карта {current}"
     embed_dict["description"] = f"У тебя {score} оч."
-    await inter.message.edit(embed=disnake.Embed.from_dict(embed_dict))
+    await interaction.message.edit(embed=disnake.Embed.from_dict(embed_dict))
     await asyncio.sleep(2)
 
 
-async def bj_designed_embed_if_lose(embed_dict: dict, inter, bet):
+async def bj_designed_embed_if_lose(embed_dict: dict, interaction, bet):
     embed_dict["description"] += "\nО нет."
-    await inter.message.edit(embed=disnake.Embed.from_dict(embed_dict), components=[])
+    await interaction.message.edit(embed=disnake.Embed.from_dict(embed_dict), components=[])
     await asyncio.sleep(2)
 
     embed_dict["description"] += f"\n\n**Ты проиграл** и потерял {bet} оч."
-    await inter.message.edit(embed=disnake.Embed.from_dict(embed_dict))
+    await interaction.message.edit(embed=disnake.Embed.from_dict(embed_dict))
 
 
-async def bj_designed_embed_if_21(embed_dict: dict, inter, bet):
+async def bj_designed_embed_if_21(embed_dict: dict, interaction, bet):
     embed_dict["description"] += "\nВОООУ"
-    await inter.message.edit(embed=disnake.Embed.from_dict(embed_dict), components=[])
+    await interaction.message.edit(embed=disnake.Embed.from_dict(embed_dict), components=[])
     await asyncio.sleep(2)
 
     embed_dict["description"] += f"\n\n**21-о! Ты выиграл {bet * 2} оч.!**"
-    await inter.message.edit(embed=disnake.Embed.from_dict(embed_dict))
+    await interaction.message.edit(embed=disnake.Embed.from_dict(embed_dict))
     await asyncio.sleep(2)
 
     embed_dict["image"] = {"url": "https://media.tenor.com/olRQ2QnTqxQAAAAi/kirby-dance.gif"}
-    await inter.message.edit(embed=disnake.Embed.from_dict(embed_dict))
+    await interaction.message.edit(embed=disnake.Embed.from_dict(embed_dict))
 
 
 def return_scores(current, score):
-    # Return scores after convert from voc
-    # voc is value_of_card
+    # Return scores after convert from voc value_of_card
     voc = {
         '2': 2,
         '3': 3,
@@ -171,7 +170,7 @@ class BlackJack(commands.Cog):
 
             await bj_designed_embed_start(return_corr_embed(interaction), interaction, ставка)
 
-            game_bj = Game_BJ(author, commands, ставка)
+            game_bj = GameBlackJack(author, commands, ставка)
             game_bj.player_start()
 
             await bj_designed_embed(return_corr_embed(interaction), interaction, game_bj.current, game_bj.score)
@@ -184,81 +183,90 @@ class BlackJack(commands.Cog):
     @commands.Cog.listener()
     async def on_interaction(self, interaction: disnake.MessageInteraction):
 
-        for obj in Game_BJ.list_of_objects:
+        if interaction.type == disnake.InteractionType.component:
 
-            if obj.id_message == interaction.message.id and obj.author == interaction.user.id:
+            for obj in GameBlackJack.list_of_objects:
 
-                if "component" in interaction.type:
+                if obj.id_message == interaction.message.id:
+                    if obj.author == interaction.author.id:
 
-                    embed_dict = return_corr_embed(interaction)
+                        if "component" in interaction.type:
 
-                    if interaction.component.custom_id == "take":
+                            embed_dict = return_corr_embed(interaction)
 
-                        obj.current = obj.deck.pop()
-                        obj.score = return_scores(obj.current, obj.score)
+                            if interaction.component.custom_id == "take":
 
-                        await interaction.response.send_message("Ты взял карту", delete_after=1.5, ephemeral=True)
-                        await bj_designed_embed_after_take(embed_dict, interaction, obj.current, obj.score)
+                                obj.current = obj.deck.pop()
+                                obj.score = return_scores(obj.current, obj.score)
 
-                        if obj.score > 21:
+                                await interaction.response.send_message("Ты взял карту", delete_after=1.5, ephemeral=True)
+                                await bj_designed_embed_after_take(embed_dict, interaction, obj.current, obj.score)
 
-                            await bj_designed_embed_if_lose(embed_dict, interaction, obj.bet)
+                                if obj.score > 21:
 
-                        elif obj.score == 21:
+                                    await bj_designed_embed_if_lose(embed_dict, interaction, obj.bet)
 
-                            await bj_designed_embed_if_21(embed_dict, interaction, obj.bet)
+                                elif obj.score == 21:
 
-                        else:
+                                    await bj_designed_embed_if_21(embed_dict, interaction, obj.bet)
 
-                            embed_dict["description"] += f"\n\n**Будешь брать карту?**"
+                                else:
 
-                            await interaction.message.edit(embed=disnake.Embed.from_dict(embed_dict))
+                                    embed_dict["description"] += f"\n\n**Будешь брать карту?**"
 
-                    elif interaction.component.custom_id == "stay":
+                                    await interaction.message.edit(embed=disnake.Embed.from_dict(embed_dict))
 
-                        embed_dict[
-                            "description"] = f"У тебя {obj.score} оч.\n\n**А теперь посмотрим, что выпало боту...**"
+                            elif interaction.component.custom_id == "stay":
 
-                        await interaction.message.edit(embed=disnake.Embed.from_dict(embed_dict), components=[])
-                        await asyncio.sleep(2)
+                                embed_dict[
+                                    "description"] = f"У тебя {obj.score} оч.\n\n**А теперь посмотрим, что выпало боту...**"
 
-                        while obj.bot_score <= 15:
+                                await interaction.message.edit(embed=disnake.Embed.from_dict(embed_dict), components=[])
+                                await asyncio.sleep(2)
 
-                            current = obj.deck.pop()
-                            obj.bot_score = obj.return_scores(current, obj.bot_score)
+                                while obj.bot_score <= 15:
 
-                            embed_dict["description"] += f"\nБоту выпала карта {current}, у него {obj.bot_score} оч."
-                            await interaction.message.edit(embed=disnake.Embed.from_dict(embed_dict))
+                                    current = obj.deck.pop()
+                                    obj.bot_score = obj.return_scores(current, obj.bot_score)
 
-                            if obj.bot_score > 21:
-                                obj.bot_score = 0
-                                break
-                            await asyncio.sleep(1)
+                                    embed_dict["description"] += f"\nБоту выпала карта {current}, у него {obj.bot_score} оч."
+                                    await interaction.message.edit(embed=disnake.Embed.from_dict(embed_dict))
 
-                        await asyncio.sleep(2)
+                                    if obj.bot_score > 21:
+                                        obj.bot_score = 0
+                                        break
+                                    await asyncio.sleep(1)
 
-                        if obj.bot_score > obj.score:
+                                await asyncio.sleep(2)
 
-                            embed_dict["description"] += f"\n\n**Бот тебя обыграл. Ты потерял {obj.bet} оч.**"
+                                if obj.bot_score > obj.score:
 
-                            await interaction.message.edit(embed=disnake.Embed.from_dict(embed_dict))
+                                    embed_dict["description"] += f"\n\n**Бот тебя обыграл. Ты потерял {obj.bet} оч.**"
 
-                        elif obj.bot_score < obj.score:
+                                    await interaction.message.edit(embed=disnake.Embed.from_dict(embed_dict))
 
-                            embed_dict["description"] += f"\n\n**Ты выиграл! И получил {obj.bet} оч.**"
+                                elif obj.bot_score < obj.score:
 
-                            await interaction.message.edit(embed=disnake.Embed.from_dict(embed_dict))
+                                    embed_dict["description"] += f"\n\n**Ты выиграл! И получил {obj.bet} оч.**"
 
-                        else:
+                                    await interaction.message.edit(embed=disnake.Embed.from_dict(embed_dict))
 
-                            embed_dict["description"] += f"\n\n**Ничья. Ты выиграл {obj.bet // 2} оч.**"
+                                else:
 
-                            await interaction.message.edit(embed=disnake.Embed.from_dict(embed_dict))
+                                    embed_dict["description"] += f"\n\n**Ничья. Ты выиграл {obj.bet // 2} оч.**"
 
-                        Game_BJ.list_of_objects.remove(obj)
+                                    await interaction.message.edit(embed=disnake.Embed.from_dict(embed_dict))
+
+                                GameBlackJack.list_of_objects.remove(obj)
+                    else:
+
+                        await interaction.response.send_message(
+                            f"Ты не <@{obj.author}> 😱", delete_after=2, ephemeral=True
+                        )
+                        break
 
 
-class Game_BJ():
+class GameBlackJack():
     """
     Creates an instance of class for playing BlackJack
     Thanks to this class, different users have their own gaming session
@@ -282,7 +290,7 @@ class Game_BJ():
         self.current = ''
         self.embed_dict = ''
 
-        Game_BJ.list_of_objects.append(self)
+        GameBlackJack.list_of_objects.append(self)
 
     def player_start(self):
         shuffle(self.deck)
