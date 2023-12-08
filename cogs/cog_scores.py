@@ -26,9 +26,9 @@ async def top_create_embed(bot: commands.Bot, embed_dict: dict):
         data.pop(key)
 
     first_lvl_members, third_lvl_members, fifth_lvl_members = [], [], []
-    amount1 = cfg.SETTINGS["AMOUNT_TO_FIRST_LVL"]
-    amount2 = cfg.SETTINGS["AMOUNT_TO_THIRD_LVL"]
-    amount3 = cfg.SETTINGS["AMOUNT_TO_FIFTH_LVL"]
+    amount1 = cfg.COGS_SETTINGS["SCORES"]["AMOUNT_TO_FIRST_LVL"]
+    amount2 = cfg.COGS_SETTINGS["SCORES"]["AMOUNT_TO_THIRD_LVL"]
+    amount3 = cfg.COGS_SETTINGS["SCORES"]["AMOUNT_TO_FIFTH_LVL"]
 
     flag1, flag2, flag3 = False, False, False
     place = 0
@@ -79,42 +79,6 @@ class ScoresOperations(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-
-    @commands.slash_command(description="Показать кол-во очков у себя / участника")
-    async def реп(self, interaction: disnake.ApplicationCommandInteraction, участник: disnake.Member = None):
-        """Showing user's or a somebody's amount of scores"""
-        with (open(f"{FOLDER}/data/users_data.json", "r", encoding="utf-8") as f):
-            data = load(f)
-
-        embed_dict = {
-            'fields': [{'name': 'Очки'}],
-            'footer': {'text': interaction.guild.name, 'icon_url': interaction.guild.icon.url},
-            'color': 0x2b2d31
-        }
-        if участник:
-            embed_dict['title'] = участник.name
-            try:
-                embed_dict['thumbnail'] = f'{участник}'
-            except AttributeError:
-                embed_dict['thumbnail'] = 'https://i.postimg.cc/CMsM38p8/1.png'
-            try:
-                embed_dict['fields'][0]['value'] = f"```{data[str(участник.id)]} оч.```"
-            except:
-                embed_dict['fields'][0]['value'] = f'```0 оч.```'
-        else:
-            embed_dict['title'] = f'{interaction.author}'
-            try:
-                embed_dict['thumbnail'] = f'{interaction.author}'
-            except AttributeError:
-                embed_dict['thumbnail'] = 'https://i.postimg.cc/CMsM38p8/1.png'
-            try:
-                embed_dict['fields'][0]['value'] = f"```{data[str(interaction.author.id)]} оч.```"
-            except:
-                embed_dict['fields'][0]['value'] = f'```0 оч.```'
-
-        await interaction.response.send_message(embed=disnake.Embed.from_dict(embed_dict))
-
-    ############################################################################################
 
     @commands.slash_command(
         description="Прибавить очки 1 участнику",
@@ -266,8 +230,46 @@ class ScoresOperations(commands.Cog):
 
         await inter.response.send_message(f"У {участник} теперь {количество}")
 
-    ############################################################################################
 
+class SpecialScoresCommands(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+
+    @commands.slash_command(description="Показать кол-во очков у себя / участника")
+    async def реп(self, interaction: disnake.ApplicationCommandInteraction, участник: disnake.Member = None):
+        """Showing user's or a somebody's amount of scores"""
+        with (open(f"{FOLDER}/data/users_data.json", "r", encoding="utf-8") as f):
+            data = load(f)
+
+        embed_dict = {
+            'fields': [{'name': 'Очки'}],
+            'footer': {'text': interaction.guild.name, 'icon_url': interaction.guild.icon.url},
+            'color': 0x2b2d31
+        }
+        if участник:
+            embed_dict['title'] = участник.name
+            try:
+                embed_dict['thumbnail'] = f'{участник}'
+            except AttributeError:
+                embed_dict['thumbnail'] = 'https://i.postimg.cc/CMsM38p8/1.png'
+            try:
+                embed_dict['fields'][0]['value'] = f"```{data[str(участник.id)]} оч.```"
+            except:
+                embed_dict['fields'][0]['value'] = f'```0 оч.```'
+        else:
+            embed_dict['title'] = f'{interaction.author}'
+            try:
+                embed_dict['thumbnail'] = f'{interaction.author}'
+            except AttributeError:
+                embed_dict['thumbnail'] = 'https://i.postimg.cc/CMsM38p8/1.png'
+            try:
+                embed_dict['fields'][0]['value'] = f"```{data[str(interaction.author.id)]} оч.```"
+            except:
+                embed_dict['fields'][0]['value'] = f'```0 оч.```'
+
+        await interaction.response.send_message(embed=disnake.Embed.from_dict(embed_dict))
+
+    @commands.cooldown(1, 5)
     @commands.slash_command(description="Таблица лидеров по очкам")
     async def топ(self, interaction: disnake.ApplicationCommandInteraction):
         """Sending a leaderboard of members by points"""
@@ -288,11 +290,6 @@ class ScoresOperations(commands.Cog):
     async def on_test_error(self, interaction: disnake.Interaction, error: commands.CommandError):
         if isinstance(error, commands.CommandOnCooldown):
             await interaction.response.send_message("Нужно немного подождать...", delete_after=5, ephemeral=True)
-
-
-class Special(commands.Cog):
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
 
     @commands.slash_command(
         description="Сброс всех очков (пароль)",
@@ -319,4 +316,4 @@ class Special(commands.Cog):
 
 def setup(bot: commands.Bot):
     bot.add_cog(ScoresOperations(bot))
-    bot.add_cog(Special(bot))
+    bot.add_cog(SpecialScoresCommands(bot))
