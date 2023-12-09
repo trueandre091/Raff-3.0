@@ -1,37 +1,45 @@
 """Start of create DB!"""
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Text
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 
-import sqlite3
+engine = create_engine("sqlite:///DataBase.db", echo=True)
 
-DB_PATH = "app.db"
-
-def connect_db():
-    """Config connection to DataBase"""
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+Base = declarative_base()
 
 
-def create_db():
-    """Create sheets inside the main DataBase"""
+class Guild_User(Base):
+    __tablename__ = "guild_users"
 
-    db = connect_db()
-    # db = sqlite3.connect(DB_PATH)
-    # db.row_factory = sqlite3.Row
+    id = Column(Integer, primary_key=True)
+    disc_id = Column(Integer, ForeignKey("users.disc_id"))
+    guild_id = Column(Integer, ForeignKey("guilds.guild_id"))
+    extra_info = Column(Text)
 
-    db.cursor().executescript("""CREATE TABLE IF NOT EXISTS guilds (
-    id integer PRIMARY KEY,
-    count_members integer NOT NULL)
-    """)
+    def __repr__(self) -> str:
+        return f"id={self.id!r}, disc_id={self.disc_id!r}, guild_id={self.guild_id!r}, extra_info={self.extra_info!r}"
 
-    db.cursor().executescript("""CREATE TABLE IF NOT EXISTS members(
-    id integer NOT NULL,
-    SCORES integer NOT NULL)
-    """)
 
-    db.commit()
-    db.close()
+class User(Base):
+    __tablename__ = "users"
 
-# db = connect_db()
-# db = create_db(db)
+    id = Column(Integer, primary_key=True)
+    username = Column(String(30), nullable=False)
+    disc_id = Column(Integer, nullable=False)
+    guilds = relationship("Guild_User", backref='user')
 
-# C:\Users\andre\Documents\GitHub\Raff-3.0
+    def __repr__(self) -> str:
+        return f"User(id={self.id!r}, name={self.name!r}, disc_id={self.disc_id!r}"
+
+
+class Guilds(Base):
+    __tablename__ = "guilds"
+
+    id = Column(Integer, primary_key=True)
+    guild_id = Column(Integer, nullable=False)
+    servname = Column(String(30), nullable=False)
+    count_of_members = Column(Integer, nullable=False)
+    users = relationship("Guild_User", backref="guild")
+
+
+Base.metadata.create_all(engine)
