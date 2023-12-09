@@ -29,7 +29,7 @@ async def gif_moderation(message: disnake.Message, settings_dict: dict):
                 skip_first_flag = True
 
             if flag:
-                counter_functions.count_failed_gif_counter()
+                await counter_functions.count_failed_gif_counter()
 
                 await message.reply(f"Гифки можно отправлять раз в {settings_dict['MESSAGES_FOR_GIF']} "
                                     f"сообщений <a:A_heart1:993383076363239444>", delete_after=3)
@@ -52,7 +52,7 @@ async def gif_moderation(message: disnake.Message, settings_dict: dict):
             skip_first_flag = True
 
         if flag:
-            counter_functions.count_failed_gif_counter()
+            await counter_functions.count_failed_gif_counter()
 
             await message.reply(f"Гифки можно отправлять раз в {settings_dict['MESSAGES_FOR_GIF']} "
                                 f"сообщений <a:A_heart1:993383076363239444>", delete_after=3)
@@ -67,9 +67,8 @@ async def reactions_thread_check(message: disnake.Message, settings_dict: dict) 
         channels_thread = settings_dict["THREAD"]
         reactions = settings_dict["REACTIONS"]
         matched_channels_to_reactions = settings_dict["MATCHED_REACTIONS_TO_CHANNELS"]
-
+        channels = {str(value): key for key, value in channels.items()}
         message_channel_name = channels[str(message.channel.id)]
-        print(message_channel_name)
 
         if message_channel_name in channels_thread:
             await message.create_thread(name="Комментарии")
@@ -100,11 +99,11 @@ async def boosts_check(message: disnake.Message, settings_dict: dict) -> None:
             if flag:
                 print(0)
 
-                counter_functions.count_users_boosts(message.interaction.user.id)
+                await counter_functions.count_users_boosts(message.interaction.user.id)
 
         if message.author.id == settings_dict["BOOST_BOTS"]["DSMonitoring"]:
             if "Вы успешно лайкнули сервер." in message.embeds[-1].to_dict()["description"]:
-                counter_functions.count_users_boosts(message.interaction.user.id)
+                await counter_functions.count_users_boosts(message.interaction.user.id)
 
 
 async def order_command_check(bot: commands.Bot, message: disnake.Message, settings_dict: dict) -> None:
@@ -121,7 +120,7 @@ async def order_command_check(bot: commands.Bot, message: disnake.Message, setti
 
         else:
 
-            counter_functions.count_orders_counter()
+            await counter_functions.count_orders_counter()
 
             barmen_role = f"<@&{settings_dict['BARMEN_ROLE']}>"
             embed = disnake.Embed(
