@@ -1,27 +1,27 @@
-"""Автообновление всех топов на сервере"""
-
 from os import getcwd
 import disnake
 from disnake.ext import commands, tasks
 from json import load, dump
 from datetime import datetime, timezone, timedelta
 
+import config as cfg
+from cog_scores import top_create_embed
 FOLDER = getcwd()
-with (open(f"{FOLDER}/config.json", "r", encoding="utf-8") as file):
-    CONFIG = load(file)
 
 
 class AutoUpdateMessagesTop(commands.Cog):
+    """Send/edit an autoupdate message about leaderboard of weekly amount of members' messages"""
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.settings = cfg.COGS_SETTINGS["AUTOUPDATE"]
         self.aup_top.start()
         self.reset_aup_top.start()
-        self.channel = CONFIG["CHANNEL_AUP_TOP"]
 
     @tasks.loop(hours=12)
     async def reset_aup_top(self):
+        """Resetting the database of members' weekly amount of messages"""
         today = datetime.now(timezone(timedelta(hours=3)))
-        if int(today.weekday()) == 0 and int(today.strftime('%H')) >= 0:
+        if int(today.weekday()) == 0 and 0 <= int(today.strftime('%H')) <= 12:
             with (open(f"{FOLDER}/data/lb_messages_data.json", "r", encoding="utf-8") as f):
                 data = load(f)
 
@@ -36,8 +36,8 @@ class AutoUpdateMessagesTop(commands.Cog):
 
     @tasks.loop(seconds=15)
     async def aup_top(self):
-        channel = self.bot.get_channel(self.channel)
-        guild = self.bot.get_guild(CONFIG["GUILD_ID"])
+        channel = self.bot.get_channel(self.settings["CHANNEL"])
+        guild = self.bot.get_guild(cfg.GUILD_ID)
 
         with (open(f"{FOLDER}/data/lb_messages_data.json", "r", encoding="utf-8") as f):
             data = load(f)
@@ -62,7 +62,7 @@ class AutoUpdateMessagesTop(commands.Cog):
 
         place = 1
         for key, value in data.items():
-            if place <= 10:
+            if place <= self.settings["MESSAGES"]["PLACE_LIMIT"]:
                 member = guild.get_member(int(key))
                 embed_dict['description'] += f"`{place}.` {member.mention} - {value}\n"
                 place += 1
@@ -73,7 +73,6 @@ class AutoUpdateMessagesTop(commands.Cog):
                 await msg.edit(embed=disnake.Embed.from_dict(embed_dict))
                 flag = False
                 break
-
         if flag:
             await channel.send(embed=disnake.Embed.from_dict(embed_dict))
 
@@ -83,35 +82,15 @@ class AutoUpdateMessagesTop(commands.Cog):
 
 
 class AutoUpdateScoresTop(commands.Cog):
+    """Send/edit an autoupdate message about leaderboard of amount of members' scores"""
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.settings = cfg.COGS_SETTINGS["AUTOUPDATE"]
         self.aup_top.start()
-        self.channel = CONFIG["CHANNEL_AUP_TOP"]
 
     @tasks.loop(seconds=60)
     async def aup_top(self):
-        channel = self.bot.get_channel(self.channel)
-        guild = self.bot.get_guild(CONFIG["GUILD_ID"])
-
-        with (open(f"{FOLDER}/data/users_data.json", "r", encoding="utf-8") as f):
-            data = load(f)
-
-        sort_data = sorted(data.items(), key=lambda x: x[1], reverse=True)
-        data = dict(sort_data)
-
-        nulls = []
-        for key, value in data.items():
-            if value == 0:
-                nulls.append(key)
-        for key in nulls:
-            data.pop(key)
-
-        first_lvl_members = []
-        third_lvl_members = []
-        fifth_lvl_members = []
-        amount1 = CONFIG["SETTINGS"]["AMOUNT_TO_FIRST_LVL"]
-        amount2 = CONFIG["SETTINGS"]["AMOUNT_TO_THIRD_LVL"]
-        amount3 = CONFIG["SETTINGS"]["AMOUNT_TO_FIFTH_LVL"]
+        channel = self.bot.get_channel(self.settings["CHANNEL"])
 
         embed_dict = {
             'title': 'Таблица лидеров по очкам: 📊',
@@ -120,48 +99,7 @@ class AutoUpdateScoresTop(commands.Cog):
             'color': 0x2b2d31,
             'footer': {'text': channel.guild.name, 'icon_url': channel.guild.icon.url}
         }
-
-        flag1 = False
-        flag2 = False
-        flag3 = False
-        c = 1
-        for key, value in data.items():
-            member = guild.get_member(int(key))
-            embed_dict['description'] += f"`{c}.` {member.mention} — `{value} оч.`\n"
-            if amount1 <= value < amount2:
-                flag1 = True
-                first_lvl_members.append(key)
-            elif amount2 <= value < amount3:
-                flag2 = True
-                third_lvl_members.append(key)
-            elif amount3 <= value:
-                flag3 = True
-                fifth_lvl_members.append(key)
-            c += 1
-
-        c = 0
-        if flag1 or flag2 or flag3:
-            embed_dict['description'] += "\n**Получат роли**"
-
-        if flag1:
-            embed_dict['fields'].append({'name': '1-го уровня:', 'value': '', 'inline': True})
-            for key in first_lvl_members:
-                member = guild.get_member(int(key))
-                embed_dict['fields'][c]['value'] += f"{member.mention} "
-            c += 1
-        if flag2:
-            embed_dict['fields'].append({'name': '3-го уровня:', 'value': '', 'inline': True})
-            for key in third_lvl_members:
-                member = guild.get_member(int(key))
-                embed_dict['fields'][c]['value'] += f"{member.mention} "
-            c += 1
-
-        if flag3:
-            embed_dict['fields'].append({'name': '5-го уровня:', 'value': '', 'inline': True})
-            for key in fifth_lvl_members:
-                member = guild.get_member(int(key))
-                embed_dict['fields'][c]['value'] += f"{member.mention} "
-            c += 1
+        embed_dict = await top_create_embed(self.bot, embed_dict)
 
         flag = True
         async for msg in channel.history(limit=3):
@@ -169,7 +107,6 @@ class AutoUpdateScoresTop(commands.Cog):
                 await msg.edit(embed=disnake.Embed.from_dict(embed_dict))
                 flag = False
                 break
-
         if flag:
             await channel.send(embed=disnake.Embed.from_dict(embed_dict))
 

@@ -4,208 +4,141 @@ from disnake.ext import commands
 from json import load, dump
 from datetime import date
 
+import config as cfg
+from cogs import counter_functions
 FOLDER = getcwd()
-with (open(f"{FOLDER}/config.json", "r", encoding="utf-8") as file):
-    CONFIG = load(file)
 
 
-async def add_added_scores_counter(scores: int):
-    with (open(f"{FOLDER}/data/counters.json", "r", encoding="utf-8") as f):
+async def load_database() -> dict:
+    with (open(f"{FOLDER}/data/users_data.json", "r", encoding="utf-8") as f):
         data = load(f)
+    return data
 
-    data["ADDED_SCORES"] += scores
 
-    with (open(f"{FOLDER}/data/counters.json", "w", encoding="utf-8") as f):
+async def dump_database(data: dict) -> None:
+    with (open(f"{FOLDER}/data/users_data.json", "w", encoding="utf-8") as f):
         dump(data, f)
 
 
-async def add_removed_scores_counter(scores: int):
-    with (open(f"{FOLDER}/data/counters.json", "r", encoding="utf-8") as f):
-        data = load(f)
+async def top_create_embed(bot: commands.Bot, embed_dict: dict):
+    """Creating an embed of leaderboard of members by scores"""
+    guild = bot.get_guild(cfg.GUILD_ID)
+    settings = cfg.COGS_SETTINGS["SCORES"]
 
-    data["REMOVED_SCORES"] += scores
+    data = await load_database()
+    sort_data = sorted(data.items(), key=lambda x: x[1], reverse=True)
+    data = dict(sort_data)
 
-    with (open(f"{FOLDER}/data/counters.json", "w", encoding="utf-8") as f):
-        dump(data, f)
+    nulls = []
+    for key, value in data.items():
+        if value == 0:
+            nulls.append(key)
+    for key in nulls:
+        data.pop(key)
 
+    first_lvl_members, third_lvl_members, fifth_lvl_members = [], [], []
+    amount1 = settings["AMOUNT_TO_FIRST_LVL"]
+    amount2 = settings["AMOUNT_TO_THIRD_LVL"]
+    amount3 = settings["AMOUNT_TO_FIFTH_LVL"]
 
-def add_to_top(member_id: str, amount: int):
-    with (open(f"{FOLDER}/data/top.json", "r", encoding="utf-8") as f):
-        top = load(f)
-    top[member_id] = amount
-    with (open(f"{FOLDER}/data/top.json", "w", encoding="utf-8") as f):
-        dump(top, f)
+    flag1, flag2, flag3 = False, False, False
+    place = 0
+    for key, value in data.items():
+        member = guild.get_member(int(key))
+        embed_dict['description'] += f"`{place + 1}.` {member.mention} — `{value} оч.`\n"
+        if amount1 <= value < amount2:
+            flag1 = True
+            first_lvl_members.append(key)
+        elif amount2 <= value < amount3:
+            flag2 = True
+            third_lvl_members.append(key)
+        elif value >= amount3:
+            flag3 = True
+            fifth_lvl_members.append(key)
+        place += 1
+
+    if flag1 or flag2 or flag3:
+        embed_dict['description'] += "\n**Получат роли**"
+        index_of_field = 0
+        if flag1:
+            embed_dict['fields'].append({'name': '1-го уровня:', 'value': '', 'inline': True})
+            for key in first_lvl_members:
+                member = guild.get_member(int(key))
+                embed_dict['fields'][index_of_field]['value'] += f"{member.mention} "
+            index_of_field += 1
+        if flag2:
+            embed_dict['fields'].append({'name': '3-го уровня:', 'value': '', 'inline': True})
+            for key in third_lvl_members:
+                member = guild.get_member(int(key))
+                embed_dict['fields'][index_of_field]['value'] += f"{member.mention} "
+            index_of_field += 1
+        if flag3:
+            embed_dict['fields'].append({'name': '5-го уровня:', 'value': '', 'inline': True})
+            for key in fifth_lvl_members:
+                member = guild.get_member(int(key))
+                embed_dict['fields'][index_of_field]['value'] += f"{member.mention} "
+            index_of_field += 1
+
+    return embed_dict
 
 
 class ScoresOperations(commands.Cog):
-    """Where will be scores operations"""
-
+    """Where will be scores operations: /add_one, /remove_one, /add_any, /remove_any"""
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-
-    @commands.slash_command(description="Показать кол-во очков у себя / участника")
-    async def реп(self, inter: disnake.ApplicationCommandInteraction, участник: disnake.Member = None):
-
-        with (open(f"{FOLDER}/data/users_data.json", "r", encoding="utf-8") as f):
-            data = load(f)
-
-        name1 = "Очки"
-        name2 = "Место в топе"
-        value1 = f"```0 оч.```"
-        value1_2 = ""
-        embed1 = ""
-        embed2 = ""
-
-        if участник is not None:
-            value1_2 = f"```{data[str(участник.id)]} оч.```"
-            embed2 = disnake.Embed(
-                title=f"{участник}",
-                color=0x2b2d31
-            )
-            try:
-                embed2.set_thumbnail(url=участник.avatar.url)
-            except AttributeError:
-                embed2.set_thumbnail(url='https://i.postimg.cc/CMsM38p8/1.png')
-            embed2.set_footer(
-                text=inter.guild.name,
-                icon_url=inter.guild.icon.url
-            )
-        else:
-            embed1 = disnake.Embed(
-                title=f"{inter.author}",
-                color=0x2b2d31
-            )
-            try:
-                embed1.set_thumbnail(url=inter.author.avatar.url)
-            except AttributeError:
-                embed1.set_thumbnail(url='https://i.postimg.cc/CMsM38p8/1.png')
-            embed1.set_footer(
-                text=inter.guild.name,
-                icon_url=inter.guild.icon.url
-            )
-
-        value2 = f"```#```"
-
-        if участник is None:
-            if str(inter.author.id) not in data:
-
-                embed1.set_thumbnail(url=inter.author.avatar.url)
-                embed1.add_field(
-                    name=name1,
-                    value=value1
-                )
-                embed1.add_field(
-                    name=name2,
-                    value=value2
-                )
-
-                await inter.response.send_message(embed=embed1)
-
-            else:
-
-                embed1.add_field(
-                    name=name1,
-                    value=f"```{data[str(inter.author.id)]} оч.```"
-                )
-                embed1.add_field(
-                    name=name2,
-                    value=value2
-                )
-
-                await inter.response.send_message(embed=embed1)
-
-        else:
-            if str(участник.id) not in data:
-
-                embed2.add_field(
-                    name=name1,
-                    value=value1
-                )
-                embed2.add_field(
-                    name=name2,
-                    value=value2
-                )
-
-                await inter.response.send_message(embed=embed2)
-
-            else:
-
-                embed2.add_field(
-                    name=name1,
-                    value=value1_2
-                )
-                embed2.add_field(
-                    name=name2,
-                    value=value2
-                )
-
-                await inter.response.send_message(embed=embed2)
-
-    ############################################################################################
 
     @commands.slash_command(
         description="Прибавить очки 1 участнику",
         default_member_permissions=disnake.Permissions(administrator=True)
     )
-    async def add_just_one(
-            self, inter: disnake.ApplicationCommandInteraction,
-            участник: disnake.Member, количество: int
+    async def add_one(
+            self, interaction: disnake.ApplicationCommandInteraction, участник: disnake.Member, количество: int
     ):
+        """Adding to a member a certain amount of scores"""
+        await counter_functions.count_added_scores(количество)
 
-        await add_added_scores_counter(количество)
-
-        with (open(f"{FOLDER}/data/users_data.json", "r", encoding="utf-8") as f):
-            data = load(f)
-
+        data = await load_database()
         if str(участник.id) not in data:
             data[str(участник.id)] = количество
         else:
             data[str(участник.id)] += количество
+        await dump_database(data)
 
-        await inter.response.send_message(f"Теперь у {участник} {data[str(участник.id)]} оч.")
-
-        with (open(f"{FOLDER}/data/users_data.json", "w", encoding="utf-8") as f):
-            dump(data, f)
+        await interaction.response.send_message(f"Теперь у {участник} {data[str(участник.id)]} оч.")
 
     @commands.slash_command(
         description="Вычесть очки у 1 участника",
         default_member_permissions=disnake.Permissions(administrator=True)
     )
-    async def remove_just_one(
-            self, inter: disnake.ApplicationCommandInteraction,
-            участник: disnake.Member, количество: int
+    async def remove_one(
+            self, interaction: disnake.ApplicationCommandInteraction, участник: disnake.Member, количество: int
     ):
+        """Removing from a member a certain amount of scores"""
+        await counter_functions.count_removed_scores(количество)
 
-        await add_removed_scores_counter(количество)
-
-        with (open(f"{FOLDER}/data/users_data.json", "r", encoding="utf-8") as f):
-            data = load(f)
-
+        data = await load_database()
         if str(участник.id) not in data:
-            await inter.response.send_message("У участника 0 очков, куда меньше?...")
+            await interaction.response.send_message("У участника 0 очков, куда меньше?...")
         else:
             if количество >= data[str(участник.id)]:
                 data[str(участник.id)] = 0
             else:
                 data[str(участник.id)] -= количество
+        await dump_database(data)
 
-        await inter.response.send_message(f"Теперь у {участник} {data[str(участник.id)]} оч.")
-
-        with (open(f"{FOLDER}/data/users_data.json", "w", encoding="utf-8") as f):
-            dump(data, f)
+        await interaction.response.send_message(f"Теперь у {участник} {data[str(участник.id)]} оч.")
 
     @commands.slash_command(
         description="Вычесть очки у любого кол-ва участников (упомянуть через пробел)",
         default_member_permissions=disnake.Permissions(administrator=True)
     )
-    async def remove_any(self, inter: disnake.ApplicationCommandInteraction, участники: str, количество: int):
-        with (open(f"{FOLDER}/data/users_data.json", "r", encoding="utf-8") as f):
-            data = load(f)
-
+    async def remove_any(self, interaction: disnake.ApplicationCommandInteraction, участники: str, количество: int):
+        """Removing from several members a certain amount of scores"""
+        data = await load_database()
         members_list = участники.split()
         members_list_values = []
 
-        await add_removed_scores_counter(количество * len(members_list))
+        await counter_functions.count_removed_scores(количество * len(members_list))
 
         for member in members_list:
             member_id = int(member.strip('<@>'))
@@ -218,6 +151,7 @@ class ScoresOperations(commands.Cog):
                 else:
                     data[str(member_id)] -= количество
                     members_list_values.append(data[str(member_id)])
+        await dump_database(data)
 
         members_dict = dict(zip(members_list, members_list_values))
         embed = disnake.Embed(
@@ -227,26 +161,21 @@ class ScoresOperations(commands.Cog):
         )
         for member, value in members_dict.items():
             member_id = int(member.strip('<@>'))
+            embed.add_field(name=interaction.guild.get_member(member_id), value=f"```{value} оч.```")
 
-            embed.add_field(name=await self.bot.fetch_user(member_id), value=f"```{value} оч.```")
-
-        await inter.response.send_message(embed=embed)
-
-        with (open(f"{FOLDER}/data/users_data.json", "w", encoding="utf-8") as f):
-            dump(data, f)
+        await interaction.response.send_message(embed=embed)
 
     @commands.slash_command(
         description="Прибавить очки любому кол-ву участников (упомянуть через пробел)",
         default_member_permissions=disnake.Permissions(administrator=True)
     )
-    async def add_any(self, inter: disnake.ApplicationCommandInteraction, участники: str, количество: int):
-        with (open(f"{FOLDER}/data/users_data.json", "r", encoding="utf-8") as f):
-            data = load(f)
-
+    async def add_any(self, interaction: disnake.ApplicationCommandInteraction, участники: str, количество: int):
+        """Adding to several members a certain amount of scores"""
+        data = await load_database()
         members_list = участники.split()
         members_list_values = []
 
-        await add_added_scores_counter(количество * len(members_list))
+        await counter_functions.count_added_scores(количество * len(members_list))
 
         for member in members_list:
             member_id = int(member.strip('<@>'))
@@ -256,6 +185,7 @@ class ScoresOperations(commands.Cog):
             else:
                 data[str(member_id)] += количество
                 members_list_values.append(data[str(member_id)])
+        await dump_database(data)
 
         members_dict = dict(zip(members_list, members_list_values))
         embed = disnake.Embed(
@@ -265,151 +195,104 @@ class ScoresOperations(commands.Cog):
         )
         for member, value in members_dict.items():
             member_id = int(member.strip('<@>'))
+            embed.add_field(name=interaction.guild.get_member(member_id), value=f"```{value} оч.```")
 
-            embed.add_field(name=await self.bot.fetch_user(member_id), value=f"```{value} оч.```")
+        await interaction.response.send_message(embed=embed)
 
-        await inter.response.send_message(embed=embed)
-
-        with (open(f"{FOLDER}/data/users_data.json", "w", encoding="utf-8") as f):
-            dump(data, f)
-            
     @commands.slash_command(
         description="Установить определённое кол-во очков участнику",
         default_member_permissions=disnake.Permissions(administrator=True)
     )
     async def set_just_one(
-            self,
-            inter: disnake.ApplicationCommandInteraction,
-            участник: disnake.Member, количество: int
+            self, interaction: disnake.ApplicationCommandInteraction, участник: disnake.Member, количество: int
     ):
-        with (open(f"{FOLDER}/data/users_data.json", "r", encoding="utf-8") as f):
-            data = load(f)
-
+        """Setting for a member a certain amount of scores"""
+        data = await load_database()
         data[str(участник.id)] = количество
+        await dump_database(data)
 
-        with (open(f"{FOLDER}/data/users_data.json", "w", encoding="utf-8") as f):
-            dump(data, f)
-            
-        await inter.response.send_message(f"У {участник} теперь {количество}")
+        await interaction.response.send_message(f"У {участник} теперь {количество}")
 
-    ############################################################################################
 
-    @commands.slash_command(
-        description="Таблица лидеров по очкам"
-    )
-    async def топ(self, inter: disnake.ApplicationCommandInteraction):
-        with (open(f"{FOLDER}/data/users_data.json", "r", encoding="utf-8") as f):
-            data = load(f)
+class SpecialScoresCommands(commands.Cog):
+    """Special scores commands: /реп, /топ, /reset"""
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
 
-        sort_data = sorted(data.items(), key=lambda x: x[1], reverse=True)
-        data = dict(sort_data)
+    @commands.slash_command(description="Показать кол-во очков у себя / участника")
+    async def реп(self, interaction: disnake.ApplicationCommandInteraction, участник: disnake.Member = None):
+        """Showing user's or a somebody's amount of scores"""
+        data = await load_database()
 
-        guild = self.bot.get_guild(CONFIG["GUILD_ID"])
-        
-        nulls = []
-        for key, value in data.items():
-            if value == 0:
-                nulls.append(key)
-        for key in nulls:
-            data.pop(key)
+        embed_dict = {
+            'fields': [{'name': 'Очки'}],
+            'footer': {'text': interaction.guild.name, 'icon_url': interaction.guild.icon.url},
+            'color': 0x2b2d31
+        }
+        if участник:
+            embed_dict['title'] = участник.name
+            try:
+                embed_dict['thumbnail'] = f'{участник}'
+            except AttributeError:
+                embed_dict['thumbnail'] = 'https://i.postimg.cc/CMsM38p8/1.png'
+            try:
+                embed_dict['fields'][0]['value'] = f"```{data[str(участник.id)]} оч.```"
+            except KeyError:
+                embed_dict['fields'][0]['value'] = f'```0 оч.```'
+        else:
+            embed_dict['title'] = f'{interaction.author}'
+            try:
+                embed_dict['thumbnail'] = f'{interaction.author}'
+            except AttributeError:
+                embed_dict['thumbnail'] = 'https://i.postimg.cc/CMsM38p8/1.png'
+            try:
+                embed_dict['fields'][0]['value'] = f"```{data[str(interaction.author.id)]} оч.```"
+            except KeyError:
+                embed_dict['fields'][0]['value'] = f'```0 оч.```'
+
+        await interaction.response.send_message(embed=disnake.Embed.from_dict(embed_dict))
+
+    @commands.cooldown(1, 5)
+    @commands.slash_command(description="Таблица лидеров по очкам")
+    async def топ(self, interaction: disnake.ApplicationCommandInteraction):
+        """Sending a leaderboard of members by points"""
+        await interaction.response.send_message('...')
 
         embed_dict = {
             'title': 'Таблица лидеров по очкам: 📊',
             'description': '',
             'fields': [],
             'color': 0x2b2d31,
-            'footer': {'text': inter.guild.name, 'icon_url': inter.guild.icon.url}
+            'footer': {'text': interaction.guild.name, 'icon_url': interaction.guild.icon.url}
         }
+        embed_dict = await top_create_embed(self.bot, embed_dict)
 
-        await inter.response.send_message(embed=disnake.Embed.from_dict(embed_dict))
-
-        first_lvl_members = []
-        third_lvl_members = []
-        fifth_lvl_members = []
-        amount1 = CONFIG["SETTINGS"]["AMOUNT_TO_FIRST_LVL"]
-        amount2 = CONFIG["SETTINGS"]["AMOUNT_TO_THIRD_LVL"]
-        amount3 = CONFIG["SETTINGS"]["AMOUNT_TO_FIFTH_LVL"]
-
-        flag = False
-        flag1 = False
-        flag2 = False
-        flag3 = False
-        c = 1
-        for key, value in data.items():
-            member = guild.get_member(int(key))
-
-            embed_dict['description'] += f"`{c}.` {member.mention} — `{value} оч.`\n"
-            await inter.edit_original_response(embed=disnake.Embed.from_dict(embed_dict))
-            if amount1 <= value < amount2:
-                flag1 = True
-                first_lvl_members.append(key)
-            elif amount2 <= value < amount3:
-                flag2 = True
-                third_lvl_members.append(key)
-            elif amount3 <= value:
-                flag3 = True
-                fifth_lvl_members.append(key)
-            c += 1
-
-        c = 0
-        if flag1 or flag2 or flag3:
-            embed_dict['description'] += "\n**Получат роли**"
-
-        if flag1:
-            embed_dict['fields'].append({'name': '1-го уровня:', 'value': '', 'inline': True})
-            for key in first_lvl_members:
-                member = guild.get_member(int(key))
-                embed_dict['fields'][c]['value'] += f"{member.mention} "
-            c += 1
-
-        if flag2:
-            embed_dict['fields'].append({'name': '3-го уровня:', 'value': '', 'inline': True})
-            for key in third_lvl_members:
-                member = guild.get_member(int(key))
-                embed_dict['fields'][c]['value'] += f"{member.mention} "
-            c += 1
-
-        if flag3:
-            embed_dict['fields'].append({'name': '5-го уровня:', 'value': '', 'inline': True})
-            for key in fifth_lvl_members:
-                member = guild.get_member(int(key))
-                embed_dict['fields'][c]['value'] += f"{member.mention} "
-            c += 1
-
-        await inter.edit_original_response(embed=disnake.Embed.from_dict(embed_dict))
+        await interaction.edit_original_response(content='', embed=disnake.Embed.from_dict(embed_dict))
 
     @топ.error
     async def on_test_error(self, interaction: disnake.Interaction, error: commands.CommandError):
         if isinstance(error, commands.CommandOnCooldown):
             await interaction.response.send_message("Нужно немного подождать...", delete_after=5, ephemeral=True)
 
-
-class Special(commands.Cog):
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
-
     @commands.slash_command(
         description="Сброс всех очков (пароль)",
         default_member_permissions=disnake.Permissions(administrator=True)
     )
-    async def reset(self, inter: disnake.ApplicationCommandInteraction, пароль: int):
-        if пароль == CONFIG["SETTINGS"]["PASSWORD"]:
-            with (open(f"{FOLDER}/data/users_data.json", "r", encoding="utf-8") as f):
-                data = load(f)
-                
+    async def reset(self, interaction: disnake.ApplicationCommandInteraction, пароль: int):
+        """Resetting scores database and making backup"""
+        if пароль == cfg.SETTINGS["PASSWORD"]:
+            data = await load_database()
             with (open(f"{FOLDER}/data/backups/backup_{date.today()}.json", 'w', encoding="utf-8") as f):
                 dump(data, f)
-                
-            with (open(f"{FOLDER}/data/users_data.json", "w", encoding="utf-8") as f):
-                dump({}, f)
+            await dump_database({})
 
-            await inter.response.send_message(f"База данных сброшена, бэкап создан `{date.today()}`")
+            await interaction.response.send_message(f"База данных сброшена, бэкап создан `{date.today()}`")
 
         else:
 
-            await inter.response.send_message("Неверный пароль... Ты вор, сука?", delete_after=30)
+            await interaction.response.send_message("Неверный пароль... Ты вор, сука?", delete_after=30)
 
 
 def setup(bot: commands.Bot):
     bot.add_cog(ScoresOperations(bot))
-    bot.add_cog(Special(bot))
+    bot.add_cog(SpecialScoresCommands(bot))
