@@ -1,45 +1,28 @@
-"""Start of create DB!"""
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Text
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
-
-engine = create_engine("sqlite:///DataBase.db", echo=True)
-
-Base = declarative_base()
+"""Methods and classes for working with database"""
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+import json
 
 
-class Guild_User(Base):
-    __tablename__ = "guild_users"
+class JsonEncoder:
+    """Code and decode settings for Guilds"""
 
-    id = Column(Integer, primary_key=True)
-    disc_id = Column(Integer, ForeignKey("users.disc_id"))
-    guild_id = Column(Integer, ForeignKey("guilds.guild_id"))
-    extra_info = Column(Text)
+    @staticmethod
+    def code_to_json(data):
+        return json.dumps(data)
 
-    def __repr__(self) -> str:
-        return f"id={self.id!r}, disc_id={self.disc_id!r}, guild_id={self.guild_id!r}, extra_info={self.extra_info!r}"
-
-
-class User(Base):
-    __tablename__ = "users"
-
-    id = Column(Integer, primary_key=True)
-    username = Column(String(30), nullable=False)
-    disc_id = Column(Integer, nullable=False)
-    guilds = relationship("Guild_User", backref='user')
-
-    def __repr__(self) -> str:
-        return f"User(id={self.id!r}, name={self.name!r}, disc_id={self.disc_id!r}"
+    @staticmethod
+    def code_from_json(data):
+        return json.loads(data)
 
 
-class Guilds(Base):
-    __tablename__ = "guilds"
+class DataBase:
+    """Class for creating connection to database and managing it"""
+    def __init__(self):
+        try:
+            self.engine = create_engine("sqlite:///DataBase.db", echo=True)
+            self.session = Session(self.engine)
+        except:
+            raise "Error creating an engine or connecting to database"
 
-    id = Column(Integer, primary_key=True)
-    guild_id = Column(Integer, nullable=False)
-    servname = Column(String(30), nullable=False)
-    count_of_members = Column(Integer, nullable=False)
-    users = relationship("Guild_User", backref="guild")
 
-
-Base.metadata.create_all(engine)
