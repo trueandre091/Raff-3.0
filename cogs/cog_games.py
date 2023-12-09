@@ -11,7 +11,8 @@ from cogs.counter_functions import count_lose_scores
 
 FOLDER = getcwd()
 
-def return_corr_embed(inter):
+
+def return_corr_embed(interaction):
     embed_dict = {
         "title": "",
         "description": "",
@@ -20,8 +21,8 @@ def return_corr_embed(inter):
             "name": "BlackJack ♠️"
         },
         "footer": {
-            "text": f"{inter.guild.name}",
-            "icon_url": f"{inter.guild.icon.url}"
+            "text": f"{interaction.guild.name}",
+            "icon_url": f"{interaction.guild.icon.url}"
         }
     }
     return embed_dict
@@ -102,7 +103,7 @@ async def bj_designed_embed_if_21(embed_dict: dict, interaction, bet):
 
 
 def return_scores(current, score):
-    # Return scores after convert from voc value_of_card
+    """Return scores after convert from voc value_of_card"""
     voc = {
         '2': 2,
         '3': 3,
