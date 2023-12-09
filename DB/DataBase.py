@@ -16,6 +16,9 @@ class Guild_User(Base):
     guild_id = Column(Integer, ForeignKey("guilds.guild_id"))
     extra_info = Column(Text)
 
+    def __repr__(self) -> str:
+        return f"id={self.id!r}, disc_id={self.disc_id!r}, guild_id={self.guild_id!r}, extra_info={self.extra_info!r}"
+
 
 class User(Base):
     __tablename__ = "users"
