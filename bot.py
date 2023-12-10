@@ -5,8 +5,12 @@ from cogs.on_message_functions import *
 bot = commands.Bot(
     command_prefix="none", help_command=None, intents=disnake.Intents.all(), chunk_guilds_at_startup=False
 )
-
-# bot.load_extensions("cogs")
+bot.load_extension("cogs.cog_autoupdate")
+bot.load_extension("cogs.cog_counters")
+bot.load_extension("cogs.cog_events")
+bot.load_extension("cogs.cog_games")
+bot.load_extension("cogs.cog_orders")
+bot.load_extension("cogs.cog_scores")
 
 
 @bot.event
@@ -14,10 +18,9 @@ async def on_member_join(member):
     """Greeting newbies when they come"""
     settings = cfg.WELCOME_SETTINGS
     channel = bot.get_channel(settings["CHANNEL"])
-    member = member.mention
     embed_dict = {
         "title": settings["TITLE"],
-        "description": member + settings["EMBED"]["DESCRIPTION"],
+        "description": settings["EMBED"]["DESCRIPTION"],
         "image": {"url": settings["BACKGROUND_IMAGE"]},
         "color": settings["EMBED"]["COLOR"],
         "timestamp": datetime.now()
@@ -45,13 +48,13 @@ async def on_message(message):
 
     await count_every_message(message)
 
+    await moderation(message, cfg.MODERATION_SETTINGS)
+
     await reactions_thread_check(message, cfg.ADDING_REACTIONS_THREADS_SETTINGS)
 
     await boosts_check(message, cfg.BOOSTS_COUNTING_SETTINGS)
 
-    await order_command_check(bot, message, cfg.ORDERS_SETTINGS)
-
-    await moderation(message, cfg.MODERATION_SETTINGS)
+    await order_command_check(bot, message, cfg.COGS_SETTINGS["ORDERS"])
 
 
 @bot.event

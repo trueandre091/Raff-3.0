@@ -1,12 +1,9 @@
 from os import getcwd
 import disnake
 from disnake.ext import commands
-from json import load
 
+import config as cfg
 FOLDER = getcwd()
-
-with (open(f"{FOLDER}/config.json", "r", encoding="utf-8") as file):
-    CONFIG = load(file)
 
 
 class SendMessage(commands.Cog):

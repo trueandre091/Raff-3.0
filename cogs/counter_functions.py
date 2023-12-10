@@ -64,9 +64,8 @@ async def count_every_message(message: disnake.Message) -> None:
             dump(data, f)
 
 
-async def count_users_boosts(message: disnake.Message) -> None:
+async def count_users_boosts(author_id: int) -> None:
     """Counting users' boost on the monitoring sites"""
-    author_id = message.author.id
     with(open(f"{FOLDER}/data/counters.json", 'r', encoding='utf-8') as f):
         data = load(f)
 
