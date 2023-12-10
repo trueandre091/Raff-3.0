@@ -333,7 +333,7 @@ class Roulette(commands.Cog):
                 if lucky == 100:
                     flag = 3
                     data[str(member_id)] += ставка * 4
-                elif lucky >= cfg.GAMES_SETTINGS["ROULETTE"]["CHANCE"]:
+                elif lucky >= cfg.COGS_SETTINGS["GAMES"]["ROULETTE"]["CHANCE"]:
                     flag = 2
                     data[str(member_id)] += ставка * 2
                 elif lucky == 0:
@@ -359,11 +359,11 @@ class Roulette(commands.Cog):
                 }
 
                 if flag == 1:
-                    count_lose_scores(ставка)
+                    await count_lose_scores(ставка)
 
                     embed_dict["title"] += "Вам не повезло 🤕"
                 elif flag == 0:
-                    count_lose_scores(ставка + ставка // 2)
+                    await count_lose_scores(ставка + ставка // 2)
 
                     embed_dict["title"] += "Вам КАТЕГОРИЧЕСКИ НЕ повезло 💔"
                 elif flag == 2:

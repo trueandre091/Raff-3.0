@@ -1,5 +1,4 @@
 from datetime import datetime
-from json import load, dump
 from os import getcwd
 import disnake
 from disnake.ext import commands

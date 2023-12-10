@@ -14,9 +14,9 @@ class SendMessage(commands.Cog):
         description="Отправить сообщение для создания запросов",
         default_member_permissions=disnake.Permissions(administrator=True)
     )
-    async def buttons(self, inter: disnake.ApplicationCommandInteraction):
+    async def buttons(self, interaction: disnake.ApplicationCommandInteraction):
         channel = self.bot.get_channel(992788044514082876)
-        await inter.response.send_message("Сообщение для запросов создано!", ephemeral=True)
+        await interaction.response.send_message("Сообщение для запросов создано!", ephemeral=True)
         embed = disnake.Embed(
             title="Служба поддержки 📟",
             description="При помощи кнопок к сообщению вы можете сделать запрос по любому поводу у администрации и " +
@@ -59,11 +59,11 @@ class Application(disnake.ui.Modal):
 
         super().__init__(title="Окно запроса", components=self.components)
 
-    async def callback(self, inter: disnake.ModalInteraction):
-        channel = self.bot.get_channel(CONFIG["CHANNEL_LOGS"])
+    async def callback(self, interaction: disnake.ModalInteraction):
+        channel = self.bot.get_channel(cfg.CHANNELS_SETTINGS["CHANNEL_LOGS"])
 
         values = []
-        for v in inter.text_values.values():
+        for v in interaction.text_values.values():
             values.append(v)
 
         embed = disnake.Embed(
@@ -73,11 +73,11 @@ class Application(disnake.ui.Modal):
         )
         embed.add_field(
             name="Отправитель",
-            value=inter.author.mention,
+            value=interaction.author.mention,
             inline=False
         )
 
-        await inter.response.send_message("Запрос успешно отправлен! <a:A_heart1:993383076363239444>\n*Ждите ответ от "
+        await interaction.response.send_message("Запрос успешно отправлен! <a:A_heart1:993383076363239444>\n*Ждите ответ от "
                                           "администрации, он будет отправлен вам в личные сообщения*", ephemeral=True)
         await channel.send(
             embed=embed,
@@ -99,7 +99,7 @@ class Requests(commands.Cog):
 
     @commands.Cog.listener()
     async def on_interaction(self, interaction: disnake.MessageInteraction):
-        if "component" in interaction.type:
+        if interaction.type == disnake.InteractionType.component:
 
             if interaction.component.custom_id == "request":
 
@@ -114,7 +114,9 @@ class Requests(commands.Cog):
         description="Ответить на запрос участника",
         default_member_permissions=disnake.Permissions(administrator=True)
     )
-    async def адм_ответ(self, interaction, отправитель: disnake.Member, ответ: str):
+    async def ответ_администрации(
+            self, interaction: disnake.ApplicationCommandInteraction, запросивший: disnake.Member, ответ: str
+    ):
         text_f = ("Если вас не устраивает ответ администрации или вы хотите поговорить с админом подробнее по этому "
                   "запросу - напишите ему в личные сообщения по нику выше")
 
@@ -133,7 +135,7 @@ class Requests(commands.Cog):
             text=text_f
         )
 
-        await отправитель.send(embed=embed)
+        await запросивший.send(embed=embed)
         await interaction.response.send_message("Ответ отправлен!", ephemeral=True)
 
 

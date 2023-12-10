@@ -1,11 +1,9 @@
 from os import getcwd
-
 import disnake
 from disnake.ext import commands
 import asyncio
 
 import config as cfg
-
 FOLDER = getcwd()
 
 
@@ -34,6 +32,12 @@ async def creating_message_with_nearest_events(event: disnake.GuildScheduledEven
     return message
 
 
+async def delete_previous_message(self, channel) -> None:
+    async for message in channel.history(limit=1):
+        await message.delete()
+    await asyncio.sleep(2)
+
+
 class Events(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -42,27 +46,24 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_scheduled_event_create(self, event):
-        async for message in self.channel.history(limit=1):
-            await message.delete()
-        await asyncio.sleep(2)
+        channel = self.bot.get_channel(self.settings["CHANNEL"])
 
-        await self.channel.send(await creating_message_with_nearest_events(event))
+        await delete_previous_message(self, channel)
+        await channel.send(await creating_message_with_nearest_events(event))
 
     @commands.Cog.listener()
     async def on_guild_scheduled_event_delete(self, event):
-        async for message in self.channel.history(limit=1):
-            await message.delete()
-        await asyncio.sleep(2)
+        channel = self.bot.get_channel(self.settings["CHANNEL"])
 
-        await self.channel.send(await creating_message_with_nearest_events(event))
+        await delete_previous_message(self, channel)
+        await channel.send(await creating_message_with_nearest_events(event))
 
     @commands.Cog.listener()
     async def on_guild_scheduled_event_update(self, before, after):
-        async for message in self.channel.history(limit=1):
-            await message.delete()
-        await asyncio.sleep(2)
+        channel = self.bot.get_channel(self.settings["CHANNEL"])
 
-        await self.channel.send(await creating_message_with_nearest_events(after))
+        await delete_previous_message(self, channel)
+        await channel.send(await creating_message_with_nearest_events(after))
 
 
 def setup(bot: commands.Bot):

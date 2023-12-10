@@ -5,9 +5,9 @@ from cogs.on_message_functions import *
 bot = commands.Bot(
     command_prefix="none", help_command=None, intents=disnake.Intents.all(), chunk_guilds_at_startup=False
 )
+bot.load_extension("cogs.cog_events")
 bot.load_extension("cogs.cog_autoupdate")
 bot.load_extension("cogs.cog_counters")
-bot.load_extension("cogs.cog_events")
 bot.load_extension("cogs.cog_games")
 bot.load_extension("cogs.cog_orders")
 bot.load_extension("cogs.cog_scores")
@@ -18,12 +18,16 @@ async def on_member_join(member):
     """Greeting newbies when they come"""
     settings = cfg.WELCOME_SETTINGS
     channel = bot.get_channel(settings["CHANNEL"])
+    variables = {
+        "member.mention": member.mention, "member.name": member.name, "member.nick": member.nick, "member": member
+    }
     embed_dict = {
-        "title": settings["TITLE"],
-        "description": settings["EMBED"]["DESCRIPTION"],
+        "title": settings["EMBED"]["TITLE"].format(**variables),
+        "description": settings["EMBED"]["DESCRIPTION"].format(**variables),
         "image": {"url": settings["BACKGROUND_IMAGE"]},
+        "thumbnail": {},
         "color": settings["EMBED"]["COLOR"],
-        "timestamp": datetime.now()
+        "timestamp": str(datetime.now())
     }
     try:
         embed_dict["thumbnail"]["url"] = member.avatar.url
@@ -38,8 +42,11 @@ async def on_member_remove(member):
     """Farewell to members when they leave"""
     settings = cfg.FAREWELL_SETTINGS
     channel = bot.get_channel(settings["CHANNEL"])
+    variables = {
+        "member.mention": member.mention, "member.name": member.name, "member.nick": member.nick, "member": member
+    }
 
-    await channel.send(f"{member.mention} / {member.name} / {member.nick} ушёл.")
+    await channel.send(settings["MESSAGE"].format(**variables))
 
 
 @bot.event
