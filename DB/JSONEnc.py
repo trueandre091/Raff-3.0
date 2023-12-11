@@ -6,9 +6,9 @@ class JsonEncoder:
     """Code and decode settings for Guilds"""
 
     @staticmethod
-    async def code_to_json(data):
+    def code_to_json(data):
         return json.dumps(data)
 
     @staticmethod
-    async def code_from_json(data):
+    def code_from_json(data):
         return json.loads(data)
