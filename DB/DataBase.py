@@ -1,10 +1,11 @@
 """Start of create DB!"""
 import asyncio
 from typing import Union
+import traceback
 
 from sqlalchemy import select, update
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session
 # from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 from models import Users, Guilds, Base
@@ -64,41 +65,42 @@ class DataBase:
 
         return False
 
-    async def get_user(self, id=None, username=None, disc_id=None):
+    async def get_user(self, data: dict) -> Union[Users, None]:
         with self.Session() as session:
             try:
-                if id:
-                    user_list = select(Users).filter_by(id=id)
-                    user = session.scalars(user_list).first()
+                if "id" in data.keys():
+                    user = select(Users).filter_by(id=data["id"])
+                    user = session.scalars(user).first()
                     if not user:
                         print("Can't find user by id in database")
-                        return False
+                        return
 
                     return user
 
-                elif username:
-                    user_list = select(Users).filter_by(id=id)
-                    user = session.scalars(user_list).first()
+                elif "username" in data.keys():
+                    user = select(Users).filter_by(id=data["username"])
+                    user = session.scalars(user).first()
                     if not user:
-                        print("Can't find user by id in database")
-                        return False
+                        print("Can't find user username id in database")
+                        return
 
                     return user
 
-                elif disc_id:
-                    user_list = select(Users).filter_by(id=id)
-                    user = session.scalars(user_list).first()
+                elif "disc_id" in data.keys():
+                    user = select(Users).filter_by(id=data["disc_id"])
+                    user = session.scalars(user).first()
                     if not user:
-                        print("Can't find user by id in database")
-                        return False
+                        print("Can't find user by discord id in database")
+                        return
 
                     return user
 
-            except:
+            except Exception as e:
                 print(
-                    f"Something went wrong with get_guild method id: {id}, guild_id: {username}, guild_name: {disc_id}")
+                    f'Something went wrong with get_guild method id: {data["id"]}, username: {data["username"]}, disc_id: {data["disc_id"]}')
+                print(traceback.format_exc())
 
-        return False
+        return
 
     async def add_user(self, data: dict) -> Union[True, False]:
         with self.Session() as session:
@@ -175,9 +177,6 @@ async def main():
     user = {"username": "TopNik_",
             "disc_id": 8326758751}
 
-    # loop = asyncio.get_event_loop()
-    # res_u = loop.run_until_complete(db.add_user(data=user))
-
     res_u = await db.add_user(data=user)
 
     print("user", res_u)
@@ -185,9 +184,6 @@ async def main():
     guild = {"guild_id": 907645237,
              "guild_name": "Homey Temple",
              "count_members": 3000}
-
-    # loop = asyncio.get_event_loop()
-    # res_g = loop.run_until_complete(db.add_guild(data=guild))
 
     res_g = await db.add_guild(guild)
 
@@ -201,6 +197,15 @@ async def main():
     res_update_u = await db.update_user(update_user)
 
     print("Update user", res_update_u)
+
+    user = {"username": "Nikita"}
+    get_user = await db.get_user(user)
+
+    print(get_user)
+
+    # session = Session(engine)
+    # user = session.get(Users, 1)
+    # print(user.scores)
 
 
 if __name__ == "__main__":

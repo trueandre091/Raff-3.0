@@ -37,7 +37,7 @@ class Users(Base):
     experience: Mapped[int] = mapped_column(default=0)
     scores: Mapped[int] = mapped_column(default=10)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow())
-    updated_at: Mapped[datetime] = mapped_column(default=datetime.utcnow(), onupdate=datetime.utcnow())
+    updated_at: Mapped[datetime] = mapped_column(default=datetime.utcnow(), onupdate=datetime.utcnow)
     guilds: Mapped["Guild_User"] = relationship(backref='user')
 
     # id = Column(Integer, primary_key=True)
@@ -73,8 +73,8 @@ class Guilds(Base):
 
 
 if __name__ == "__main__":
-    # engine = create_engine("sqlite:///DataBase.db", echo=True)
-    # Base.metadata.create_all(engine)
+    engine = create_engine("sqlite:///DataBase.db", echo=True)
+    Base.metadata.create_all(engine)
 
     res = JsonEncoder.code_to_json(GUILD_CONFIG)
 
