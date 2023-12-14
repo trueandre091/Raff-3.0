@@ -81,7 +81,7 @@ class DataBase:
                     user = select(Users).filter_by(id=data["username"])
                     user = session.scalars(user).first()
                     if not user:
-                        print("Can't find user username id in database")
+                        print("Can't find user by username in database")
                         return
 
                     return user
@@ -97,7 +97,7 @@ class DataBase:
 
             except Exception as e:
                 print(
-                    f'Something went wrong with get_guild method id: {data["id"]}, username: {data["username"]}, disc_id: {data["disc_id"]}')
+                    f'Something went wrong with get_guild method id: {data.get("id", None)}, username: {data.get("username", None)}, disc_id: {data.get("disc_id", None)}')
                 print(traceback.format_exc())
 
         return
@@ -111,8 +111,9 @@ class DataBase:
                 session.commit()
 
                 return True
-            except:
+            except Exception as e:
                 print("Something went wrong then adding user", data["username"], data["disc_id"])
+                print(traceback.format_exc())
 
         return False
 
@@ -188,20 +189,20 @@ async def main():
     res_g = await db.add_guild(guild)
 
     print("guild", res_g)
-
-    update_user = {"username": "Nikita",
-                   "disc_id": 8326758751,
-                   "experience": 0,
-                   "scores": 10}
-
-    res_update_u = await db.update_user(update_user)
-
-    print("Update user", res_update_u)
-
-    user = {"username": "Nikita"}
-    get_user = await db.get_user(user)
-
-    print(get_user)
+    #
+    # update_user = {"username": "Nikita",
+    #                "disc_id": 8326758751,
+    #                "experience": 0,
+    #                "scores": 10}
+    #
+    # res_update_u = await db.update_user(update_user)
+    #
+    # print("Update user", res_update_u)
+    #
+    # user = {"username": "Nikita"}
+    # get_user = await db.get_user(user)
+    #
+    # print(get_user)
 
     # session = Session(engine)
     # user = session.get(Users, 1)
@@ -210,28 +211,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
-    # engine = create_engine("sqlite:///DataBase.db", echo=True)
-    # Base.metadata.drop_all(engine)
-    # Base.metadata.create_all(engine)
-    #
-    # db = DataBase()
-    #
-    # user = {"username": "TopNik_",
-    #         "disc_id": 8326758751}
-    #
-    # loop = asyncio.get_event_loop()
-    # res_u = loop.run_until_complete(db.add_user(data=user))
-    #
-    # # res = await db.add_user(data=user)
-    #
-    # print("user", res_u)
-    #
-    # guild = {"guild_id": 907645237,
-    #          "guild_name": "Homey Temple",
-    #          "count_members": 3000}
-    #
-    # loop = asyncio.get_event_loop()
-    # res_g = loop.run_until_complete(db.add_guild(data=guild))
-    #
-    # print("guild", res_g)

@@ -9,37 +9,52 @@ intid = Annotated[int, mapped_column(primary_key=True)]
 
 
 class Base(DeclarativeBase):
-    pass
+    repr_cols_num = 3
+    repr_cols = tuple()
+
+    def __repr__(self):
+        cols = []
+        for idx, col in enumerate(self.__table__.columns.keys()):
+            if col in self.repr_cols or idx < self.repr_cols_num:
+                cols.append(f"{col}={getattr(self, col)}")
+
+        return f"<{self.__class__.__name__} {', '.join(cols)}>"
 
 
 class Guild_User(Base):
     __tablename__ = "guild_user"
 
-    id: Mapped[intid]
-    disc_id: Mapped[int] = mapped_column(ForeignKey("users.disc_id"))
-    guild_id: Mapped[int] = mapped_column(ForeignKey("guilds.guild_id"))
+    # id: Mapped[intid]
+
+    disc_id: Mapped[int] = mapped_column(
+        ForeignKey("users.disc_id", ondelete="CASCADE"),
+        primary_key=True
+    )
+    guild_id: Mapped[int] = mapped_column(
+        ForeignKey("guilds.guild_id", ondelete="CASCADE"),
+        primary_key=True
+    )
 
     # id = Column(Integer, primary_key=True)
     # disc_id = Column(Integer, ForeignKey("users.disc_id"))
     # guild_id = Column(Integer, ForeignKey("guilds.guild_id"))
     # extra_info = Column(Text)
 
-    def __repr__(self) -> str:
-        return f"id={self.id!r}, disc_id={self.disc_id!r}, guild_id={self.guild_id!r}"
-
 
 class Users(Base):
     __tablename__ = "users"
 
-    id: Mapped[intid]
+    # id: Mapped[intid]
+    disc_id: Mapped[intid]
     username: Mapped[str]
-    disc_id: Mapped[int]
     experience: Mapped[int] = mapped_column(default=0)
     scores: Mapped[int] = mapped_column(default=10)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow())
     updated_at: Mapped[datetime] = mapped_column(default=datetime.utcnow(), onupdate=datetime.utcnow)
-    guilds: Mapped["Guild_User"] = relationship(backref='user')
 
+    guilds_in_user: Mapped[list["Guilds"]] = relationship(back_populates="users_in_guild", secondary="guild_user")
+
+    # guilds: Mapped["Guild_User"] = relationship(backref='user')
     # id = Column(Integer, primary_key=True)
     # username = Column(String(30), nullable=False)
     # disc_id = Column(Integer, nullable=False)
@@ -47,19 +62,18 @@ class Users(Base):
     # scores = Column(Integer, nullable=False, default=10)
     # guilds = relationship("Guild_User", backref='user')
 
-    def __repr__(self) -> str:
-        return f"User(id={self.id!r}, username={self.username!r}, disc_id={self.disc_id!r}"
-
 
 class Guilds(Base):
     __tablename__ = "guilds"
 
-    id: Mapped[intid]
-    guild_id: Mapped[int]
+    # id: Mapped[intid]
+    guild_id: Mapped[intid]
     guild_name: Mapped[str]
-    count_members: Mapped[int] = mapped_column(nullable=True)
+    count_members: Mapped[int]
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow())
     guild_sets: Mapped[str] = mapped_column(default=JsonEncoder.code_to_json(GUILD_CONFIG))
+
+    users_in_guild: Mapped[list["Users"]] = relationship(back_populates="guilds_in_user", secondary="guild_user")
 
     # id = Column(Integer, primary_key=True)
     # guild_id = Column(Integer, nullable=False)
@@ -67,9 +81,6 @@ class Guilds(Base):
     # count_of_members = Column(Integer, nullable=False)
     # guild_settings = Column(Text, nullable=False, default=lambda x: await JsonEncoder.code_to_json(GUILD_CONFIG))
     # users = relationship("Guild_User", backref="guild")
-
-    def __repr__(self) -> str:
-        return f"id={self.id!r}, guild_id={self.guild_id!r}, guild_name={self.guild_name!r}"
 
 
 if __name__ == "__main__":
