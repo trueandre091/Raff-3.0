@@ -9,6 +9,7 @@ FOLDER = getcwd()
 
 
 class Commands(commands.Cog):
+    """Command to make an order"""
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.settings = cfg.COGS_SETTINGS["ORDERS"]

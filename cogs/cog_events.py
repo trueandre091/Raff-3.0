@@ -8,6 +8,7 @@ FOLDER = getcwd()
 
 
 async def creating_message_with_nearest_events(event: disnake.GuildScheduledEvent) -> str:
+    """Creating an embed"""
     weekly, special = [], []
     flag1, flag2 = False, False
     for event in event.guild.scheduled_events:
@@ -38,7 +39,8 @@ async def delete_previous_message(self, channel) -> None:
     await asyncio.sleep(2)
 
 
-class Events(commands.Cog):
+class AutoSendingMessage(commands.Cog):
+    """Auto sending the message of list of events"""
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.settings = cfg.COGS_SETTINGS["EVENTS"]
@@ -67,4 +69,4 @@ class Events(commands.Cog):
 
 
 def setup(bot: commands.Bot):
-    bot.add_cog(Events(bot))
+    bot.add_cog(AutoSendingMessage(bot))

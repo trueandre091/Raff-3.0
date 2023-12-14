@@ -1,11 +1,10 @@
-import asyncio
 import disnake
 from disnake.ext import commands
 from datetime import datetime
 from cogs import counter_functions
 
 
-async def moderation(message: disnake.Message, settings: dict, bot: commands.Bot = None):
+async def moderation(message: disnake.Message, settings: dict):
     """Moderation functions"""
     await gif_moderation(message, settings["GIF"])
 

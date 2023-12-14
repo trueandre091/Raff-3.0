@@ -151,7 +151,6 @@ class BlackJack(commands.Cog):
 
     @commands.slash_command(description="Сыграть в BlackJack на свои очки (/rep)")
     async def блекджек(self, interaction: disnake.ApplicationCommandInteraction, ставка: int):
-
         with(open(f"{FOLDER}/data/users_data.json", 'r', encoding='utf-8') as f):
             data = load(f)
 
