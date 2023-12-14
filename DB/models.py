@@ -9,6 +9,7 @@ intid = Annotated[int, mapped_column(primary_key=True)]
 
 
 class Base(DeclarativeBase):
+    """Base class for inheritance new models"""
     repr_cols_num = 2
     repr_cols = tuple()
 
@@ -22,6 +23,8 @@ class Base(DeclarativeBase):
 
 
 class Guild_User(Base):
+    """Sheet for connect between Users and Guilds models"""
+
     __tablename__ = "guild_user"
 
     # id: Mapped[intid]
@@ -42,6 +45,8 @@ class Guild_User(Base):
 
 
 class Users(Base):
+    """Users model for database"""
+
     __tablename__ = "users"
 
     # id: Mapped[intid]
@@ -64,6 +69,7 @@ class Users(Base):
 
 
 class Guilds(Base):
+    """Guilds model for database"""
     __tablename__ = "guilds"
 
     # id: Mapped[intid]
