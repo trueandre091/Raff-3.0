@@ -1,6 +1,7 @@
 from os import getcwd
 import disnake
 from disnake.ext import commands
+from disnake.ui import Button
 
 import config as cfg
 FOLDER = getcwd()
@@ -121,6 +122,8 @@ class Application(disnake.ui.Modal):
 
 class Requests(commands.Cog):
     """Reactions on buttons interactions"""
+    list_of_messages = []
+
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
@@ -129,14 +132,23 @@ class Requests(commands.Cog):
         if interaction.type == disnake.InteractionType.component:
 
             if interaction.component.custom_id == "request":
-
                 modal = Application(self.bot)
 
                 await interaction.response.send_modal(modal=modal)
 
             elif interaction.component.custom_id == "deny":
+                button_yes = Button(custom_id='button_yes', label='Да', style=disnake.ButtonStyle.danger)
+                button_no = Button(custom_id='button_no', label='Нет', style=disnake.ButtonStyle.green)
 
+                await interaction.response.send_message("Ты уверен?", components=[button_yes, button_no])
+
+            elif interaction.component.custom_id == "button_yes":
                 await interaction.message.delete()
+                await interaction.response.send_message("Сообщение удалено", ephemeral=True)
+
+            elif interaction.component.custom_id == "button_no":
+                await interaction.message.delete()
+                await interaction.response.send_message("Сообщение в целости и сохранности", ephemeral=True)
 
 
 def setup(bot: commands.Bot):
