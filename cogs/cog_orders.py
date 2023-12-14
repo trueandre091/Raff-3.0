@@ -1,56 +1,47 @@
 from datetime import datetime
-from json import load, dump
 from os import getcwd
 import disnake
 from disnake.ext import commands
 
+import config as cfg
+from cogs import counter_functions
 FOLDER = getcwd()
-
-with (open(f"{FOLDER}/config.json", "r", encoding="utf-8") as file):
-    CONFIG = load(file)
-
-
-async def add_orders_counter():
-    with (open(f"{FOLDER}/data/counters.json", "r", encoding="utf-8") as f):
-        data = load(f)
-
-    data["ORDERS"] += 1
-
-    with (open(f"{FOLDER}/data/counters.json", "w", encoding="utf-8") as f):
-        dump(data, f)
 
 
 class Commands(commands.Cog):
+    """Command to make an order"""
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.settings = cfg.COGS_SETTINGS["ORDERS"]
 
     @commands.slash_command(description="Сделать заказ в баре")
-    async def заказ(self, inter: disnake.ApplicationCommandInteraction, сообщение: str):
-        channel = self.bot.get_channel(CONFIG["CHANNEL_RPBAR"])
-        barmen_role = "<@&829082636705595433>"
+    async def сделать_заказ(self, interaction: disnake.ApplicationCommandInteraction, сообщение: str):
+        channel = self.bot.get_channel(self.settings["CHANNEL"])
 
-        if inter.channel.id != CONFIG["CHANNEL_RPBAR"]:
+        if interaction.channel.id != channel.id:
 
-            await inter.send(f"Эта команда может быть использована только в канале {channel.mention}!")
+            await interaction.response.send_message(
+                f"Эта команда может быть использована только в канале {channel.mention}!", delete_after=5
+            )
 
         else:
 
-            await add_orders_counter()
+            await counter_functions.count_orders_counter()
 
+            barmen_role = f"<@&{self.settings['BARMEN_ROLE']}>"
             embed = disnake.Embed(
                 title="Новый заказ 📥",
-                description=f"{inter.author.mention}\n{сообщение}",
+                description=f"{interaction.author.mention}\n{сообщение}",
                 color=0x2b2d31,
                 timestamp=datetime.now()
             )
-
             embed.set_footer(text="Тоже хочешь заказать что-нибудь? Пропиши /заказ через нашего бота!")
 
-            await channel.send(barmen_role, embed=embed)
-            await inter.send(
-                f"Доброго времени суток {inter.author.mention}! Бармен скоро подойдёт 🐥",
-                delete_after=20.0
+            await interaction.response.send_message(
+                f"Доброго времени суток {interaction.author.mention}! Бармен скоро подойдёт 🐥",
+                delete_after=10
             )
+            await channel.send(barmen_role, embed=embed)
 
 
 def setup(bot: commands.Bot):

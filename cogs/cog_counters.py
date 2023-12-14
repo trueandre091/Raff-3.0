@@ -61,7 +61,7 @@ class CheckCommands(commands.Cog):
                     member = guild.get_member(int(k))
                     top += f"`{place}.` {member.mention} - {v}\n"
                     place += 1
-                embed_dict["fields"].append({"name": "BOOSTS", 'value': value})
+                embed_dict["fields"].append({"name": "BOOSTS", 'value': top})
             else:
                 embed_dict["fields"].append({
                     "name": f"{key}",

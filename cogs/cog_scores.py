@@ -33,6 +33,8 @@ async def top_create_embed(bot: commands.Bot, embed_dict: dict):
     for key, value in data.items():
         if value == 0:
             nulls.append(key)
+        if guild.get_member(int(key)) is None:
+            nulls.append(key)
     for key in nulls:
         data.pop(key)
 

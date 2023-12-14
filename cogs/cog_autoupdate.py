@@ -5,7 +5,7 @@ from json import load, dump
 from datetime import datetime, timezone, timedelta
 
 import config as cfg
-from cog_scores import top_create_embed
+from cogs.cog_scores import top_create_embed
 FOLDER = getcwd()
 
 
@@ -57,7 +57,7 @@ class AutoUpdateMessagesTop(commands.Cog):
             'description': '',
             'fields': [],
             'color': 0x2b2d31,
-            'footer': {'text': channel.guild.name, 'icon_url': channel.guild.icon.url}
+            'footer': {'text': guild.name, 'icon_url': guild.icon.url}
         }
 
         place = 1
