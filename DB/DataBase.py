@@ -4,9 +4,9 @@ import asyncio
 from typing import Union
 import traceback
 
-from sqlalchemy import select, update
+from sqlalchemy import select
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import sessionmaker
 
 from models import Users, Guilds, Base
 
@@ -14,95 +14,17 @@ from models import Users, Guilds, Base
 class DataBase:
     """Class for creating connection to database and managing it"""
 
-    def __init__(self):
+    def __init__(self, echo: bool = False):
         try:
-            # self.engine = create_async_engine("sqlite:///DataBase.db", echo=True)
-            # self.session = self.get_session(self.engine)
-            self.engine = create_engine("sqlite:///DataBase.db", echo=True)
+            self.echo = echo
+            self.engine = create_engine("sqlite:///DataBase.db", echo=self.echo)
             self.Session = sessionmaker(self.engine)
         except:
             raise "Error creating an engine or connecting to database"
 
-    # @staticmethod
-    # def get_session(engine):
-    #     session = async_sessionmaker(engine)
-    #     async with session() as session:
-    #         return session
+    ####################################   USERS   ############################################
 
-    async def get_guild(self, id=None, guild_id=None, guild_name=None):
-        with self.Session() as session:
-            try:
-                if id:
-                    guilds_list = select(Guilds).filter_by(id=id)
-                    guild = session.scalars(guilds_list).first()
-                    if not guild:
-                        print("Can't find guild by id in database")
-                        return False
-
-                    return guild
-
-                elif guild_id:
-                    guilds_list = select(Guilds).filter_by(guild_id=guild_id)
-                    guild = session.scalars(guilds_list).first()
-                    if not guild:
-                        print("Can't find guild by guild_id in database")
-                        return False
-
-                    return guild
-
-                elif guild_name:
-                    guilds_list = select(Guilds).filter_by(guild_name=guild_name)
-                    guild = session.scalars(guilds_list).first()
-                    if not guild:
-                        print("Can't find guild by guild_name in database")
-                        return False
-
-                    return guild
-
-            except:
-                print(
-                    f"Something went wrong with get_guild method id: {id}, guild_id: {guild_id}, guild_name: {guild_name}")
-
-        return False
-
-    async def get_user(self, data: dict) -> Union[Users, None]:
-        with self.Session() as session:
-            try:
-                # if "id" in data.keys():
-                #     user = select(Users).filter_by(id=data["id"])
-                #     user = session.scalars(user).first()
-                #     if not user:
-                #         print("Can't find user by id in database")
-                #         return
-                #
-                #     return user
-
-                if "disc_id" in data.keys():
-                    user = select(Users).filter_by(disc_id=data["disc_id"])
-                    user = session.scalars(user).first()
-                    if not user:
-                        print("Can't find user by discord id in database")
-                        return
-
-                    return user
-
-                elif "username" in data.keys():
-                    user = select(Users).filter_by(username=data["username"])
-                    user = session.scalars(user).first()
-                    if not user:
-                        print("Can't find user by username in database")
-                        return
-
-                    return user
-
-            except Exception as e:
-                print(
-                    f'Something went wrong with get_guild method id: username: {data.get("username")}, disc_id: {data.get("disc_id")}')
-                print(traceback.format_exc())
-
-        return
-
-    async def add_user(self, data: dict) -> Union[True, False]:
+    async def add_user(self, data: dict) -> Union[Users, None]:
         with self.Session() as session:
             try:
                 user = Users(username=data["username"], disc_id=data["disc_id"])
@@ -110,104 +32,172 @@ class DataBase:
                 session.add(user)
                 session.commit()
 
-                return True
-            except Exception as e:
-                print("Something went wrong then adding user", data["username"], data["disc_id"])
+                return user
+            except Exception:
+                print("Something went wrong then adding user")
                 print(traceback.format_exc())
 
-        return False
+        return
 
-    async def add_guild(self, data: dict) -> Union[True, False]:
+    @staticmethod
+    def get_user_static(session, data):
+        try:
+            if "disc_id" in data.keys():
+                user = select(Users).filter_by(disc_id=data["disc_id"])
+                user = session.scalars(user).first()
+                if not user:
+                    print("Can't find user by discord id in database")
+                    return
+
+                return user
+
+            elif "username" in data.keys():
+                user = select(Users).filter_by(username=data["username"])
+                user = session.scalars(user).first()
+                if not user:
+                    print("Can't find user by username in database")
+                    return
+
+                return user
+
+        except Exception:
+            print("Something went wrong when get user")
+            print(traceback.format_exc())
+
+        return
+
+    async def get_user(self, data: dict) -> Union[Users, None]:
+        with self.Session() as session:
+            return self.get_user_static(session, data)
+
+    async def update_user(self, data: dict) -> Union[Users, None]:
+        with self.Session() as session:
+            user = self.get_user_static(session, data)
+            try:
+                user.username = lambda _: user.username if not data.get("username") else data["username"]
+                user.scores = lambda _: user.username if not data.get("scores") else data["scores"]
+                user.experience = lambda _: user.username if not data.get("experience") else data["experience"]
+
+                session.commit()
+
+                return user
+
+            except Exception:
+                print("Something went wrong when update user")
+                print(traceback.format_exc())
+
+        return
+
+    ####################################   GUILDS   ############################################
+
+    async def add_guild(self, data: dict) -> Union[Guilds, None]:
         with self.Session() as session:
             try:
-                guild = Guilds(guild_id=data["guild_id"], guild_name=data["guild_name"],
-                               count_members=data["count_members"])
+                guild = Guilds(guild_id=data["guild_id"],
+                               guild_name=data["guild_name"],
+                               count_members=(data["count_members"] if data.get("count_members") else 0))
 
                 session.add(guild)
                 session.commit()
 
-                return True
-            except:
-                print("Something went wrong then adding guild", data["guild_id"], data["guild_name"],
-                      data["count_members"])
+                return guild
 
-        return False
+            except Exception:
+                print("Something went wrong then adding guild")
+                print(traceback.format_exc())
 
-    async def update_user(self, data: dict) -> Union[True, False]:
+        return
+
+    @staticmethod
+    def get_guild_static(session, data):
+        try:
+            if "guild_id" in data.keys():
+                guild = select(Guilds).filter_by(guild_id=data["guild_id"])
+                guild = session.scalars(guild).first()
+                if not guild:
+                    print("Can't find guild by discord id in database")
+                    return
+
+                return guild
+
+            elif "guild_name" in data.keys():
+                guild = select(Guilds).filter_by(guild_name=data["guild_name"])
+                guild = session.scalars(guild).first()
+                if not guild:
+                    print("Can't find guild by guild name in database")
+                    return
+
+                return guild
+
+        except Exception:
+            print("Something went wrong when get guild")
+            print(traceback.format_exc())
+
+        return
+
+    async def get_guild(self, data: dict) -> Union[Guilds, None]:
+        with self.Session() as session:
+            return self.get_guild_static(session, data)
+
+    async def update_guild(self, data: dict) -> Union[Guilds, None]:
         with self.Session() as session:
             try:
-                session.execute(
-                    update(Users)
-                    .values(username=data["username"])
-                    .filter_by(disc_id=data["disc_id"])
-                )
+                guild = self.get_guild_static(session, data)
+
+                guild.guild_name = lambda _: guild.guild_name if not data.get("guild_name") else data["guild_name"]
+                guild.count_members = lambda _: guild.count_members if not data.get("count_members") else data[
+                    "count_members"]
+                guild.guild_sets = lambda _: guild.guild_sets if not data.get("guild_sets") else data["guild_sets"]
+
                 session.commit()
 
-                return True
+                return guild
 
-            except:
-                print("Something went wrong when updating user", data["username"], data["disc_id"], data["experience"],
-                      data["scores"])
+            except Exception:
+                print("Something went wrong when update user")
+                print(traceback.format_exc())
 
-        return False
+        return
 
-    async def update_guild(self, data: dict) -> Union[True, False]:
-        with self.Session() as session:
-            try:
-                updated_guild = Guilds(guild_id=data["guild_id"], guild_name=data["guild_name"],
-                                       count_members=data["count_members"], guild_sets=data["guild_sets"])
+    ####################################   RELATIONSHIPS   ############################################
 
-                session.add(updated_guild)
-                session.commit()
+    async def add_relationship(self):
+        pass
 
-                return True
+    async def delete_relationship(self):
+        pass
 
-            except:
-                print("Something went wrong when updating guild", data["guild_id"], data["guild_name"])
 
-        return False
+async def test_add_user():
+    db = DataBase(echo=True)
+
+    data = {"username": "TopNik_",
+            "disc_id": 785364734786}
+
+    res = await db.add_user(data)
+
+    print(res)
+
+
+async def test_add_guild():
+    db = DataBase(echo=True)
+
+    data = {"guild_id": 874365893234,
+            "guild_name": "Homey Temple"}
+
+    res = await db.add_guild(data)
+
+    print(res)
 
 
 async def main():
+    await test_add_guild()
+    await test_add_guild()
+
+
+if __name__ == "__main__":
     engine = create_engine("sqlite:///DataBase.db", echo=True)
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
 
-    db = DataBase()
-
-    user = {"username": "TopNik_",
-            "disc_id": 8326758751}
-
-    res_u = await db.add_user(data=user)
-
-    print("user", res_u)
-
-    guild = {"guild_id": 907645237,
-             "guild_name": "Homey Temple",
-             "count_members": 3000}
-
-    res_g = await db.add_guild(guild)
-
-    print("guild", res_g)
-
-    update_user = {"username": "Nikita",
-                   "disc_id": 8326758751,
-                   "experience": 0,
-                   "scores": 10}
-
-    res_update_u = await db.update_user(update_user)
-
-    print("Update user", res_update_u)
-
-    user = {"disc_id": 8326758751}
-    get_user = await db.get_user(user)
-
-    print(get_user)
-
-    # session = Session(engine)
-    # user = session.get(Users, 1)
-    # print(user.scores)
-
-
-if __name__ == "__main__":
     asyncio.run(main())
