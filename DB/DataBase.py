@@ -68,26 +68,17 @@ class DataBase:
     async def get_user(self, data: dict) -> Union[Users, None]:
         with self.Session() as session:
             try:
-                if "id" in data.keys():
-                    user = select(Users).filter_by(id=data["id"])
-                    user = session.scalars(user).first()
-                    if not user:
-                        print("Can't find user by id in database")
-                        return
+                # if "id" in data.keys():
+                #     user = select(Users).filter_by(id=data["id"])
+                #     user = session.scalars(user).first()
+                #     if not user:
+                #         print("Can't find user by id in database")
+                #         return
+                #
+                #     return user
 
-                    return user
-
-                elif "username" in data.keys():
-                    user = select(Users).filter_by(id=data["username"])
-                    user = session.scalars(user).first()
-                    if not user:
-                        print("Can't find user by username in database")
-                        return
-
-                    return user
-
-                elif "disc_id" in data.keys():
-                    user = select(Users).filter_by(id=data["disc_id"])
+                if "disc_id" in data.keys():
+                    user = select(Users).filter_by(disc_id=data["disc_id"])
                     user = session.scalars(user).first()
                     if not user:
                         print("Can't find user by discord id in database")
@@ -95,9 +86,18 @@ class DataBase:
 
                     return user
 
+                elif "username" in data.keys():
+                    user = select(Users).filter_by(username=data["username"])
+                    user = session.scalars(user).first()
+                    if not user:
+                        print("Can't find user by username in database")
+                        return
+
+                    return user
+
             except Exception as e:
                 print(
-                    f'Something went wrong with get_guild method id: {data.get("id", None)}, username: {data.get("username", None)}, disc_id: {data.get("disc_id", None)}')
+                    f'Something went wrong with get_guild method id: username: {data.get("username")}, disc_id: {data.get("disc_id")}')
                 print(traceback.format_exc())
 
         return
@@ -189,20 +189,20 @@ async def main():
     res_g = await db.add_guild(guild)
 
     print("guild", res_g)
-    #
-    # update_user = {"username": "Nikita",
-    #                "disc_id": 8326758751,
-    #                "experience": 0,
-    #                "scores": 10}
-    #
-    # res_update_u = await db.update_user(update_user)
-    #
-    # print("Update user", res_update_u)
-    #
-    # user = {"username": "Nikita"}
-    # get_user = await db.get_user(user)
-    #
-    # print(get_user)
+
+    update_user = {"username": "Nikita",
+                   "disc_id": 8326758751,
+                   "experience": 0,
+                   "scores": 10}
+
+    res_update_u = await db.update_user(update_user)
+
+    print("Update user", res_update_u)
+
+    user = {"disc_id": 8326758751}
+    get_user = await db.get_user(user)
+
+    print(get_user)
 
     # session = Session(engine)
     # user = session.get(Users, 1)

@@ -9,7 +9,7 @@ intid = Annotated[int, mapped_column(primary_key=True)]
 
 
 class Base(DeclarativeBase):
-    repr_cols_num = 3
+    repr_cols_num = 2
     repr_cols = tuple()
 
     def __repr__(self):
