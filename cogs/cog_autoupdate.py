@@ -25,10 +25,10 @@ class AutoUpdateMessagesTop(commands.Cog):
             with (open(f"{FOLDER}/data/lb_messages_data.json", "r", encoding="utf-8") as f):
                 data = load(f)
 
-            data.clear()
+
 
             with (open(f"{FOLDER}/data/lb_messages_data.json", "w", encoding="utf-8") as f):
-                dump(data, f)
+                dump({}, f)
 
     @reset_aup_top.before_loop
     async def before(self):

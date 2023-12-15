@@ -20,8 +20,8 @@ async def dump_database(data: dict) -> None:
 class CalculateScoresTotal(commands.Cog):
     """Calculating the total amount of added and removed scores for all the time"""
     def __init__(self, bot: commands.Bot):
-        self.calculate_scores_flow.start()
         self.bot = bot
+        self.calculate_scores_flow.start()
 
     @tasks.loop(hours=24)
     async def calculate_scores_flow(self):
