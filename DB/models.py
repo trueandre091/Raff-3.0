@@ -14,6 +14,7 @@ class Base(DeclarativeBase):
     repr_cols = tuple()
 
     def __repr__(self):
+        """Relationships are not used in repr() because may lead to unexpected lazy loads"""
         cols = []
         for idx, col in enumerate(self.__table__.columns.keys()):
             if col in self.repr_cols or idx < self.repr_cols_num:
@@ -54,8 +55,8 @@ class Users(Base):
     username: Mapped[str]
     experience: Mapped[int] = mapped_column(default=0)
     scores: Mapped[int] = mapped_column(default=10)
-    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow())
-    updated_at: Mapped[datetime] = mapped_column(default=datetime.utcnow(), onupdate=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
 
     guilds_in_user: Mapped[list["Guilds"]] = relationship(back_populates="users_in_guild", secondary="guild_user")
 
