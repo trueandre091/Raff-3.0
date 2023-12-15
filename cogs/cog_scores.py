@@ -29,15 +29,6 @@ async def top_create_embed(bot: commands.Bot, embed_dict: dict):
     sort_data = sorted(data.items(), key=lambda x: x[1], reverse=True)
     data = dict(sort_data)
 
-    nulls = []
-    for key, value in data.items():
-        if value == 0:
-            nulls.append(key)
-        if guild.get_member(int(key)) is None:
-            nulls.append(key)
-    for key in nulls:
-        data.pop(key)
-
     first_lvl_members, third_lvl_members, fifth_lvl_members = [], [], []
     amount1 = settings["AMOUNT_TO_FIRST_LVL"]
     amount2 = settings["AMOUNT_TO_THIRD_LVL"]
@@ -47,6 +38,10 @@ async def top_create_embed(bot: commands.Bot, embed_dict: dict):
     place = 0
     for key, value in data.items():
         member = guild.get_member(int(key))
+        if member is None or value == 0:
+            data.pop(key)
+            continue
+
         embed_dict['description'] += f"`{place + 1}.` {member.mention} — `{value} оч.`\n"
         if amount1 <= value < amount2:
             flag1 = True
