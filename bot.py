@@ -5,13 +5,7 @@ from cogs.on_message_functions import *
 bot = commands.Bot(
     command_prefix="none", help_command=None, intents=disnake.Intents.all(), chunk_guilds_at_startup=False
 )
-bot.load_extension("cogs.cog_events")
-bot.load_extension("cogs.cog_autoupdate")
-bot.load_extension("cogs.cog_counters")
-bot.load_extension("cogs.cog_games")
-bot.load_extension("cogs.cog_orders")
-bot.load_extension("cogs.cog_scores")
-bot.load_extension("cogs.cog_requests")
+bot.load_extensions("cogs")
 
 
 @bot.event
