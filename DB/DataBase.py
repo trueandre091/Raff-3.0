@@ -254,6 +254,25 @@ class UserDBase(DataBase):
                 print("Something went wrong when update user")
                 print(traceback.format_exc())
 
+    async def get_top_users_by_scores(self) -> Union[list, None]:
+        with self.Session() as session:
+            try:
+                users = (select(Users)
+                         .order_by(Users.scores.desc())
+                         .limit(20))
+                res = session.scalars(users).all()
+                if not res:
+                    print("Can't get top users by scores")
+                    return
+
+                return res
+
+            except Exception:
+                print("Something went wrong when get top for users by scores")
+                print(traceback.format_exc())
+
+        return
+
     ####################################   GUILDS   ############################################
 
 
@@ -491,6 +510,14 @@ async def test_update_some_users():
 
     await db.update_user(data)
 
+
+async def test_get_top_users_by_scores():
+    db = UserDBase(True)
+
+    res = await db.get_top_users_by_scores()
+
+    print(res)
+
     ####################################   GUILDS TESTS   ############################################
 
 
@@ -527,6 +554,8 @@ async def main():
 
     # await test_update_user()
     # await test_update_some_users()
+
+    await test_get_top_users_by_scores()
 
     ###################################################
 
