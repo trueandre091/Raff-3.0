@@ -39,8 +39,9 @@ class UserDBase(DataBase):
         """
 
         user_list = []
+        is_dict = True if type(data) == dict else False
 
-        if type(data) == dict:
+        if is_dict:
             data = [data]
 
         with self.Session() as session:
@@ -53,7 +54,7 @@ class UserDBase(DataBase):
                 session.add_all(user_list)
                 session.commit()
 
-                return user_list
+                return user_list[0] if is_dict else user_list
             except Exception:
                 print("Something went wrong then adding user")
                 print(traceback.format_exc())
@@ -253,17 +254,26 @@ class UserDBase(DataBase):
 
 
 class GuildsDbase(DataBase):
-    async def add_guild(self, data: dict) -> Union[Guilds, None]:
+    async def add_guild(self, data: Union[dict, list[dict]]) -> Union[Guilds, list[Guilds], None]:
+
+        guilds_list = []
+        is_dict = True if type(data) == dict else False
+
+        if is_dict:
+            data = [data]
+
         with self.Session() as session:
             try:
-                guild = Guilds(guild_id=data["guild_id"],
-                               guild_name=data["guild_name"],
-                               count_members=(data["count_members"] if data.get("count_members") else 0))
+                for data in data:
+                    guild = Guilds(guild_id=data["guild_id"],
+                                   guild_name=data["guild_name"],
+                                   count_members=(data["count_members"] if data.get("count_members") else 0))
+                    guilds_list.append(guild)
 
-                session.add(guild)
+                session.add_all(guilds_list)
                 session.commit()
 
-                return guild
+                return guilds_list[0] if is_dict else guilds_list
 
             except Exception:
                 print("Something went wrong then adding guild")
@@ -420,10 +430,21 @@ async def test_update_some_users():
 async def test_add_guild():
     db = GuildsDbase(echo=True)
 
-    data = {"guild_id": 874365893234,
+    data = {"guild_id": 785312593614209055,
             "guild_name": "Homey Temple"}
 
     await db.add_guild(data)
+
+
+async def test_add_some_guilds():
+    db = GuildsDbase(True)
+
+    data = [{"guild_id": 710525764470308975,
+             "guild_name": "NetherWorld"}]
+
+    await db.add_guild(data)
+
+    ####################################   DATABASE TESTS   ############################################
 
 
 async def main():
@@ -444,6 +465,7 @@ async def main():
 
     # GUILDS TESTS
     # await test_add_guild()
+    # await test_add_some_guilds()
 
 
 if __name__ == "__main__":
