@@ -38,6 +38,7 @@ class UserDBase(DataBase):
         Returns a User model object if the operation is successful,
         or nothing if there is an error
         """
+        default_scores = 10
 
         user_list = []
         is_dict = True if type(data) == dict else False
@@ -48,7 +49,9 @@ class UserDBase(DataBase):
         with self.Session() as session:
             try:
                 for data in data:
-                    user = Users(username=data["username"], disc_id=data["disc_id"])
+                    user = Users(username=data["username"], disc_id=data["disc_id"],
+                                 scores=data["scores"] if data.get("scores") else default_scores,
+                                 experience=data["experience"] if data.get("experience") else 0)
                     user_list.append(user)
                     print(user)
 
@@ -412,7 +415,8 @@ async def test_add_user():
     db = UserDBase(True)
 
     data = {"username": "TopNik_",
-            "disc_id": 785364734786}
+            "disc_id": 785364734786,
+            "scores": 20}
 
     await db.add_user(data)
 
@@ -521,8 +525,8 @@ async def main():
     # await test_get_user_with_guilds()
     # await test_get_some_users_with_guilds()
 
-    await test_update_user()
-    await test_update_some_users()
+    # await test_update_user()
+    # await test_update_some_users()
 
     ###################################################
 
