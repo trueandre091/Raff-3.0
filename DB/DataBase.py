@@ -265,8 +265,7 @@ class GuildsDbase(DataBase):
         with self.Session() as session:
             try:
                 for data in data:
-                    guild = Guilds(guild_id=data["guild_id"],
-                                   guild_name=data["guild_name"],
+                    guild = Guilds(guild_id=data["guild_id"], guild_name=data["guild_name"],
                                    count_members=(data["count_members"] if data.get("count_members") else 0))
                     guilds_list.append(guild)
 
@@ -283,24 +282,34 @@ class GuildsDbase(DataBase):
 
     @staticmethod
     def get_guild_static(session, data):
+
+        guild_list = []
+        is_dict = True if type(data) == dict else False
+
+        if is_dict:
+            data = [data]
+
         try:
-            if "guild_id" in data.keys():
-                guild = select(Guilds).filter_by(guild_id=data["guild_id"])
-                guild = session.scalars(guild).first()
-                if not guild:
-                    print("Can't find guild by discord id in database")
-                    return
+            for data in data:
+                if "guild_id" in data.keys():
+                    guild = select(Guilds).filter_by(guild_id=data["guild_id"])
+                    guild = session.scalars(guild).first()
+                    if not guild:
+                        print("Can't find guild by discord id in database")
+                        return
 
-                return guild
+                    guild_list.append(guild)
 
-            elif "guild_name" in data.keys():
-                guild = select(Guilds).filter_by(guild_name=data["guild_name"])
-                guild = session.scalars(guild).first()
-                if not guild:
-                    print("Can't find guild by guild name in database")
-                    return
+                elif "guild_name" in data.keys():
+                    guild = select(Guilds).filter_by(guild_name=data["guild_name"])
+                    guild = session.scalars(guild).first()
+                    if not guild:
+                        print("Can't find guild by guild name in database")
+                        return
 
-                return guild
+                    guild_list.append(guild)
+
+            return guild_list[0] if is_dict else guild_list
 
         except Exception:
             print("Something went wrong when get guild")
@@ -308,19 +317,67 @@ class GuildsDbase(DataBase):
 
         return
 
-    async def get_guild(self, data: dict) -> Union[Guilds, None]:
+    @staticmethod
+    def get_guild_static_with_users(session, data):
+
+        guild_list = []
+        is_dict = True if type(data) == dict else False
+
+        if is_dict:
+            data = [data]
+
+        try:
+            for data in data:
+                if "guild_id" in data.keys():
+                    guild = (select(Guilds).options(selectinload(Users.guilds)).filter_by(guild_id=data["guild_id"]))
+                    guild = session.scalars(guild).first()
+                    if not guild:
+                        print("Can't find guild by discord id in database")
+                        return
+
+                    guild_list.append(guild)
+
+                elif "guild_name" in data.keys():
+                    guild = (
+                        select(Guilds).options(selectinload(Users.guilds)).filter_by(guild_name=data["guild_name"]))
+                    guild = session.scalars(guild).first()
+                    if not guild:
+                        print("Can't find guild by guild name in database")
+                        return
+
+                    guild_list.append(guild)
+
+            return guild_list[0] if is_dict else guild_list
+
+        except Exception:
+            print("Something went wrong when get guild")
+            print(traceback.format_exc())
+
+        return
+
+    async def get_guild(self, data: Union[dict, list[dict]]) -> Union[Guilds, list[Guilds], None]:
         with self.Session() as session:
             return self.get_guild_static(session, data)
 
-    async def update_guild(self, data: dict) -> Union[Guilds, None]:
+    async def get_guild_with_users(self, data: Union[dict, list[dict]]) -> Union[Guilds, list[Guilds], None]:
         with self.Session() as session:
-            try:
-                guild = self.get_guild_static(session, data)
+            return self.get_guild_static_with_users(session, data)
 
-                guild.guild_name = lambda _: guild.guild_name if not data.get("guild_name") else data["guild_name"]
-                guild.count_members = lambda _: guild.count_members if not data.get("count_members") else data[
-                    "count_members"]
-                guild.guild_sets = lambda _: guild.guild_sets if not data.get("guild_sets") else data["guild_sets"]
+    async def update_guild(self, data: Union[dict, list[dict]]) -> Union[Guilds, list[Guilds], None]:
+        is_dict = True if type(data) == dict else False
+
+        if is_dict:
+            data = [data]
+        with self.Session() as session:
+            guilds = self.get_guild_static(session, data)
+            try:
+                for data in data:
+                    guild = self.get_guild_static(session, data)
+
+                    guild.guild_name = guild.guild_name if not data.get("guild_name") else data["guild_name"]
+                    guild.count_members = guild.count_members if not data.get("count_members") else data[
+                        "count_members"]
+                    guild.guild_sets = guild.guild_sets if not data.get("guild_sets") else data["guild_sets"]
 
                 session.commit()
 
