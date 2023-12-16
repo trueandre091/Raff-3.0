@@ -26,26 +26,34 @@ class DataBase:
 
 
 class UserDBase(DataBase):
-    async def add_user(self, data: dict) -> Union[Users, None]:
+    async def add_user(self, data: Union[dict, list[dict]]) -> Union[Users, list[Users], None]:
         """
         Adds a user to the database
 
-        Accepts a dictionary like:
+        Accepts a dictionary or a list of dictionaries like:
         {"username": str,
         "disc_id": int}   (disc_id is unique identifier of Discord)
 
         Returns a User model object if the operation is successful,
         or nothing if there is an error
         """
+
+        user_list = []
+
+        if type(data) == dict:
+            data = [data]
+
         with self.Session() as session:
             try:
-                user = Users(username=data["username"], disc_id=data["disc_id"])
-                print(user)
+                for data in data:
+                    user = Users(username=data["username"], disc_id=data["disc_id"])
+                    user_list.append(user)
+                    print(user)
 
-                session.add(user)
+                session.add_all(user_list)
                 session.commit()
 
-                return user
+                return user_list
             except Exception:
                 print("Something went wrong then adding user")
                 print(traceback.format_exc())
@@ -68,26 +76,35 @@ class UserDBase(DataBase):
         or nothing if there is an error
         """
 
+        is_dict = True if type(data) == dict else False
+        user_list = []
+
+        if is_dict:
+            data = [data]
+
         try:
-            if "disc_id" in data.keys():
-                user = (select(Users)
-                        .filter_by(disc_id=data["disc_id"]))
-                user = session.scalars(user).first()
-                if not user:
-                    print("Can't find user by discord id in database")
-                    return
+            for data in data:
+                if "disc_id" in data.keys():
+                    user = (select(Users)
+                            .filter_by(disc_id=data["disc_id"]))
+                    user = session.scalars(user).first()
+                    if not user:
+                        print("Can't find user by discord id in database")
+                        return
 
-                return user
+                    user_list.append(user)
 
-            elif "username" in data.keys():
-                user = (select(Users)
-                        .filter_by(username=data["username"]))
-                user = session.scalars(user).first()
-                if not user:
-                    print("Can't find user by username in database")
-                    return
+                elif "username" in data.keys():
+                    user = (select(Users)
+                            .filter_by(username=data["username"]))
+                    user = session.scalars(user).first()
+                    if not user:
+                        print("Can't find user by username in database")
+                        return
 
-                return user
+                    user_list.append(user)
+
+            return user_list[0] if is_dict else user_list
 
         except Exception:
             print("Something went wrong when get user")
@@ -112,28 +129,37 @@ class UserDBase(DataBase):
         or nothing if there is an error
         """
 
+        is_dict = True if type(data) == dict else False
+        user_list = []
+
+        if is_dict:
+            data = [data]
+
         try:
-            if "disc_id" in data.keys():
-                user = (select(Users)
-                        .options(selectinload(Users.guilds_in_user))
-                        .filter_by(disc_id=data["disc_id"]))
-                user = session.scalars(user).first()
-                if not user:
-                    print("Can't find user by discord id in database")
-                    return
+            for data in data:
+                if "disc_id" in data.keys():
+                    user = (select(Users)
+                            .options(selectinload(Users.guilds))
+                            .filter_by(disc_id=data["disc_id"]))
+                    user = session.scalars(user).first()
+                    if not user:
+                        print("Can't find user by discord id in database")
+                        return
 
-                return user
+                    user_list.append(user)
 
-            elif "username" in data.keys():
-                user = (select(Users)
-                        .options(selectinload(Users.guilds_in_user))
-                        .filter_by(username=data["username"]))
-                user = session.scalars(user).first()
-                if not user:
-                    print("Can't find user by username in database")
-                    return
+                elif "username" in data.keys():
+                    user = (select(Users)
+                            .options(selectinload(Users.guilds))
+                            .filter_by(username=data["username"]))
+                    user = session.scalars(user).first()
+                    if not user:
+                        print("Can't find user by username in database")
+                        return
 
-                return user
+                    user_list.append(user)
+
+            return user_list[0] if is_dict else user_list
 
         except Exception:
             print("Something went wrong when get user")
@@ -141,7 +167,7 @@ class UserDBase(DataBase):
 
         return
 
-    async def get_user(self, data: dict) -> Union[Users, None]:
+    async def get_user(self, data: Union[dict, list[dict]]) -> Union[Users, list[Users], None]:
         """
         Gets user with get_user_static method from database
         get_user_static is a staticmethod
@@ -163,7 +189,7 @@ class UserDBase(DataBase):
 
             return user
 
-    async def get_user_with_guilds(self, data) -> Union[Users, None]:
+    async def get_user_with_guilds(self, data: Union[dict, list[dict]]) -> Union[Users, list[Users], None]:
         """
         Method that gets the user from the database with the guilds in which he belongs
         get_user_static_with_guilds is a staticmethod
@@ -185,7 +211,7 @@ class UserDBase(DataBase):
 
             return user
 
-    async def update_user(self, data: dict) -> Union[Users, None]:
+    async def update_user(self, data: Union[dict, list[dict]]) -> Union[Users, list[Users], None]:
         """
         Updates user from database. Use get_user_static for getting user.
 
@@ -198,25 +224,30 @@ class UserDBase(DataBase):
         Returns a User model object if the operation is successful,
         or nothing if there is an error
         """
+
+        is_dict = True if type(data) == dict else False
+
+        if is_dict:
+            data = [data]
+
         with self.Session() as session:
-            user = self.get_user_static(session, data)
-            if user:
-                try:
-                    user.username = lambda _: user.username if not data.get("username") else data["username"]
-                    user.scores = lambda _: user.username if not data.get("scores") else data["scores"]
-                    user.experience = lambda _: user.username if not data.get("experience") else data["experience"]
+            users = self.get_user_static(session, data)
+            try:
+                for data in data:
+                    for user in users:
+                        if data["disc_id"] == user.disc_id:
+                            user.username = user.username if not data.get("username") else data["username"]
+                            user.scores = user.scores if not data.get("scores") else data["scores"]
+                            user.experience = user.experience if not data.get("experience") else data["experience"]
 
-                    session.commit()
+                session.commit()
 
-                    print(user)
-                    return user
+                print(users)
+                return users
 
-                except Exception:
-                    print("Something went wrong when update user")
-                    print(traceback.format_exc())
-
-            else:
-                return user
+            except Exception:
+                print("Something went wrong when update user")
+                print(traceback.format_exc())
 
     ####################################   GUILDS   ############################################
 
@@ -305,21 +336,23 @@ class RelationshipsDBase(DataBase):
 
 
 async def test_add_user():
-    db = UserDBase(echo=True)
+    db = UserDBase(True)
 
     data = {"username": "TopNik_",
             "disc_id": 785364734786}
 
     await db.add_user(data)
 
-    # if res:
-    #     print("Successfully added new user")
-    # else:
-    #     print("Error when printing res or res is None", res)
-
 
 async def test_add_some_users():
-    pass
+    db = UserDBase(echo=True)
+
+    data = [{"username": "Andre",
+             "disc_id": 674325879834},
+            {"username": "Minion",
+             "disc_id": 977865342843}]
+
+    await db.add_user(data)
 
 
 async def test_get_user():
@@ -331,7 +364,12 @@ async def test_get_user():
 
 
 async def test_get_some_users():
-    pass
+    db = UserDBase(echo=True)
+
+    data = [{"disc_id": 674325879834},
+            {"disc_id": 977865342843}]
+
+    await db.get_user(data)
 
 
 async def test_get_user_with_guilds():
@@ -341,19 +379,40 @@ async def test_get_user_with_guilds():
 
     res = await db.get_user_with_guilds(data)
 
-    print(res.guilds_in_user)
+    print(res.guilds)
 
 
 async def test_get_some_users_with_guilds():
-    pass
+    db = UserDBase(echo=True)
+
+    data = [{"disc_id": 674325879834},
+            {"disc_id": 977865342843}]
+
+    res = await db.get_user_with_guilds(data)
+
+    for user in res:
+        print(user.guilds)
 
 
 async def test_update_user():
-    pass
+    db = UserDBase(True)
+
+    data = {"disc_id": 785364734786,
+            "username": "Nikita073_"}
+
+    await db.update_user(data)
 
 
 async def test_update_some_users():
-    pass
+    db = UserDBase(True)
+
+    data = [{"disc_id": 674325879834,
+             "username": "андре",
+             "scores": 10_000},
+            {"disc_id": 977865342843,
+             "experience": 1_000}]
+
+    await db.update_user(data)
 
     ####################################   GUILDS TESTS   ############################################
 
@@ -370,16 +429,16 @@ async def test_add_guild():
 async def main():
     # USERS TESTS
     await test_add_user()
-    # await test_add_some_users()
+    await test_add_some_users()
 
-    await test_get_user()
+    # await test_get_user()
     # await test_get_some_users()
 
-    await test_get_user_with_guilds()
+    # await test_get_user_with_guilds()
     # await test_get_some_users_with_guilds()
 
-    # await test_update_user()
-    # await test_update_some_users()
+    await test_update_user()
+    await test_update_some_users()
 
     ###################################################
 

@@ -58,7 +58,7 @@ class Users(Base):
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    guilds_in_user: Mapped[list["Guilds"]] = relationship(back_populates="users_in_guild", secondary="guild_user")
+    guilds: Mapped[list["Guilds"]] = relationship(back_populates="users", secondary="guild_user")
 
     # guilds: Mapped["Guild_User"] = relationship(backref='user')
     # id = Column(Integer, primary_key=True)
@@ -80,7 +80,7 @@ class Guilds(Base):
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow())
     guild_sets: Mapped[str] = mapped_column(default=JsonEncoder.code_to_json(GUILD_CONFIG))
 
-    users_in_guild: Mapped[list["Users"]] = relationship(back_populates="guilds_in_user", secondary="guild_user")
+    users: Mapped[list["Users"]] = relationship(back_populates="guilds", secondary="guild_user")
 
     # id = Column(Integer, primary_key=True)
     # guild_id = Column(Integer, nullable=False)
