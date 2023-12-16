@@ -14,12 +14,13 @@ from models import Users, Guilds, Base
 class DataBase:
     """Class for creating connection to database and managing it"""
 
-    def __init__(self, echo: bool = False):
+    def __init__(self, echo_mode: bool = False):
         try:
-            self.echo = echo
+            self.echo = echo_mode
             self.engine = create_engine("sqlite:///DataBase.db", echo=self.echo)
             self.Session = sessionmaker(self.engine)
-        except:
+        except Exception:
+            print(traceback.format_exc())
             raise "Error creating an engine or connecting to database"
 
     ####################################   USERS   ############################################
@@ -364,24 +365,29 @@ class GuildsDbase(DataBase):
             return self.get_guild_static_with_users(session, data)
 
     async def update_guild(self, data: Union[dict, list[dict]]) -> Union[Guilds, list[Guilds], None]:
+
+        guilds_list = []
         is_dict = True if type(data) == dict else False
 
         if is_dict:
             data = [data]
+
         with self.Session() as session:
             guilds = self.get_guild_static(session, data)
             try:
                 for data in data:
-                    guild = self.get_guild_static(session, data)
+                    for guild in guilds:
+                        if data["guild_id"] == guild.guild_id:
+                            guild.guild_name = guild.guild_name if not data.get("guild_name") else data["guild_name"]
+                            guild.count_members = guild.count_members if not data.get("count_members") else data[
+                                "count_members"]
+                            guild.guild_sets = guild.guild_sets if not data.get("guild_sets") else data["guild_sets"]
 
-                    guild.guild_name = guild.guild_name if not data.get("guild_name") else data["guild_name"]
-                    guild.count_members = guild.count_members if not data.get("count_members") else data[
-                        "count_members"]
-                    guild.guild_sets = guild.guild_sets if not data.get("guild_sets") else data["guild_sets"]
+                            guilds_list.append(guild)
 
                 session.commit()
 
-                return guild
+                return guilds_list[0] if is_dict else guilds_list
 
             except Exception:
                 print("Something went wrong when update user")
@@ -412,7 +418,7 @@ async def test_add_user():
 
 
 async def test_add_some_users():
-    db = UserDBase(echo=True)
+    db = UserDBase(echo_mode=True)
 
     data = [{"username": "Andre",
              "disc_id": 674325879834},
@@ -423,7 +429,7 @@ async def test_add_some_users():
 
 
 async def test_get_user():
-    db = UserDBase(echo=True)
+    db = UserDBase(echo_mode=True)
 
     data = {"disc_id": 785364734786}
 
@@ -431,7 +437,7 @@ async def test_get_user():
 
 
 async def test_get_some_users():
-    db = UserDBase(echo=True)
+    db = UserDBase(echo_mode=True)
 
     data = [{"disc_id": 674325879834},
             {"disc_id": 977865342843}]
@@ -440,7 +446,7 @@ async def test_get_some_users():
 
 
 async def test_get_user_with_guilds():
-    db = UserDBase(echo=True)
+    db = UserDBase(echo_mode=True)
 
     data = {"disc_id": 785364734786}
 
@@ -450,7 +456,7 @@ async def test_get_user_with_guilds():
 
 
 async def test_get_some_users_with_guilds():
-    db = UserDBase(echo=True)
+    db = UserDBase(echo_mode=True)
 
     data = [{"disc_id": 674325879834},
             {"disc_id": 977865342843}]
@@ -485,7 +491,7 @@ async def test_update_some_users():
 
 
 async def test_add_guild():
-    db = GuildsDbase(echo=True)
+    db = GuildsDbase(echo_mode=True)
 
     data = {"guild_id": 785312593614209055,
             "guild_name": "Homey Temple"}
