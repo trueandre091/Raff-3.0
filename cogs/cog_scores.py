@@ -33,7 +33,7 @@ async def top_create_embed(bot: commands.Bot, embed_dict: dict):
     # data = dict(sort_data)
 
     top = await DB.get_top_users_by_scores()
-    if not top:
+    if top is None:
         top = []
 
     first_lvl_members, third_lvl_members, fifth_lvl_members = [], [], []
@@ -44,7 +44,7 @@ async def top_create_embed(bot: commands.Bot, embed_dict: dict):
     flag1, flag2, flag3 = False, False, False
     place = 0
     for user in top:
-        member = guild.get_member(user.disc_id)
+        member = guild.get_member(user.ds_id)
         if member is None or user.scores == 0:
             continue
 
@@ -66,19 +66,19 @@ async def top_create_embed(bot: commands.Bot, embed_dict: dict):
         if flag1:
             embed_dict['fields'].append({'name': '1-го уровня:', 'value': '', 'inline': True})
             for user in first_lvl_members:
-                member = guild.get_member(user.disc_id)
+                member = guild.get_member(user.ds_id)
                 embed_dict['fields'][index_of_field]['value'] += f"{member.mention} "
             index_of_field += 1
         if flag2:
             embed_dict['fields'].append({'name': '3-го уровня:', 'value': '', 'inline': True})
             for user in third_lvl_members:
-                member = guild.get_member(user.disc_id)
+                member = guild.get_member(user.ds_id)
                 embed_dict['fields'][index_of_field]['value'] += f"{member.mention} "
             index_of_field += 1
         if flag3:
             embed_dict['fields'].append({'name': '5-го уровня:', 'value': '', 'inline': True})
             for user in fifth_lvl_members:
-                member = guild.get_member(user.disc_id)
+                member = guild.get_member(user.ds_id)
                 embed_dict['fields'][index_of_field]['value'] += f"{member.mention} "
             index_of_field += 1
 
@@ -145,11 +145,11 @@ class ScoresOperations(commands.Cog):
         """Adding to a member a certain amount of scores"""
         await counter_functions.count_added_scores(количество)
 
-        user = await DB.get_user({"disc_id": участник.id})
-        if not user:
-            await DB.add_user({"disc_id": участник.id, "username": участник.name, "scores": количество})
+        user = await DB.get_user({"ds_id": участник.id})
+        if user is None:
+            await DB.add_user({"ds_id": участник.id, "username": участник.name, "scores": количество})
         else:
-            await DB.update_user({"disc_id": user.disc_id, "username": user.username, "scores": user.scores + количество})
+            await DB.update_user({"ds_id": user.ds_id, "username": user.username, "scores": user.scores + количество})
 
         # data = await load_database()
         # if str(участник.id) not in data:
@@ -158,7 +158,7 @@ class ScoresOperations(commands.Cog):
         #     data[str(участник.id)] += количество
         # await dump_database(data)
 
-        user = await DB.get_user({'disc_id': участник.id})
+        user = await DB.get_user({'ds_id': участник.id})
         await interaction.response.send_message(f"Теперь у {участник} {user.scores} оч.")
 
     @commands.slash_command(
@@ -171,14 +171,14 @@ class ScoresOperations(commands.Cog):
         """Removing from a member a certain amount of scores"""
         await counter_functions.count_removed_scores(количество)
 
-        user = await DB.get_user({"disc_id": участник.id})
+        user = await DB.get_user({"ds_id": участник.id})
         if not user:
             await interaction.response.send_message(f"У {участник} и так ничего нет... куда меньше...")
         else:
             if количество >= user.scores:
-                await DB.update_user({"disc_id": user.disc_id, "username": user.username, "scores": 0})
+                await DB.update_user({"ds_id": user.ds_id, "username": user.username, "scores": 0})
             else:
-                await DB.update_user({"disc_id": участник.id, "username": участник.name, "scores": user.scores - количество})
+                await DB.update_user({"ds_id": участник.id, "username": участник.name, "scores": user.scores - количество})
 
         # data = await load_database()
         # if str(участник.id) not in data:
@@ -222,16 +222,16 @@ class ScoresOperations(commands.Cog):
         for member in members_list:
             member_id = int(member.strip('<@>'))
             member = guild.get_member(member_id)
-            user = await DB.get_user({"disc_id": member_id})
+            user = await DB.get_user({"ds_id": member_id})
             if not user:
-                await DB.update_user({"disc_id": member.id, "username": member.name, "scores": 0})
+                await DB.update_user({"ds_id": member.id, "username": member.name, "scores": 0})
                 members_list_values.append(0)
             else:
                 if количество >= user.scores:
-                    await DB.update_user({"disc_id": user.disc_id, "username": user.username, "scores": 0})
+                    await DB.update_user({"ds_id": user.ds_id, "username": user.username, "scores": 0})
                     members_list_values.append(0)
                 else:
-                    await DB.update_user({"disc_id": user.disc_id, "username": user.username, "scores": user.scores - количество})
+                    await DB.update_user({"ds_id": user.ds_id, "username": user.username, "scores": user.scores - количество})
                     members_list_values.append(user.scores - количество)
 
         members_dict = dict(zip(members_list, members_list_values))
@@ -272,12 +272,12 @@ class ScoresOperations(commands.Cog):
         for member in members_list:
             member_id = int(member.strip('<@>'))
             member = guild.get_member(member_id)
-            user = await DB.get_user({"disc_id": member_id})
+            user = await DB.get_user({"ds_id": member_id})
             if not user:
-                await DB.add_user({"disc_id": member_id, "username": member.name, "scores": количество})
+                await DB.add_user({"ds_id": member_id, "username": member.name, "scores": количество})
                 members_list_values.append(количество)
             else:
-                await DB.update_user({"disc_id": user.disc_id, "username": user.username, "scores": user.scores + количество})
+                await DB.update_user({"ds_id": user.ds_id, "username": user.username, "scores": user.scores + количество})
                 members_list_values.append(user.scores + количество)
 
         members_dict = dict(zip(members_list, members_list_values))
@@ -288,7 +288,7 @@ class ScoresOperations(commands.Cog):
         )
         for member, value in members_dict.items():
             member_id = int(member.strip('<@>'))
-            user = await DB.get_user({"disc_id": member_id})
+            user = await DB.get_user({"ds_id": member_id})
             embed.add_field(name=interaction.guild.get_member(member_id), value=f"```{user.scores} оч.```")
 
         await interaction.response.send_message(embed=embed)
@@ -305,11 +305,11 @@ class ScoresOperations(commands.Cog):
         # data[str(участник.id)] = количество
         # await dump_database(data)
 
-        user = await DB.get_user({"disc_id": участник.id})
+        user = await DB.get_user({"ds_id": участник.id})
         if not user:
-            await DB.add_user({"disc_id": участник.id, "username": участник.name, "scores": количество})
+            await DB.add_user({"ds_id": участник.id, "username": участник.name, "scores": количество})
         else:
-            await DB.update_user({"disc_id": участник.id, "username": участник.name, "scores": количество})
+            await DB.update_user({"ds_id": участник.id, "username": участник.name, "scores": количество})
 
         await interaction.response.send_message(f"У {участник} теперь {количество}")
 
@@ -356,7 +356,7 @@ class SpecialScoresCommands(commands.Cog):
                 embed_dict['thumbnail']['url'] = участник.avatar.url
             except AttributeError:
                 embed_dict['thumbnail']['url'] = 'https://i.postimg.cc/CMsM38p8/1.png'
-            user = await DB.get_user({"disc_id": участник.id})
+            user = await DB.get_user({"ds_id": участник.id})
             if not user:
                 embed_dict['fields'][0]['value'] = f'```0 оч.```'
             else:
@@ -367,7 +367,7 @@ class SpecialScoresCommands(commands.Cog):
                 embed_dict['thumbnail']['url'] = interaction.author.avatar.url
             except AttributeError:
                 embed_dict['thumbnail']['url'] = 'https://i.postimg.cc/CMsM38p8/1.png'
-            user = await DB.get_user({"disc_id": interaction.author.id})
+            user = await DB.get_user({"ds_id": interaction.author.id})
             if not user:
                 embed_dict['fields'][0]['value'] = f'```0 оч.```'
             else:
@@ -412,7 +412,7 @@ class SpecialScoresCommands(commands.Cog):
             with (open(f"{FOLDER}/data/backups/backup_{date.today()}.json", 'w', encoding="utf-8") as f):
                 dump(top, f)
             for user in top:
-                await DB.add_user({"disc_id": user.disc_id, "username": user.username, "scores": 0})
+                await DB.add_user({"ds_id": user.ds_id, "username": user.username, "scores": 0})
 
             await interaction.response.send_message(f"База данных сброшена, бэкап создан `{date.today()}`")
 
