@@ -38,6 +38,7 @@ class UserDBase(DataBase):
         Returns a User model object if the operation is successful,
         or nothing if there is an error
         """
+        default_scores = 10
 
         user_list = []
         is_dict = True if type(data) == dict else False
@@ -48,7 +49,9 @@ class UserDBase(DataBase):
         with self.Session() as session:
             try:
                 for data in data:
-                    user = Users(username=data["username"], disc_id=data["disc_id"])
+                    user = Users(username=data["username"], disc_id=data["disc_id"],
+                                 scores=data["scores"] if data.get("scores") else default_scores,
+                                 experience=data["experience"] if data.get("experience") else 0)
                     user_list.append(user)
                     print(user)
 
@@ -251,6 +254,25 @@ class UserDBase(DataBase):
                 print("Something went wrong when update user")
                 print(traceback.format_exc())
 
+    async def get_top_users_by_scores(self) -> Union[list, None]:
+        with self.Session() as session:
+            try:
+                users = (select(Users)
+                         .order_by(Users.scores.desc())
+                         .limit(20))
+                res = session.scalars(users).all()
+                if not res:
+                    print("Can't get top users by scores")
+                    return
+
+                return res
+
+            except Exception:
+                print("Something went wrong when get top for users by scores")
+                print(traceback.format_exc())
+
+        return
+
     ####################################   GUILDS   ############################################
 
 
@@ -395,6 +417,26 @@ class GuildsDbase(DataBase):
 
         return
 
+    async def get_top_by_scores(self):
+        with self.Session() as session:
+            try:
+                guilds = (select(Guilds)
+                          .order_by(Guilds.users.scores.desc())) \
+                    .limit(20)
+
+                res = session.scalars(guilds).all()
+                if not res:
+                    print("Can't get users in guild by scores")
+                    return
+
+                return res
+
+            except:
+                print("Something went wrong when get users top in guild by scores")
+                print(traceback.format_exc())
+
+        return
+
     ####################################   RELATIONSHIPS   ############################################
 
 
@@ -412,7 +454,8 @@ async def test_add_user():
     db = UserDBase(True)
 
     data = {"username": "TopNik_",
-            "disc_id": 785364734786}
+            "disc_id": 785364734786,
+            "scores": 20}
 
     await db.add_user(data)
 
@@ -487,6 +530,14 @@ async def test_update_some_users():
 
     await db.update_user(data)
 
+
+async def test_get_top_users_by_scores():
+    db = UserDBase(True)
+
+    res = await db.get_top_users_by_scores()
+
+    print(res)
+
     ####################################   GUILDS TESTS   ############################################
 
 
@@ -507,13 +558,56 @@ async def test_add_some_guilds():
 
     await db.add_guild(data)
 
+
+async def test_get_guild():
+    db = GuildsDbase(True)
+
+    data = {"guild_id": 710525764470308975}
+
+    await db.get_guild(data)
+
+
+async def test_get_some_guilds():
+    db = GuildsDbase(True)
+
+    data = [{"guild_id": 710525764470308975},
+            {"guild_id": 785312593614209055}]
+
+    await db.get_guild(data)
+
+
+async def test_update_guild():
+    db = GuildsDbase(True)
+
+    data = {"guild_id": 710525764470308975,
+            "guild_name": "HT"}
+
+    await db.update_guild(data)
+
+
+async def test_update_some_guilds():
+    db = GuildsDbase
+
+    data = [{"guild_id": 710525764470308975,
+             "count_members": 5000},
+            {"guild_id": 785312593614209055,
+             "count_members": 100}]
+
+    await db.update_guild(data)
+
+
+async def test_get_top_by_scores():
+    db = GuildsDbase
+
+    await db.get_top_by_scores()
+
     ####################################   DATABASE TESTS   ############################################
 
 
 async def main():
     # USERS TESTS
     await test_add_user()
-    await test_add_some_users()
+    # await test_add_some_users()
 
     # await test_get_user()
     # await test_get_some_users()
@@ -521,14 +615,24 @@ async def main():
     # await test_get_user_with_guilds()
     # await test_get_some_users_with_guilds()
 
-    await test_update_user()
-    await test_update_some_users()
+    # await test_update_user()
+    # await test_update_some_users()
+
+    # await test_get_top_users_by_scores()
 
     ###################################################
 
     # GUILDS TESTS
     # await test_add_guild()
     # await test_add_some_guilds()
+
+    # await test_get_guild()
+    # await test_get_some_guilds()
+
+    # await test_update_guild()
+    # await test_update_some_guilds()
+
+    # await test_get_top_by_scores()
 
 
 if __name__ == "__main__":
