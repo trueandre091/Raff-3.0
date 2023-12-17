@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, selectinload
 
-from models import Users, Guilds, Base
+from DB.models import Users, Guilds, Base
 
 
 class DataBase:
@@ -17,7 +17,7 @@ class DataBase:
     def __init__(self, echo_mode: bool = False):
         try:
             self.echo = echo_mode
-            self.engine = create_engine("sqlite:///DataBase.db", echo=self.echo)
+            self.engine = create_engine("sqlite:///DB/DataBase.db", echo=self.echo)
             self.Session = sessionmaker(self.engine)
         except Exception:
             print(traceback.format_exc())
@@ -417,26 +417,6 @@ class GuildsDbase(DataBase):
 
         return
 
-    async def get_top_by_scores(self):
-        with self.Session() as session:
-            try:
-                guilds = (select(Guilds)
-                          .order_by(Guilds.users.scores.desc())) \
-                    .limit(20)
-
-                res = session.scalars(guilds).all()
-                if not res:
-                    print("Can't get users in guild by scores")
-                    return
-
-                return res
-
-            except:
-                print("Something went wrong when get users top in guild by scores")
-                print(traceback.format_exc())
-
-        return
-
     ####################################   RELATIONSHIPS   ############################################
 
 
@@ -558,58 +538,15 @@ async def test_add_some_guilds():
 
     await db.add_guild(data)
 
-
-async def test_get_guild():
-    db = GuildsDbase(True)
-
-    data = {"guild_id": 710525764470308975}
-
-    await db.get_guild(data)
-
-
-async def test_get_some_guilds():
-    db = GuildsDbase(True)
-
-    data = [{"guild_id": 710525764470308975},
-            {"guild_id": 785312593614209055}]
-
-    await db.get_guild(data)
-
-
-async def test_update_guild():
-    db = GuildsDbase(True)
-
-    data = {"guild_id": 710525764470308975,
-            "guild_name": "HT"}
-
-    await db.update_guild(data)
-
-
-async def test_update_some_guilds():
-    db = GuildsDbase
-
-    data = [{"guild_id": 710525764470308975,
-             "count_members": 5000},
-            {"guild_id": 785312593614209055,
-             "count_members": 100}]
-
-    await db.update_guild(data)
-
-
-async def test_get_top_by_scores():
-    db = GuildsDbase
-
-    await db.get_top_by_scores()
-
     ####################################   DATABASE TESTS   ############################################
 
 
 async def main():
     # USERS TESTS
-    await test_add_user()
+    # await test_add_user()
     # await test_add_some_users()
 
-    # await test_get_user()
+    await test_get_user()
     # await test_get_some_users()
 
     # await test_get_user_with_guilds()
@@ -618,21 +555,13 @@ async def main():
     # await test_update_user()
     # await test_update_some_users()
 
-    # await test_get_top_users_by_scores()
+    await test_get_top_users_by_scores()
 
     ###################################################
 
     # GUILDS TESTS
     # await test_add_guild()
     # await test_add_some_guilds()
-
-    # await test_get_guild()
-    # await test_get_some_guilds()
-
-    # await test_update_guild()
-    # await test_update_some_guilds()
-
-    # await test_get_top_by_scores()
 
 
 if __name__ == "__main__":

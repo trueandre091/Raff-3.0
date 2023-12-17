@@ -2,8 +2,8 @@ from typing import Annotated
 from sqlalchemy import create_engine, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from datetime import datetime
-from JSONEnc import JsonEncoder
-from config_default import GUILD_CONFIG
+from DB.JSONEnc import JsonEncoder
+from DB.config_default import GUILD_CONFIG
 
 intid = Annotated[int, mapped_column(primary_key=True)]
 
