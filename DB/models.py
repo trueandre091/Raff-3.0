@@ -30,8 +30,8 @@ class Guild_User(Base):
 
     # id: Mapped[intid]
 
-    disc_id: Mapped[int] = mapped_column(
-        ForeignKey("users.disc_id", ondelete="CASCADE"),
+    ds_id: Mapped[int] = mapped_column(
+        ForeignKey("users.ds_id", ondelete="CASCADE"),
         primary_key=True
     )
     guild_id: Mapped[int] = mapped_column(
@@ -40,7 +40,7 @@ class Guild_User(Base):
     )
 
     # id = Column(Integer, primary_key=True)
-    # disc_id = Column(Integer, ForeignKey("users.disc_id"))
+    # ds_id = Column(Integer, ForeignKey("users.ds_id"))
     # guild_id = Column(Integer, ForeignKey("guilds.guild_id"))
     # extra_info = Column(Text)
 
@@ -51,7 +51,7 @@ class Users(Base):
     __tablename__ = "users"
 
     # id: Mapped[intid]
-    disc_id: Mapped[intid]
+    ds_id: Mapped[intid]
     username: Mapped[str]
     experience: Mapped[int] = mapped_column(default=0)
     scores: Mapped[int] = mapped_column(default=10)
@@ -63,7 +63,7 @@ class Users(Base):
     # guilds: Mapped["Guild_User"] = relationship(backref='user')
     # id = Column(Integer, primary_key=True)
     # username = Column(String(30), nullable=False)
-    # disc_id = Column(Integer, nullable=False)
+    # ds_id = Column(Integer, nullable=False)
     # experience = Column(Integer, nullable=False, default=0)
     # scores = Column(Integer, nullable=False, default=10)
     # guilds = relationship("Guild_User", backref='user')
