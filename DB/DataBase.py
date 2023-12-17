@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, selectinload
 
-from models import Users, Guilds, Base
+from DB.models import Users, Guilds, Base
 
 
 class DataBase:
@@ -17,7 +17,7 @@ class DataBase:
     def __init__(self, echo_mode: bool = False):
         try:
             self.echo = echo_mode
-            self.engine = create_engine("sqlite:///DataBase.db", echo=self.echo)
+            self.engine = create_engine("sqlite:///DB/DataBase.db", echo=self.echo)
             self.Session = sessionmaker(self.engine)
         except Exception:
             print(traceback.format_exc())
@@ -543,10 +543,10 @@ async def test_add_some_guilds():
 
 async def main():
     # USERS TESTS
-    await test_add_user()
-    await test_add_some_users()
+    # await test_add_user()
+    # await test_add_some_users()
 
-    # await test_get_user()
+    await test_get_user()
     # await test_get_some_users()
 
     # await test_get_user_with_guilds()
