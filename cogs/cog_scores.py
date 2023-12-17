@@ -6,7 +6,9 @@ from datetime import date
 
 import config as cfg
 from cogs import counter_functions
+from DB.DataBase import UserDBase
 FOLDER = getcwd()
+DB = UserDBase(echo_mode=True)
 
 
 async def load_database() -> dict:
