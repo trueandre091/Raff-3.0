@@ -1,7 +1,7 @@
 from os import getcwd
 import disnake
 from disnake.ext import commands
-from json import load, dump
+from json import dump
 from datetime import date
 
 import config as cfg
@@ -12,15 +12,15 @@ FOLDER = getcwd()
 DB = UserDBase()
 
 
-async def load_database() -> dict:
-    with (open(f"{FOLDER}/data/users_data.json", "r", encoding="utf-8") as f):
-        data = load(f)
-    return data
-
-
-async def dump_database(data: dict) -> None:
-    with (open(f"{FOLDER}/data/users_data.json", "w", encoding="utf-8") as f):
-        dump(data, f)
+# async def load_database() -> dict:
+#     with (open(f"{FOLDER}/data/users_data.json", "r", encoding="utf-8") as f):
+#         data = load(f)
+#     return data
+#
+#
+# async def dump_database(data: dict) -> None:
+#     with (open(f"{FOLDER}/data/users_data.json", "w", encoding="utf-8") as f):
+#         dump(data, f)
 
 
 async def top_create_embed(bot: commands.Bot, embed_dict: dict):
@@ -145,11 +145,11 @@ class ScoresOperations(commands.Cog):
         """Adding to a member a certain amount of scores"""
         await counter_functions.count_added_scores(количество)
 
-        user = await DB.get_user({"disc_id": участник.id})
+        user = await DB.get_user({"ds_id": участник.id})
         if not user:
-            await DB.add_user({"disc_id": участник.id, "username": участник.name, "scores": количество})
+            await DB.add_user({"ds_id": участник.id, "username": участник.name, "scores": количество})
         else:
-            await DB.update_user({"disc_id": user.disc_id, "username": user.username, "scores": user.scores + количество})
+            await DB.update_user({"ds_id": user.disc_id, "username": user.username, "scores": user.scores + количество})
 
         # data = await load_database()
         # if str(участник.id) not in data:
@@ -171,14 +171,14 @@ class ScoresOperations(commands.Cog):
         """Removing from a member a certain amount of scores"""
         await counter_functions.count_removed_scores(количество)
 
-        user = await DB.get_user({"disc_id": участник.id})
+        user = await DB.get_user({"ds_id": участник.id})
         if not user:
             await interaction.response.send_message(f"У {участник} и так ничего нет... куда меньше...")
         else:
             if количество >= user.scores:
-                await DB.update_user({"disc_id": user.disc_id, "username": user.username, "scores": 0})
+                await DB.update_user({"ds_id": user.disc_id, "username": user.username, "scores": 0})
             else:
-                await DB.update_user({"disc_id": участник.id, "username": участник.name, "scores": user.scores - количество})
+                await DB.update_user({"ds_id": участник.id, "username": участник.name, "scores": user.scores - количество})
 
         # data = await load_database()
         # if str(участник.id) not in data:
