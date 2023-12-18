@@ -1,3 +1,4 @@
+import datetime
 from os import getcwd
 import disnake
 from disnake.ext import commands
@@ -429,6 +430,45 @@ class SpecialScoresCommands(commands.Cog):
         else:
 
             await interaction.response.send_message("Неверный пароль... Ты вор, сука?", delete_after=30)
+
+    @commands.slash_command(
+        description="Вернуть сброшенные данные по бекапу (пароль)",
+        default_member_permissions=disnake.Permissions(administrator=True)
+    )
+    async def load_backup(self, interaction: disnake.ApplicationCommandInteraction, пароль: int, backup_date=None):
+        if пароль == cfg.SETTINGS["PASSWORD"]:
+            if backup_date is None:
+                for i in range(100):
+                    day = datetime.timedelta(i)
+                    try:
+                        with (open(f"{FOLDER}/data/backups/backup_{date.today() - day}.json", 'r',encoding="utf-8") as f):
+                            data = load(f)
+                    except:
+                        pass
+                    else:
+                        break
+            else:
+                try:
+                    with (open(f"{FOLDER}/data/backups/backup_{backup_date}.json", 'r', encoding="utf-8") as f):
+                        data = load(f)
+                except:
+
+                    await interaction.response.send_message("Бэкап не найден", ephemeral=True)
+                    return
+
+            for ds_id, other in data.items():
+                user = await DB.get_user({"ds_id": int(ds_id)})
+                if not user:
+                    await DB.add_user({"ds_id": ds_id, "username": other[0], "scores": other[1]})
+                else:
+                    await DB.update_user({"ds_id": user.ds_id, "username": user.username, "scores": other[1]})
+
+            await interaction.response.send_message("Бекап загружен", ephemeral=True)
+
+        else:
+
+            await interaction.response.send_message("Неверный пароль... Ты вор, сука?", delete_after=30)
+
 
 
 def setup(bot: commands.Bot):
