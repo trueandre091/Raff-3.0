@@ -230,7 +230,7 @@ class BlackJack(commands.Cog):
                                 while obj.bot_score <= 15:
 
                                     current = obj.deck.pop()
-                                    obj.bot_score = obj.return_scores(current, obj.bot_score)
+                                    obj.bot_score = return_scores(current, obj.bot_score)
 
                                     embed_dict["description"] += (f"\nБоту выпала карта {current}, "
                                                                   f"у него {obj.bot_score} оч.")

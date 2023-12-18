@@ -6,11 +6,13 @@ from datetime import datetime, timezone, timedelta
 
 import config as cfg
 from cogs.cog_scores import top_create_embed
+
 FOLDER = getcwd()
 
 
 class AutoUpdateMessagesTop(commands.Cog):
     """Send/edit an autoupdate message about leaderboard of weekly amount of members' messages"""
+
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.settings = cfg.COGS_SETTINGS["AUTOUPDATE"]
@@ -25,10 +27,27 @@ class AutoUpdateMessagesTop(commands.Cog):
             with (open(f"{FOLDER}/data/lb_messages_data.json", "r", encoding="utf-8") as f):
                 data = load(f)
 
-            data.clear()
+            guild = self.bot.get_guild(cfg.GUILD_ID)
+            sort_data = sorted(data.items(), key=lambda x: x[1], reverse=True)
+            data = dict(sort_data)
+
+            limit = 1
+            for key in data:
+                member = guild.get_member(int(key))
+                if member is None or limit == self.settings["PREVIOUS_BESTS_LIMIT"]:
+                    data.pop(key)
+                    continue
+                with (open(f"{FOLDER}/data/counters.json", "r", encoding="utf-8") as f):
+                    counters = load(f)
+
+                counters["PREVIOUS_BESTS"].append(key)
+
+                with (open(f"{FOLDER}/data/counters.json", "w", encoding="utf-8") as f):
+                    dump(counters, f)
+                limit += 1
 
             with (open(f"{FOLDER}/data/lb_messages_data.json", "w", encoding="utf-8") as f):
-                dump(data, f)
+                dump({}, f)
 
     @reset_aup_top.before_loop
     async def before(self):
@@ -41,16 +60,11 @@ class AutoUpdateMessagesTop(commands.Cog):
 
         with (open(f"{FOLDER}/data/lb_messages_data.json", "r", encoding="utf-8") as f):
             data = load(f)
+        with (open(f"{FOLDER}/data/counters.json", "r", encoding="utf-8") as f):
+            counters = load(f)
 
         sort_data = sorted(data.items(), key=lambda x: x[1], reverse=True)
         data = dict(sort_data)
-
-        none_members = []
-        for key in data:
-            if guild.get_member(int(key)) not in guild.members:
-                none_members.append(key)
-        for key in none_members:
-            data.pop(key)
 
         embed_dict = {
             'title': 'Таблица лидеров по сообщениям за неделю: 📊',
@@ -64,8 +78,16 @@ class AutoUpdateMessagesTop(commands.Cog):
         for key, value in data.items():
             if place <= self.settings["MESSAGES"]["PLACE_LIMIT"]:
                 member = guild.get_member(int(key))
+                if member is None:
+                    data.pop(key)
+                    continue
                 embed_dict['description'] += f"`{place}.` {member.mention} - {value}\n"
                 place += 1
+
+        if len(counters["PREVIOUS_BESTS"]):
+            embed_dict["fields"].append({"name": "Топ 3 предыдущей недели:", "value": ""})
+            for key in counters["PREVIOUS_BESTS"]:
+                embed_dict["fields"][-1]["value"] += f"{guild.get_member(int(key)).mention} "
 
         flag = True
         async for msg in channel.history(limit=3):
@@ -83,6 +105,7 @@ class AutoUpdateMessagesTop(commands.Cog):
 
 class AutoUpdateScoresTop(commands.Cog):
     """Send/edit an autoupdate message about leaderboard of amount of members' scores"""
+
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.settings = cfg.COGS_SETTINGS["AUTOUPDATE"]

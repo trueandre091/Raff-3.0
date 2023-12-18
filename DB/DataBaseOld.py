@@ -35,7 +35,7 @@ class DataBase:
                 if id:
                     guilds_list = select(Guilds).filter_by(id=id)
                     guild = session.scalars(guilds_list).first()
-                    if not guild:
+                    if guild is None:
                         print("Can't find guild by id in database")
                         return False
 
@@ -44,7 +44,7 @@ class DataBase:
                 elif guild_id:
                     guilds_list = select(Guilds).filter_by(guild_id=guild_id)
                     guild = session.scalars(guilds_list).first()
-                    if not guild:
+                    if guild is None:
                         print("Can't find guild by guild_id in database")
                         return False
 
@@ -53,7 +53,7 @@ class DataBase:
                 elif guild_name:
                     guilds_list = select(Guilds).filter_by(guild_name=guild_name)
                     guild = session.scalars(guilds_list).first()
-                    if not guild:
+                    if guild is None:
                         print("Can't find guild by guild_name in database")
                         return False
 

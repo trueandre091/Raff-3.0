@@ -65,7 +65,7 @@ async def gif_moderation(message: disnake.Message, settings: dict):
 
 async def reactions_thread_check(message: disnake.Message, settings: dict) -> None:
     """Adding reactions and(or) a thread to a message in the certain channels"""
-    if str(message.channel.id) in settings["CHANNELS"]:
+    if message.channel.id in settings["CHANNELS"].values():
 
         channels = settings["CHANNELS"]
         channels_thread = settings["THREAD"]
@@ -101,12 +101,14 @@ async def boosts_check(message: disnake.Message, settings: dict) -> None:
                 skip_first_flag = False
 
             if flag:
-                print(0)
+                print(1)
 
                 await counter_functions.count_users_boosts(message.interaction.user.id)
 
         if message.author.id == settings["BOOST_BOTS"]["DSMonitoring"]:
             if "Вы успешно лайкнули сервер." in message.embeds[-1].to_dict()["description"]:
+                print(1)
+
                 await counter_functions.count_users_boosts(message.interaction.user.id)
 
 
