@@ -178,7 +178,8 @@ class ScoresOperations(commands.Cog):
             if количество >= user.scores:
                 await DB.update_user({"ds_id": user.ds_id, "username": user.username, "scores": 0})
             else:
-                await DB.update_user({"ds_id": участник.id, "username": участник.name, "scores": user.scores - количество})
+                await DB.update_user(
+                    {"ds_id": участник.id, "username": участник.name, "scores": user.scores - количество})
 
         # data = await load_database()
         # if str(участник.id) not in data:
@@ -231,7 +232,8 @@ class ScoresOperations(commands.Cog):
                     await DB.update_user({"ds_id": user.ds_id, "username": user.username, "scores": 0})
                     members_list_values.append(0)
                 else:
-                    await DB.update_user({"ds_id": user.ds_id, "username": user.username, "scores": user.scores - количество})
+                    await DB.update_user(
+                        {"ds_id": user.ds_id, "username": user.username, "scores": user.scores - количество})
                     members_list_values.append(user.scores - количество)
 
         members_dict = dict(zip(members_list, members_list_values))
@@ -277,7 +279,8 @@ class ScoresOperations(commands.Cog):
                 await DB.add_user({"ds_id": member_id, "username": member.name, "scores": количество})
                 members_list_values.append(количество)
             else:
-                await DB.update_user({"ds_id": user.ds_id, "username": user.username, "scores": user.scores + количество})
+                await DB.update_user(
+                    {"ds_id": user.ds_id, "username": user.username, "scores": user.scores + количество})
                 members_list_values.append(user.scores + количество)
 
         members_dict = dict(zip(members_list, members_list_values))
@@ -314,6 +317,15 @@ class ScoresOperations(commands.Cog):
         await interaction.response.send_message(f"У {участник} теперь {количество}")
 
 
+async def convert(user, embed_dict):
+    if user is None:
+        embed_dict['fields'][0]['value'] = f'```0 оч.```'
+        embed_dict['fields'][1]['value'] = f'```0 лвл.```'
+    else:
+        embed_dict['fields'][0]['value'] = f"```{user.scores} оч.```"
+        embed_dict['fields'][1]['value'] = f"```{user.experience} опыта```"
+
+
 class SpecialScoresCommands(commands.Cog):
     """Special scores commands: /реп, /топ, /reset"""
 
@@ -324,11 +336,12 @@ class SpecialScoresCommands(commands.Cog):
     async def реп(self, interaction: disnake.ApplicationCommandInteraction, участник: disnake.Member = None):
         """Showing user's or a somebody's amount of scores"""
         embed_dict = {
-            'fields': [{'name': 'Очки'}],
+            'fields': [{'inline': True, 'name': 'Очки'}, {'inline': True, 'name': 'Опыт'}],
             'footer': {'text': interaction.guild.name, 'icon_url': interaction.guild.icon.url},
             'thumbnail': {'url': ''},
             'color': 0x2b2d31
         }
+
         # data = await load_database()
         # if участник:
         #     embed_dict['title'] = участник.name
@@ -350,6 +363,7 @@ class SpecialScoresCommands(commands.Cog):
         #         embed_dict['fields'][0]['value'] = f"```{data[str(interaction.author.id)]} оч.```"
         #     except KeyError:
         #         embed_dict['fields'][0]['value'] = f'```0 оч.```'
+
         if участник:
             embed_dict['title'] = участник.name
             try:
@@ -357,10 +371,7 @@ class SpecialScoresCommands(commands.Cog):
             except AttributeError:
                 embed_dict['thumbnail']['url'] = 'https://i.postimg.cc/CMsM38p8/1.png'
             user = await DB.get_user({"ds_id": участник.id})
-            if not user:
-                embed_dict['fields'][0]['value'] = f'```0 оч.```'
-            else:
-                embed_dict['fields'][0]['value'] = f"```{user.scores} оч.```"
+            await convert(user, embed_dict)
         else:
             embed_dict['title'] = interaction.author.name
             try:
@@ -368,10 +379,7 @@ class SpecialScoresCommands(commands.Cog):
             except AttributeError:
                 embed_dict['thumbnail']['url'] = 'https://i.postimg.cc/CMsM38p8/1.png'
             user = await DB.get_user({"ds_id": interaction.author.id})
-            if not user:
-                embed_dict['fields'][0]['value'] = f'```0 оч.```'
-            else:
-                embed_dict['fields'][0]['value'] = f"```{user.scores} оч.```"
+            await convert(user, embed_dict)
 
         await interaction.response.send_message(embed=disnake.Embed.from_dict(embed_dict))
 
@@ -409,11 +417,13 @@ class SpecialScoresCommands(commands.Cog):
             #     dump(data, f)
             # await dump_database({})
             top = await DB.get_top_users_by_scores()
-            with (open(f"{FOLDER}/data/backups/backup_{date.today()}.json", 'w', encoding="utf-8") as f):
-                dump(top, f)
+            top_dict = {}
             for user in top:
-                await DB.add_user({"ds_id": user.ds_id, "username": user.username, "scores": 0})
+                top_dict[str(user.ds_id)] = [user.username, user.scores]
+                await DB.update_user({"ds_id": user.ds_id, "username": user.username, "scores": 0})
 
+            with (open(f"{FOLDER}/data/backups/backup_{date.today()}.json", 'w', encoding="utf-8") as f):
+                dump(top_dict, f)
             await interaction.response.send_message(f"База данных сброшена, бэкап создан `{date.today()}`")
 
         else:
