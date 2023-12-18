@@ -2,8 +2,8 @@ from typing import Annotated
 from sqlalchemy import create_engine, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from datetime import datetime
-from JSONEnc import JsonEncoder
-from config_default import GUILD_CONFIG
+from DB.JSONEnc import JsonEncoder
+from DB.config_default import GUILD_CONFIG
 
 intid = Annotated[int, mapped_column(primary_key=True)]
 
@@ -28,14 +28,13 @@ class Guild_User(Base):
 
     __tablename__ = "guild_user"
 
-    # id: Mapped[intid]
-
+    id: Mapped[intid]
     ds_id: Mapped[int] = mapped_column(
-        ForeignKey("users.ds_id", ondelete="CASCADE"),
+        ForeignKey("users.ds_id"),
         primary_key=True
     )
     guild_id: Mapped[int] = mapped_column(
-        ForeignKey("guilds.guild_id", ondelete="CASCADE"),
+        ForeignKey("guilds.guild_id"),
         primary_key=True
     )
 
