@@ -1,7 +1,7 @@
 """Database Management"""
 
 import asyncio
-from typing import Union, Any
+from typing import Union
 import traceback
 
 from sqlalchemy import select
@@ -505,10 +505,15 @@ class RelationshipsDBase(DataBase):
         with self.Session() as session:
             try:
                 for data in data:
-                    received_users = await self.users_db.get_user_with_guilds(data["users"])
-                    user_without_guilds = await self.users_db.get_user(data["users"])
-                    received_guilds = await self.guilds_db.get_guild_with_users(data["guilds"])
-                    guild_without_users = await self.guilds_db.get_guild(data["guilds"])
+                    # USERS
+                    # received_users = await self.users_db.get_user_with_guilds(data["users"])
+                    received_users = self.users_db.get_user_static_with_guilds(session, data["users"])
+                    # user_without_guilds = await self.users_db.get_user(data["users"])
+
+                    # GUILDS
+                    # received_guilds = await self.guilds_db.get_guild_with_users(data["guilds"])
+                    received_guilds = self.guilds_db.get_guild_static_with_users(session, data["guilds"])
+                    # guild_without_users = await self.guilds_db.get_guild(data["guilds"])
 
                     # for user in received_users:
                     #     for guild in received_guilds:
@@ -652,6 +657,16 @@ async def test_get_guild(guilds_echo=False):
     await db.get_guild(data)
 
 
+async def test_get_guild_with_users(guilds_echo=False):
+    db = GuildsDbase(guilds_echo)
+
+    data = {"guild_id": 785312593614209055}
+
+    res = await db.get_guild_with_users(data)
+
+    print(res.users)
+
+
 async def test_get_some_guilds(guilds_echo=False):
     db = GuildsDbase(guilds_echo)
 
@@ -745,6 +760,9 @@ async def main():
 
     # RELATIONSHIPS TESTS
     await test_add_relationship(rel_echo)
+    # await asyncio.sleep(2)
+    # await test_get_user_with_guilds(rel_echo)
+    # await test_get_guild_with_users(rel_echo)
 
 
 if __name__ == "__main__":

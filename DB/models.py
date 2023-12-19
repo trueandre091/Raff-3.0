@@ -28,7 +28,7 @@ class Guild_User(Base):
 
     __tablename__ = "guild_user"
 
-    id: Mapped[intid]
+    # id: Mapped[intid]
     ds_id: Mapped[int] = mapped_column(
         ForeignKey("users.ds_id"),
         primary_key=True
@@ -91,6 +91,7 @@ class Guilds(Base):
 
 if __name__ == "__main__":
     engine = create_engine("sqlite:///DataBase.db", echo=True)
+    Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
 
     res = JsonEncoder.code_to_json(GUILD_CONFIG)
