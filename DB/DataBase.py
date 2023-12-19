@@ -288,7 +288,7 @@ class UserDBase(DataBase):
                          .order_by(Users.scores.desc())
                          .limit(20))
                 res = session.scalars(users).all()
-                if not res:
+                if res is None:
                     print("Can't get top users by scores")
                     return
 

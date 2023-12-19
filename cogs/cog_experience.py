@@ -2,12 +2,26 @@ import disnake
 from disnake.ext import commands
 from random import randint
 from datetime import timedelta
+import math
 
 import config as cfg
 from DB.DataBase import UserDBase
 from DB.models import Users
 
 DB = UserDBase()
+
+
+async def convert_ex_to_lvl(user: Users):
+    if user is None:
+        return 0
+    factors = cfg.COGS_SETTINGS["EXPERIENCE"]["LEVEL_FACTORS"]
+
+    try:
+        lvl = math.floor(math.log(user.experience - factors["K2"], factors["K1"]))
+    except ValueError:
+        lvl = 0
+
+    return lvl
 
 
 async def count_experience(message: disnake.Message):
@@ -29,9 +43,11 @@ async def count_experience(message: disnake.Message):
 
         user = await DB.get_user({"ds_id": message.author.id})
         if not user:
-            await DB.add_user({"ds_id": message.author.id, "username": message.author.id, "experience": ex})
+            await DB.add_user({"ds_id": message.author.id, "username": message.author.name, "experience": ex})
         else:
             await DB.update_user({"ds_id": user.ds_id, "username": user.username, "experience": user.experience + ex})
+
+    await convert_ex_to_lvl(await DB.get_user({"ds_id": message.author.id}))
 
 
 class ExperienceCommands(commands.Cog):
@@ -39,7 +55,7 @@ class ExperienceCommands(commands.Cog):
         self.bot = bot
 
     @commands.slash_command(description="Прибавить опыт любому кол-ву участников (упомянуть через пробел)")
-    async def add_any_ex(
+    async def add_ex(
             self, interaction: disnake.ApplicationCommandInteraction, участники: str, количество: int
     ):
         """Adding to several members a certain amount of scores"""
@@ -73,17 +89,15 @@ class ExperienceCommands(commands.Cog):
         await interaction.response.send_message(embed=embed)
 
     @commands.slash_command(description="Вычесть опыт любому кол-ву участников (упомянуть через пробел)")
-    async def remove_any_ex(
+    async def remove_ex(
             self, interaction: disnake.ApplicationCommandInteraction, участники: str, количество: int
     ):
         """Adding to several members a certain amount of scores"""
-        guild = self.bot.get_guild(cfg.GUILD_ID)
         members_list = участники.split()
         members_list_values = []
 
         for member in members_list:
             member_id = int(member.strip('<@>'))
-            member = guild.get_member(member_id)
             user = await DB.get_user({"ds_id": member_id})
             if user is None:
                 members_list_values.append(0)

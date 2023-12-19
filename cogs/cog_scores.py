@@ -6,22 +6,24 @@ from json import load, dump
 from datetime import date
 
 import config as cfg
+from DB.models import Users
 from cogs import counter_functions
+from cogs.cog_experience import convert_ex_to_lvl
 from DB.DataBase import UserDBase
 
 FOLDER = getcwd()
 DB = UserDBase()
 
 
-async def load_database() -> dict:
-    with (open(f"{FOLDER}/data/users_data.json", "r", encoding="utf-8") as f):
-        data = load(f)
-    return data
-
-
-async def dump_database(data: dict) -> None:
-    with (open(f"{FOLDER}/data/users_data.json", "w", encoding="utf-8") as f):
-        dump(data, f)
+# async def load_database() -> dict:
+#     with (open(f"{FOLDER}/data/users_data.json", "r", encoding="utf-8") as f):
+#         data = load(f)
+#     return data
+#
+#
+# async def dump_database(data: dict) -> None:
+#     with (open(f"{FOLDER}/data/users_data.json", "w", encoding="utf-8") as f):
+#         dump(data, f)
 
 
 async def top_create_embed(bot: commands.Bot, embed_dict: dict):
@@ -305,10 +307,6 @@ class ScoresOperations(commands.Cog):
             self, interaction: disnake.ApplicationCommandInteraction, участник: disnake.Member, количество: int
     ):
         """Setting for a member a certain amount of scores"""
-        # data = await load_database()
-        # data[str(участник.id)] = количество
-        # await dump_database(data)
-
         user = await DB.get_user({"ds_id": участник.id})
         if not user:
             await DB.add_user({"ds_id": участник.id, "username": участник.name, "scores": количество})
@@ -318,22 +316,21 @@ class ScoresOperations(commands.Cog):
         await interaction.response.send_message(f"У {участник} теперь {количество}")
 
 
-async def convert(user, embed_dict):
+async def convert(user: Users, embed_dict):
     if user is None:
         embed_dict['fields'][0]['value'] = f'```0 оч.```'
         embed_dict['fields'][1]['value'] = f'```0 лвл.```'
     else:
         embed_dict['fields'][0]['value'] = f"```{user.scores} оч.```"
-        embed_dict['fields'][1]['value'] = f"```{user.experience} опыта```"
+        embed_dict['fields'][1]['value'] = f"```{await convert_ex_to_lvl(user)} лвл.```"
 
 
 class SpecialScoresCommands(commands.Cog):
     """Special scores commands: /реп, /топ, /reset"""
-
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.slash_command(description="Показать кол-во очков у себя / участника")
+    @commands.slash_command(description="Показать кол-во очков и уровень у себя / участника")
     async def реп(self, interaction: disnake.ApplicationCommandInteraction, участник: disnake.Member = None):
         """Showing user's or a somebody's amount of scores"""
         embed_dict = {
@@ -342,28 +339,6 @@ class SpecialScoresCommands(commands.Cog):
             'thumbnail': {'url': ''},
             'color': 0x2b2d31
         }
-
-        # data = await load_database()
-        # if участник:
-        #     embed_dict['title'] = участник.name
-        #     try:
-        #         embed_dict['thumbnail'] = f'{участник}'
-        #     except AttributeError:
-        #         embed_dict['thumbnail'] = 'https://i.postimg.cc/CMsM38p8/1.png'
-        #     try:
-        #         embed_dict['fields'][0]['value'] = f"```{data[str(участник.id)]} оч.```"
-        #     except KeyError:
-        #         embed_dict['fields'][0]['value'] = f'```0 оч.```'
-        # else:
-        #     embed_dict['title'] = f'{interaction.author}'
-        #     try:
-        #         embed_dict['thumbnail'] = f'{interaction.author}'
-        #     except AttributeError:
-        #         embed_dict['thumbnail'] = 'https://i.postimg.cc/CMsM38p8/1.png'
-        #     try:
-        #         embed_dict['fields'][0]['value'] = f"```{data[str(interaction.author.id)]} оч.```"
-        #     except KeyError:
-        #         embed_dict['fields'][0]['value'] = f'```0 оч.```'
 
         if участник:
             embed_dict['title'] = участник.name
