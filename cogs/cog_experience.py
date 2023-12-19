@@ -1,0 +1,114 @@
+import disnake
+from disnake.ext import commands
+from random import randint
+from datetime import timedelta
+
+import config as cfg
+from DB.DataBase import UserDBase
+from DB.models import Users
+
+DB = UserDBase()
+
+
+async def count_experience(message: disnake.Message):
+    if message.author.bot:
+        return
+
+    minute = timedelta(minutes=1)
+    flag = True
+    skip_first_flag = False
+    async for msg in message.channel.history(limit=50):
+        delta = message.created_at - msg.created_at
+        if delta <= minute and msg.author == message.author and skip_first_flag:
+            flag = False
+            break
+        skip_first_flag = True
+
+    if flag:
+        ex = randint(5, 10)
+
+        user = await DB.get_user({"ds_id": message.author.id})
+        if not user:
+            await DB.add_user({"ds_id": message.author.id, "username": message.author.id, "experience": ex})
+        else:
+            await DB.update_user({"ds_id": user.ds_id, "username": user.username, "experience": user.experience + ex})
+
+
+class ExperienceCommands(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+
+    @commands.slash_command(description="Прибавить опыт любому кол-ву участников (упомянуть через пробел)")
+    async def add_any_ex(
+            self, interaction: disnake.ApplicationCommandInteraction, участники: str, количество: int
+    ):
+        """Adding to several members a certain amount of scores"""
+        guild = self.bot.get_guild(cfg.GUILD_ID)
+        members_list = участники.split()
+        members_list_values = []
+
+        for member in members_list:
+            member_id = int(member.strip('<@>'))
+            member = guild.get_member(member_id)
+            user = await DB.get_user({"ds_id": member_id})
+            if user is None:
+                await DB.add_user({"ds_id": member_id, "username": member.name, "experience": количество})
+                members_list_values.append(количество)
+            else:
+                await DB.update_user(
+                    {"ds_id": user.ds_id, "username": user.username, "experience": user.experience + количество})
+                members_list_values.append(user.experience + количество)
+
+        members_dict = dict(zip(members_list, members_list_values))
+        embed = disnake.Embed(
+            title=f"{количество} опыта было прибавлено к указанным участникам",
+            description="Настоящее количество опыта у каждого:",
+            color=0x2b2d31
+        )
+        for member, value in members_dict.items():
+            member_id = int(member.strip('<@>'))
+            user = await DB.get_user({"ds_id": member_id})
+            embed.add_field(name=interaction.guild.get_member(member_id), value=f"```{user.experience} опыта```")
+
+        await interaction.response.send_message(embed=embed)
+
+    @commands.slash_command(description="Вычесть опыт любому кол-ву участников (упомянуть через пробел)")
+    async def remove_any_ex(
+            self, interaction: disnake.ApplicationCommandInteraction, участники: str, количество: int
+    ):
+        """Adding to several members a certain amount of scores"""
+        guild = self.bot.get_guild(cfg.GUILD_ID)
+        members_list = участники.split()
+        members_list_values = []
+
+        for member in members_list:
+            member_id = int(member.strip('<@>'))
+            member = guild.get_member(member_id)
+            user = await DB.get_user({"ds_id": member_id})
+            if user is None:
+                members_list_values.append(0)
+            else:
+                if количество >= user.experience:
+                    await DB.update_user({"ds_id": user.ds_id, "username": user.username, "experience": 0})
+                    members_list_values.append(0)
+                else:
+                    await DB.update_user(
+                        {"ds_id": user.ds_id, "username": user.username, "experience": user.experience - количество})
+                    members_list_values.append(user.experience - количество)
+
+        members_dict = dict(zip(members_list, members_list_values))
+        embed = disnake.Embed(
+            title=f"{количество} опыта было вычтено у указанных участников",
+            description="Настоящее количество опыта у каждого:",
+            color=0x2b2d31
+        )
+        for member, value in members_dict.items():
+            member_id = int(member.strip('<@>'))
+            user = await DB.get_user({"ds_id": member_id})
+            embed.add_field(name=interaction.guild.get_member(member_id), value=f"```{user.experience} опыта```")
+
+        await interaction.response.send_message(embed=embed)
+
+
+def setup(bot: commands.Bot):
+    bot.add_cog(ExperienceCommands(bot))

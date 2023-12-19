@@ -38,7 +38,6 @@ class UserDBase(DataBase):
         Returns a User model object if the operation is successful,
         or nothing if there is an error
         """
-        default_scores = 10
 
         user_list = []
         is_dict = True if type(data) == dict else False
@@ -50,7 +49,7 @@ class UserDBase(DataBase):
             try:
                 for data in data:
                     user = Users(username=data["username"], ds_id=data["ds_id"],
-                                 scores=data["scores"] if data.get("scores") else default_scores,
+                                 scores=data["scores"] if data.get("scores") else 0,
                                  experience=data["experience"] if data.get("experience") else 0)
                     user_list.append(user)
                     print(user)

@@ -1,6 +1,7 @@
 import config as cfg
 from cogs.counter_functions import *
 from cogs.on_message_functions import *
+from cogs.cog_experience import count_experience
 
 bot = commands.Bot(
     command_prefix="none", help_command=None, intents=disnake.Intents.all(), chunk_guilds_at_startup=False
@@ -13,6 +14,7 @@ bot.load_extension("cogs.cog_orders")
 bot.load_extension("cogs.cog_requests")
 bot.load_extension("cogs.cog_scores")
 bot.load_extension("cogs.cog_special")
+bot.load_extension("cogs.cog_experience")
 
 
 @bot.event
@@ -56,6 +58,8 @@ async def on_message(message):
     """On every sent message functions"""
 
     await count_every_message(message)
+
+    await count_experience(message)
 
     await moderation(message, cfg.MODERATION_SETTINGS)
 
