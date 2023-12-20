@@ -33,7 +33,7 @@ class UserDBase(DataBase):
 
         Accepts a dictionary or a list of dictionaries like:
         {"username": str,
-        "ds_id": int}   (ds_id is unique identifier of discord)
+        "ds_id": int}   (ds_id is unique identifier of Discord)
 
         Returns a User model object if the operation is successful,
         or nothing if there is an error
@@ -75,9 +75,12 @@ class UserDBase(DataBase):
 
         Attention:
         Search by ds_id is the preferred authentication method.
+        You can't get access to guilds with this function, please, use the
+        get_user_with_guilds function
 
-        Returns a User model object if the operation is successful,
-        or nothing if there is an error
+        If a dictionary was passed to the function, it will return a user object.
+        If a list was passed, it will return a list of user objects.
+        On error will return a None object.
         """
 
         is_dict = True if type(data) == dict else False
@@ -130,8 +133,9 @@ class UserDBase(DataBase):
         Attention:
         Search by ds_id is the preferred authentication method.
 
-        Returns a User model object if the operation is successful,
-        or nothing if there is an error
+        If a dictionary was passed to the function, it will return a user object with guilds.
+        If a list was passed, it will return a list of user objects with guilds.
+        On error will return a None object.
         """
 
         is_dict = True if type(data) == dict else False
@@ -189,17 +193,23 @@ class UserDBase(DataBase):
 
     async def get_user(self, data: Union[dict, list[dict]]) -> Union[Users, list[Users], None]:
         """
-        Gets user with get_user_static method from database
-        get_user_static is a staticmethod
+        Calls staticmethod get_user_static
 
-        Accepts data.
-        Data have to have at least one parameter: ds_id or username.
+        get_user_static:
+            A static method that gets user from database
+            Called from others async functions
 
-        Attention:
-        Search by ds_id is the preferred authentication method.
+            Accepts session and data.
+            Data have to have at least one parameter: ds_id or username.
 
-        Returns a User model object if the operation is successful,
-        or nothing if there is an error
+            Attention:
+            Search by ds_id is the preferred authentication method.
+            You can't get access to guilds with this function, please, use the
+            get_user_with_guilds function
+
+            If a dictionary was passed to the function, it will return a user object.
+            If a list was passed, it will return a list of user objects.
+            On error will return a None object.
         """
 
         with self.Session() as session:
@@ -211,17 +221,22 @@ class UserDBase(DataBase):
 
     async def get_user_with_guilds(self, data: Union[dict, list[dict]]) -> Union[Users, list[Users], None]:
         """
-        Method that gets the user from the database with the guilds in which he belongs
-        get_user_static_with_guilds is a staticmethod
+        Calls staticmethod get_user_static_with_guilds
 
-        Accepts data.
-        Data have to have at least one parameter: ds_id or username.
+        get_user_static_with_guilds:
+            A static method that gets the user from the database with the guilds in which he belongs.
+            Use selectinload parameter for query
+            Called from others async functions
 
-        Attention:
-        Search by ds_id is the preferred authentication method.
+            Accepts session and data.
+            Data have to have at least one parameter: ds_id or username.
 
-        Returns a User model object if the operation is successful,
-        or nothing if there is an error
+            Attention:
+            Search by ds_id is the preferred authentication method.
+
+            If a dictionary was passed to the function, it will return a user object with guilds.
+            If a list was passed, it will return a list of user objects with guilds.
+            On error will return a None object.
         """
 
         with self.Session() as session:
@@ -240,9 +255,11 @@ class UserDBase(DataBase):
 
         Attention:
         Search by ds_id is the preferred authentication method.
+        You can't change any relationships with this function, please, use RelationshipsDBase
+        class to manage relationships
 
         Returns a User model object if the operation is successful,
-        or nothing if there is an error
+        or None if there is an error
         """
 
         is_dict = True if type(data) == dict else False
@@ -270,7 +287,13 @@ class UserDBase(DataBase):
                 print("Something went wrong when update user")
                 print(traceback.format_exc())
 
-    async def get_top_users_by_scores(self) -> Union[list, None]:
+    async def get_top_users_by_scores(self) -> Union[list[Users], None]:
+        """
+        Gets the top users from database by scores from all guilds
+
+        Returns a list of Users from scores top if the operation is
+        successful, or None if error.
+        """
         with self.Session() as session:
             try:
                 users = (select(Users)
@@ -505,37 +528,42 @@ class RelationshipsDBase(DataBase):
         with self.Session() as session:
             try:
                 for data in data:
-                    # USERS
-                    # received_users = await self.users_db.get_user_with_guilds(data["users"])
                     received_users = self.users_db.get_user_static_with_guilds(session, data["users"])
-                    # user_without_guilds = await self.users_db.get_user(data["users"])
-
-                    # GUILDS
-                    # received_guilds = await self.guilds_db.get_guild_with_users(data["guilds"])
                     received_guilds = self.guilds_db.get_guild_static_with_users(session, data["guilds"])
-                    # guild_without_users = await self.guilds_db.get_guild(data["guilds"])
-
-                    # for user in received_users:
-                    #     for guild in received_guilds:
-                    #         if user not in guild.users:
-                    #             guild.users.append(user)
 
                     for guild in received_guilds:
                         for user in received_users:
                             guild.users.append(user)
-
-                        print(user, guild)
 
                     session.commit()
 
                 return True
 
             except Exception:
+                print("Something went wrong when add relationships between users and guilds")
                 print(traceback.format_exc())
-                return
 
-    async def delete_relationship(self):
-        pass
+        return
+
+    async def delete_relationship(self, data):
+        # data = {"ds_id": int,
+        #         "guild_id": int}
+        with self.Session() as session:
+            try:
+                user = self.users_db.get_user_static_with_guilds(session, data["users"])
+                guild = self.guilds_db.get_guild_static_with_users(session, data["guilds"])
+
+                user.remove(guild)
+
+                session.commit()
+
+                return True
+
+            except Exception:
+                print("Something went wrong when delete relationships between users and guilds")
+                print(traceback.format_exc())
+
+        return
 
     ####################################   USERS TESTS   ############################################
 
@@ -760,9 +788,9 @@ async def main():
 
     # RELATIONSHIPS TESTS
     await test_add_relationship(rel_echo)
-    # await asyncio.sleep(2)
-    # await test_get_user_with_guilds(rel_echo)
-    # await test_get_guild_with_users(rel_echo)
+    await asyncio.sleep(2)
+    await test_get_user_with_guilds(rel_echo)
+    await test_get_guild_with_users(rel_echo)
 
 
 if __name__ == "__main__":
