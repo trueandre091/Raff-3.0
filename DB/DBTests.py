@@ -70,8 +70,8 @@ async def test_get_some_users_with_guilds(users_echo=False):
 async def test_update_user(users_echo=False):
     db = UserDBase(users_echo)
 
-    data = {"ds_id": 785364734786,
-            "username": "Nikita073_"}
+    data = {"ds_id": 674325879834,
+            "scores": 10}
 
     await db.update_user(data)
 
@@ -163,10 +163,10 @@ async def test_update_some_guilds(guilds_echo=False):
     await db.update_guild(data)
 
 
-async def test_get_top_by_scores(guilds_echo=False):
+async def test_guild_get_top_users_by_scores(guilds_echo=False):
     db = GuildsDbase(guilds_echo)
 
-    await db.get_top_by_scores()
+    await db.get_top_users_by_scores()
 
     ####################################   RELATIONSHIPS TESTS   ############################################
 
@@ -191,8 +191,8 @@ async def main():
     users_echo = False
 
     # USERS TESTS
-    await test_add_user(users_echo)
-    await test_add_some_users(users_echo)
+    # await test_add_user(users_echo)
+    # await test_add_some_users(users_echo)
 
     # await test_get_user(users_echo)
     # await test_get_some_users(users_echo)
@@ -200,17 +200,17 @@ async def main():
     # await test_get_user_with_guilds(users_echo)
     # await test_get_some_users_with_guilds(users_echo)
 
-    # await test_update_user(users_echo)
+    await test_update_user(users_echo)
     # await test_update_some_users(users_echo)
 
-    # await test_get_top_users_by_scores(users_echo)
+    # await test_guild_get_top_users_by_scores(users_echo)
 
     ###################################################
 
     guilds_echo = False
 
     # GUILDS TESTS
-    await test_add_guild(guilds_echo)
+    # await test_add_guild(guilds_echo)
     # await test_add_some_guilds(guilds_echo)
 
     # await test_get_guild(guilds_echo)
@@ -219,24 +219,24 @@ async def main():
     # await test_update_guild(guilds_echo)
     # await test_update_some_guilds(guilds_echo)
 
-    # await test_get_top_by_scores(guilds_echo)
+    # await test_get_top_users_by_scores(guilds_echo)
 
     ###################################################
 
-    rel_echo = True
+    rel_echo = False
 
     # RELATIONSHIPS TESTS
-    await test_add_relationship(rel_echo)
-    await asyncio.sleep(2)
-    await test_get_user_with_guilds(rel_echo)
-    await test_get_guild_with_users(rel_echo)
+    # await test_add_relationship(rel_echo)
+    # await asyncio.sleep(2)
+    # await test_get_user_with_guilds(rel_echo)
+    # await test_get_guild_with_users(rel_echo)
 
 
 if __name__ == "__main__":
-    echo = False
-    engine = create_engine("sqlite:///DataBase.db", echo=echo)
-    Base.metadata.drop_all(engine)
-    Base.metadata.create_all(engine)
-    engine.echo = True
+    # echo = False
+    # engine = create_engine("sqlite:///DataBase.db", echo=echo)
+    # Base.metadata.drop_all(engine)
+    # Base.metadata.create_all(engine)
+    # engine.echo = True
 
     asyncio.run(main())

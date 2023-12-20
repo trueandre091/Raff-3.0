@@ -273,9 +273,9 @@ class UserDBase(DataBase):
                 for data in data:
                     for user in users:
                         if data["ds_id"] == user.ds_id:
-                            user.username = user.username if not data.get("username") is None else data["username"]
-                            user.scores = user.scores if not data.get("scores") is None else data["scores"]
-                            user.experience = user.experience if not data.get("experience") is None else data[
+                            user.username = user.username if data.get("username") is None else data["username"]
+                            user.scores = user.scores if data.get("scores") is None else data["scores"]
+                            user.experience = user.experience if data.get("experience") is None else data[
                                 "experience"]
 
                 session.commit()
@@ -483,7 +483,7 @@ class GuildsDbase(DataBase):
 
         return
 
-    async def get_top_by_scores(self):
+    async def get_top_users_by_scores(self):
         with self.Session() as session:
             try:
                 guilds = (select(Guilds)
