@@ -463,12 +463,12 @@ class GuildsDbase(DataBase):
                 for data in data:
                     for guild in guilds:
                         if data["guild_id"] == guild.guild_id:
-                            guild.guild_name = guild.guild_name if not data.get("guild_name") is None else data[
+                            guild.guild_name = guild.guild_name if data.get("guild_name") is None else data[
                                 "guild_name"]
-                            guild.count_members = guild.count_members if not data.get("count_members") is None else \
+                            guild.count_members = guild.count_members if data.get("count_members") is None else \
                                 data[
                                     "count_members"]
-                            guild.guild_sets = guild.guild_sets if not data.get("guild_sets") is None else data[
+                            guild.guild_sets = guild.guild_sets if data.get("guild_sets") is None else data[
                                 "guild_sets"]
 
                             guilds_list.append(guild)
@@ -483,19 +483,33 @@ class GuildsDbase(DataBase):
 
         return
 
-    async def get_top_users_by_scores(self):
+    async def get_top_users_by_scores(self, guild_id: int):
+        user_list = []
         with self.Session() as session:
             try:
                 guilds = (select(Guilds)
                           .options(selectinload(Guilds.users))
-                          .limit(20))
+                          .filter_by(guild_id=guild_id)
+                          )
 
-                res = session.scalars(guilds).all()
+                res = session.scalars(guilds).first().users
                 if not res:
                     print("Can't get users in guild by scores")
                     return
 
-                print(res)
+                for user in res:
+                    if len(user_list) != 20:
+                        user_data = {"username": user.username,
+                                     "ds_id": user.ds_id,
+                                     "scores": user.scores,
+                                     "experience": user.experience}
+                        user_list.append(user_data)
+                    else:
+                        break
+
+                sorted_res = sorted(user_list, key=lambda x: x["scores"], reverse=True)
+
+                print(sorted_res)
                 return res
 
             except:

@@ -166,18 +166,32 @@ async def test_update_some_guilds(guilds_echo=False):
 async def test_guild_get_top_users_by_scores(guilds_echo=False):
     db = GuildsDbase(guilds_echo)
 
-    await db.get_top_users_by_scores()
+    await db.get_top_users_by_scores(785312593614209055)
 
     ####################################   RELATIONSHIPS TESTS   ############################################
 
 
-async def test_add_relationship(rel_echo=False):
+async def test_add_relationship_for_HomTem(rel_echo=False):
     db = RelationshipsDBase(rel_echo)
 
     users = [{"ds_id": 785364734786},
              {"ds_id": 674325879834}]
 
     guild = [{"guild_id": 785312593614209055}]
+
+    data = {"users": users,
+            "guilds": guild}
+
+    await db.add_relationship(data)
+
+
+async def test_add_relationship_for_NetWorld(rel_echo=False):
+    db = RelationshipsDBase(rel_echo)
+
+    users = [{"ds_id": 785364734786},
+             {"ds_id": 977865342843}]
+
+    guild = [{"guild_id": 710525764470308975}]
 
     data = {"users": users,
             "guilds": guild}
@@ -200,10 +214,10 @@ async def main():
     # await test_get_user_with_guilds(users_echo)
     # await test_get_some_users_with_guilds(users_echo)
 
-    await test_update_user(users_echo)
+    # await test_update_user(users_echo)
     # await test_update_some_users(users_echo)
 
-    # await test_guild_get_top_users_by_scores(users_echo)
+    # await test_get_top_users_by_scores(users_echo)
 
     ###################################################
 
@@ -219,14 +233,15 @@ async def main():
     # await test_update_guild(guilds_echo)
     # await test_update_some_guilds(guilds_echo)
 
-    # await test_get_top_users_by_scores(guilds_echo)
+    # await test_guild_get_top_users_by_scores(guilds_echo)
 
     ###################################################
 
     rel_echo = False
 
     # RELATIONSHIPS TESTS
-    # await test_add_relationship(rel_echo)
+    # await test_add_relationship_for_HomTem(rel_echo)
+    await test_add_relationship_for_NetWorld(rel_echo)
     # await asyncio.sleep(2)
     # await test_get_user_with_guilds(rel_echo)
     # await test_get_guild_with_users(rel_echo)
