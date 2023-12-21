@@ -1,6 +1,7 @@
 import asyncio
 from sqlalchemy import create_engine
 from DB.models import Base
+from DB.JSONEnc import JsonEncoder
 from DataBase import UserDBase, GuildsDbase, RelationshipsDBase
 
 
@@ -110,7 +111,9 @@ async def test_add_guild(guilds_echo=False):
 async def test_add_some_guilds(guilds_echo=False):
     db = GuildsDbase(guilds_echo)
 
-    data = [{"guild_id": 710525764470308975,
+    data = [{"guild_id": 785312593614209055,
+             "guild_name": "Homey Temple"},
+            {"guild_id": 710525764470308975,
              "guild_name": "NetherWorld"}]
 
     await db.add_guild(data)
@@ -118,10 +121,15 @@ async def test_add_some_guilds(guilds_echo=False):
 
 async def test_get_guild(guilds_echo=False):
     db = GuildsDbase(guilds_echo)
+    enc = JsonEncoder
 
     data = {"guild_id": 710525764470308975}
 
-    await db.get_guild(data)
+    res = await db.get_guild(data)
+    print(type(res.guild_sets))
+
+    sets = JsonEncoder.code_from_json(res.guild_sets)
+    print(type(sets), sets, sep="\n")
 
 
 async def test_get_guild_with_users(guilds_echo=False):
@@ -171,6 +179,32 @@ async def test_guild_get_top_users_by_scores(guilds_echo=False):
     ####################################   RELATIONSHIPS TESTS   ############################################
 
 
+async def test_add_all_relationships_in_one_time(rel_echo=False):
+    db = RelationshipsDBase(rel_echo)
+
+    # HOMEY TEMPLE DATA
+    users_hom_tem = [{"ds_id": 785364734786},
+                     {"ds_id": 674325879834}]
+
+    guild_hom_tem = [{"guild_id": 785312593614209055}]
+
+    data_hom_tem = {"users": users_hom_tem,
+                    "guilds": guild_hom_tem}
+
+    # NETHERWORLD DATA
+    users_net_world = [{"ds_id": 785364734786},
+                       {"ds_id": 977865342843}]
+
+    guild_net_world = [{"guild_id": 710525764470308975}]
+
+    data_net_world = {"users": users_net_world,
+                      "guilds": guild_net_world}
+
+    data = [data_hom_tem, data_net_world]
+
+    await db.add_relationship(data)
+
+
 async def test_add_relationship_for_HomTem(rel_echo=False):
     db = RelationshipsDBase(rel_echo)
 
@@ -197,6 +231,18 @@ async def test_add_relationship_for_NetWorld(rel_echo=False):
             "guilds": guild}
 
     await db.add_relationship(data)
+
+
+async def test_delete_relationship(rel_echo=False):
+    db = RelationshipsDBase(rel_echo)
+
+    user = [{"ds_id": 785364734786}]
+    guild = [{"guild_id": 785312593614209055}]
+
+    data = {"users": user,
+            "guilds": guild}
+
+    await db.delete_relationship(data)
 
     ####################################   DATABASE TESTS   ############################################
 
@@ -237,14 +283,19 @@ async def main():
 
     ###################################################
 
-    rel_echo = False
+    rel_echo = True
 
     # RELATIONSHIPS TESTS
+
+    # await test_add_all_relationships_in_one_time(rel_echo)
+
     # await test_add_relationship_for_HomTem(rel_echo)
-    await test_add_relationship_for_NetWorld(rel_echo)
+    # await test_add_relationship_for_NetWorld(rel_echo)
     # await asyncio.sleep(2)
     # await test_get_user_with_guilds(rel_echo)
     # await test_get_guild_with_users(rel_echo)
+
+    await test_delete_relationship(rel_echo)
 
 
 if __name__ == "__main__":
