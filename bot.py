@@ -3,6 +3,8 @@ from cogs.counter_functions import *
 from cogs.on_message_functions import *
 from cogs.cog_experience import count_experience
 
+from DB.DataBase import GuildsDbase
+
 bot = commands.Bot(
     command_prefix="none", help_command=None, intents=disnake.Intents.all(), chunk_guilds_at_startup=False
 )
@@ -15,6 +17,7 @@ bot.load_extension("cogs.cog_requests")
 bot.load_extension("cogs.cog_scores")
 bot.load_extension("cogs.cog_special")
 bot.load_extension("cogs.cog_experience")
+bot.load_extension("cogs.cog_setguilds")
 
 
 @bot.event
@@ -74,6 +77,16 @@ async def on_message(message):
 async def on_ready():
     """Bot writes in console when it starts"""
     print(f"Bot {bot.user} is ready to work!")
+
+
+@bot.event
+async def on_guild_join(guild: disnake.Guild):
+    db = GuildsDbase()
+
+    data = {"guild_id": guild.id,
+            "guild_name": guild.name}
+
+    await db.add_guild(data)
 
 
 bot.run(cfg.TOKEN)
