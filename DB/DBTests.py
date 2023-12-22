@@ -11,9 +11,7 @@ from DataBase import UserDBase, GuildsDbase, RelationshipsDBase
 async def test_add_user(users_echo=False):
     db = UserDBase(users_echo)
 
-    data = {"username": "TopNik_",
-            "ds_id": 785364734786,
-            "scores": 20}
+    data = {"username": "TopNik_", "ds_id": 785364734786, "scores": 20}
 
     await db.add_user(data)
 
@@ -21,10 +19,7 @@ async def test_add_user(users_echo=False):
 async def test_add_some_users(users_echo=False):
     db = UserDBase(users_echo)
 
-    data = [{"username": "Andre",
-             "ds_id": 674325879834},
-            {"username": "Minion",
-             "ds_id": 977865342843}]
+    data = [{"username": "Andre", "ds_id": 674325879834}, {"username": "Minion", "ds_id": 977865342843}]
 
     await db.add_user(data)
 
@@ -40,8 +35,7 @@ async def test_get_user(users_echo=False):
 async def test_get_some_users(users_echo=False):
     db = UserDBase(users_echo)
 
-    data = [{"ds_id": 674325879834},
-            {"ds_id": 977865342843}]
+    data = [{"ds_id": 674325879834}, {"ds_id": 977865342843}]
 
     await db.get_user(data)
 
@@ -59,8 +53,7 @@ async def test_get_user_with_guilds(users_echo=False):
 async def test_get_some_users_with_guilds(users_echo=False):
     db = UserDBase(users_echo)
 
-    data = [{"ds_id": 674325879834},
-            {"ds_id": 977865342843}]
+    data = [{"ds_id": 674325879834}, {"ds_id": 977865342843}]
 
     res = await db.get_user_with_guilds(data)
 
@@ -71,8 +64,7 @@ async def test_get_some_users_with_guilds(users_echo=False):
 async def test_update_user(users_echo=False):
     db = UserDBase(users_echo)
 
-    data = {"ds_id": 674325879834,
-            "scores": 10}
+    data = {"ds_id": 674325879834, "scores": 10}
 
     await db.update_user(data)
 
@@ -80,11 +72,10 @@ async def test_update_user(users_echo=False):
 async def test_update_some_users(users_echo=False):
     db = UserDBase(users_echo)
 
-    data = [{"ds_id": 674325879834,
-             "username": "андре",
-             "scores": 10_000},
-            {"ds_id": 977865342843,
-             "experience": 1_000}]
+    data = [
+        {"ds_id": 674325879834, "username": "андре", "scores": 15},
+        {"ds_id": 977865342843, "experience": 1_000},
+    ]
 
     await db.update_user(data)
 
@@ -102,8 +93,7 @@ async def test_get_top_users_by_scores(users_echo=False):
 async def test_add_guild(guilds_echo=False):
     db = GuildsDbase(guilds_echo)
 
-    data = {"guild_id": 785312593614209055,
-            "guild_name": "Homey Temple"}
+    data = {"guild_id": 785312593614209055, "guild_name": "Homey Temple"}
 
     await db.add_guild(data)
 
@@ -111,10 +101,10 @@ async def test_add_guild(guilds_echo=False):
 async def test_add_some_guilds(guilds_echo=False):
     db = GuildsDbase(guilds_echo)
 
-    data = [{"guild_id": 785312593614209055,
-             "guild_name": "Homey Temple"},
-            {"guild_id": 710525764470308975,
-             "guild_name": "NetherWorld"}]
+    data = [
+        {"guild_id": 785312593614209055, "guild_name": "Homey Temple"},
+        {"guild_id": 710525764470308975, "guild_name": "NetherWorld"},
+    ]
 
     await db.add_guild(data)
 
@@ -145,8 +135,7 @@ async def test_get_guild_with_users(guilds_echo=False):
 async def test_get_some_guilds(guilds_echo=False):
     db = GuildsDbase(guilds_echo)
 
-    data = [{"guild_id": 710525764470308975},
-            {"guild_id": 785312593614209055}]
+    data = [{"guild_id": 710525764470308975}, {"guild_id": 785312593614209055}]
 
     await db.get_guild(data)
 
@@ -154,8 +143,7 @@ async def test_get_some_guilds(guilds_echo=False):
 async def test_update_guild(guilds_echo=False):
     db = GuildsDbase(guilds_echo)
 
-    data = {"guild_id": 710525764470308975,
-            "guild_name": "NetWorld"}
+    data = {"guild_id": 710525764470308975, "guild_name": "NetWorld"}
 
     await db.update_guild(data)
 
@@ -163,10 +151,10 @@ async def test_update_guild(guilds_echo=False):
 async def test_update_some_guilds(guilds_echo=False):
     db = GuildsDbase(guilds_echo)
 
-    data = [{"guild_id": 710525764470308975,
-             "count_members": 5000},
-            {"guild_id": 785312593614209055,
-             "count_members": 100}]
+    data = [
+        {"guild_id": 710525764470308975, "count_members": 5000},
+        {"guild_id": 785312593614209055, "count_members": 100},
+    ]
 
     await db.update_guild(data)
 
@@ -183,22 +171,18 @@ async def test_add_all_relationships_in_one_time(rel_echo=False):
     db = RelationshipsDBase(rel_echo)
 
     # HOMEY TEMPLE DATA
-    users_hom_tem = [{"ds_id": 785364734786},
-                     {"ds_id": 674325879834}]
+    users_hom_tem = [{"ds_id": 785364734786}, {"ds_id": 674325879834}]
 
     guild_hom_tem = [{"guild_id": 785312593614209055}]
 
-    data_hom_tem = {"users": users_hom_tem,
-                    "guilds": guild_hom_tem}
+    data_hom_tem = {"users": users_hom_tem, "guilds": guild_hom_tem}
 
     # NETHERWORLD DATA
-    users_net_world = [{"ds_id": 785364734786},
-                       {"ds_id": 977865342843}]
+    users_net_world = [{"ds_id": 785364734786}, {"ds_id": 977865342843}]
 
     guild_net_world = [{"guild_id": 710525764470308975}]
 
-    data_net_world = {"users": users_net_world,
-                      "guilds": guild_net_world}
+    data_net_world = {"users": users_net_world, "guilds": guild_net_world}
 
     data = [data_hom_tem, data_net_world]
 
@@ -208,13 +192,11 @@ async def test_add_all_relationships_in_one_time(rel_echo=False):
 async def test_add_relationship_for_HomTem(rel_echo=False):
     db = RelationshipsDBase(rel_echo)
 
-    users = [{"ds_id": 785364734786},
-             {"ds_id": 674325879834}]
+    users = [{"ds_id": 785364734786}, {"ds_id": 674325879834}]
 
     guild = [{"guild_id": 785312593614209055}]
 
-    data = {"users": users,
-            "guilds": guild}
+    data = {"users": users, "guilds": guild}
 
     await db.add_relationship(data)
 
@@ -222,13 +204,11 @@ async def test_add_relationship_for_HomTem(rel_echo=False):
 async def test_add_relationship_for_NetWorld(rel_echo=False):
     db = RelationshipsDBase(rel_echo)
 
-    users = [{"ds_id": 785364734786},
-             {"ds_id": 977865342843}]
+    users = [{"ds_id": 785364734786}, {"ds_id": 977865342843}]
 
     guild = [{"guild_id": 710525764470308975}]
 
-    data = {"users": users,
-            "guilds": guild}
+    data = {"users": users, "guilds": guild}
 
     await db.add_relationship(data)
 
@@ -239,8 +219,7 @@ async def test_delete_relationship(rel_echo=False):
     user = [{"ds_id": 785364734786}]
     guild = [{"guild_id": 785312593614209055}]
 
-    data = {"users": user,
-            "guilds": guild}
+    data = {"users": user, "guilds": guild}
 
     await db.delete_relationship(data)
 
@@ -295,7 +274,7 @@ async def main():
     # await test_get_user_with_guilds(rel_echo)
     # await test_get_guild_with_users(rel_echo)
 
-    await test_delete_relationship(rel_echo)
+    # await test_delete_relationship(rel_echo)
 
 
 if __name__ == "__main__":

@@ -1,7 +1,6 @@
 """Database Management"""
 
-import asyncio
-from typing import Union
+from typing import Union, Sequence
 import traceback
 
 from sqlalchemy import select
@@ -9,7 +8,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, selectinload
 from sqlalchemy.exc import IntegrityError
 
-from models import Users, Guilds, Base
+
+from models import Users, Guilds
 from DB.JSONEnc import JsonEncoder
 
 
@@ -50,7 +50,7 @@ class UserDBase(DataBase):
         """
 
         user_list = []
-        is_dict = True if type(data) == dict else False
+        is_dict = True if type(data) is dict else False
 
         if is_dict:
             data = [data]
@@ -58,9 +58,12 @@ class UserDBase(DataBase):
         with self.Session() as session:
             for data in data:
                 try:
-                    user = Users(username=data["username"], ds_id=data["ds_id"],
-                                 scores=data["scores"] if data.get("scores") else 10,
-                                 experience=data["experience"] if data.get("experience") else 0)
+                    user = Users(
+                        username=data["username"],
+                        ds_id=data["ds_id"],
+                        scores=data["scores"] if data.get("scores") else 10,
+                        experience=data["experience"] if data.get("experience") else 0,
+                    )
 
                     session.add(user)
                     session.commit()
@@ -109,7 +112,7 @@ class UserDBase(DataBase):
         On error will return a None object.
         """
 
-        is_dict = True if type(data) == dict else False
+        is_dict = True if type(data) is dict else False
         user_list = []
 
         if is_dict:
@@ -117,10 +120,8 @@ class UserDBase(DataBase):
 
         try:
             for data in data:
-
                 if "ds_id" in data.keys():
-                    user = (select(Users)
-                            .filter_by(ds_id=data["ds_id"]))
+                    user = select(Users).filter_by(ds_id=data["ds_id"])
                     user = session.scalars(user).first()
                     if not user:
                         print("Can't find user by discord id in database")
@@ -129,8 +130,7 @@ class UserDBase(DataBase):
                     user_list.append(user)
 
                 elif "username" in data.keys():
-                    user = (select(Users)
-                            .filter_by(username=data["username"]))
+                    user = select(Users).filter_by(username=data["username"])
                     user = session.scalars(user).first()
                     if not user:
                         print("Can't find user by username in database")
@@ -164,7 +164,7 @@ class UserDBase(DataBase):
         On error will return a None object.
         """
 
-        is_dict = True if type(data) == dict else False
+        is_dict = True if type(data) is dict else False
         user_list = []
 
         if is_dict:
@@ -172,11 +172,9 @@ class UserDBase(DataBase):
 
         try:
             for data in data:
-                if type(data) == list:
+                if type(data) is list:
                     for ds_id in data:
-                        user = (select(Users)
-                                .options(selectinload(Users.guilds))
-                                .filter_by(ds_id=ds_id))
+                        user = select(Users).options(selectinload(Users.guilds)).filter_by(ds_id=ds_id)
 
                         user = session.scalars(user).first()
                         if not user:
@@ -186,11 +184,8 @@ class UserDBase(DataBase):
                         user_list.append(user)
 
                 else:
-
                     if "ds_id" in data.keys():
-                        user = (select(Users)
-                                .options(selectinload(Users.guilds))
-                                .filter_by(ds_id=data["ds_id"]))
+                        user = select(Users).options(selectinload(Users.guilds)).filter_by(ds_id=data["ds_id"])
                         user = session.scalars(user).first()
                         if not user:
                             print("Can't find user by discord id in database")
@@ -199,9 +194,7 @@ class UserDBase(DataBase):
                         user_list.append(user)
 
                     elif "username" in data.keys():
-                        user = (select(Users)
-                                .options(selectinload(Users.guilds))
-                                .filter_by(username=data["username"]))
+                        user = select(Users).options(selectinload(Users.guilds)).filter_by(username=data["username"])
                         user = session.scalars(user).first()
                         if not user:
                             print("Can't find user by username in database")
@@ -288,7 +281,7 @@ class UserDBase(DataBase):
         or None if there is an error
         """
 
-        is_dict = True if type(data) == dict else False
+        is_dict = True if type(data) is dict else False
 
         if is_dict:
             data = [data]
@@ -301,8 +294,7 @@ class UserDBase(DataBase):
                         if data["ds_id"] == user.ds_id:
                             user.username = user.username if data.get("username") is None else data["username"]
                             user.scores = user.scores if data.get("scores") is None else data["scores"]
-                            user.experience = user.experience if data.get("experience") is None else data[
-                                "experience"]
+                            user.experience = user.experience if data.get("experience") is None else data["experience"]
 
                 session.commit()
 
@@ -313,7 +305,7 @@ class UserDBase(DataBase):
                 print("Something went wrong when update user")
                 print(traceback.format_exc())
 
-    async def get_top_users_by_scores(self) -> Union[list[Users], None]:
+    async def get_top_users_by_scores(self) -> Union[Sequence[Users], None]:
         """
         Gets the top users from database by scores from all guilds
 
@@ -322,14 +314,13 @@ class UserDBase(DataBase):
         """
         with self.Session() as session:
             try:
-                users = (select(Users)
-                         .order_by(Users.scores.desc())
-                         .limit(20))
+                users = select(Users).order_by(Users.scores.desc()).limit(20)
                 res = session.scalars(users).all()
                 if not res:
                     print("Can't get top users by scores")
                     return
 
+                print(type(res))
                 return res
 
             except Exception:
@@ -364,7 +355,7 @@ class GuildsDbase(DataBase):
         or nothing if there is an error
         """
         guilds_list = []
-        is_dict = True if type(data) == dict else False
+        is_dict = True if type(data) is dict else False
 
         if is_dict:
             data = [data]
@@ -372,9 +363,11 @@ class GuildsDbase(DataBase):
         with self.Session() as session:
             for data in data:
                 try:
-
-                    guild = Guilds(guild_id=data["guild_id"], guild_name=data["guild_name"],
-                                   count_members=0 if data.get("count_members") is None else data["count_members"])
+                    guild = Guilds(
+                        guild_id=data["guild_id"],
+                        guild_name=data["guild_name"],
+                        count_members=0 if data.get("count_members") is None else data["count_members"],
+                    )
 
                     session.add(guild)
                     session.commit()
@@ -422,7 +415,7 @@ class GuildsDbase(DataBase):
         On error will return a None object.
         """
         guild_list = []
-        is_dict = True if type(data) == dict else False
+        is_dict = True if type(data) is dict else False
 
         if is_dict:
             data = [data]
@@ -430,8 +423,7 @@ class GuildsDbase(DataBase):
         try:
             for data in data:
                 if "guild_id" in data.keys():
-                    guild = (select(Guilds)
-                             .filter_by(guild_id=data["guild_id"]))
+                    guild = select(Guilds).filter_by(guild_id=data["guild_id"])
 
                     guild = session.scalars(guild).first()
                     if not guild:
@@ -475,19 +467,16 @@ class GuildsDbase(DataBase):
         On error will return a None object.
         """
         guild_list = []
-        is_dict = True if type(data) == dict else False
+        is_dict = True if type(data) is dict else False
 
         if is_dict:
             data = [data]
 
         try:
             for data in data:
-
-                if type(data) == list:
+                if type(data) is list:
                     for guild_id in data:
-                        guild = (select(Guilds)
-                                 .options(selectinload(Guilds.users))
-                                 .filter_by(guild_id=guild_id))
+                        guild = select(Guilds).options(selectinload(Guilds.users)).filter_by(guild_id=guild_id)
 
                         guild = session.scalars(guild).first()
                         if not guild:
@@ -497,12 +486,8 @@ class GuildsDbase(DataBase):
                         guild_list.append(guild)
 
                 else:
-
                     if "guild_id" in data.keys():
-                        guild = (
-                            select(Guilds)
-                            .options(selectinload(Guilds.users))
-                            .filter_by(guild_id=data["guild_id"]))
+                        guild = select(Guilds).options(selectinload(Guilds.users)).filter_by(guild_id=data["guild_id"])
 
                         guild = session.scalars(guild).first()
                         if not guild:
@@ -513,9 +498,8 @@ class GuildsDbase(DataBase):
 
                     elif "guild_name" in data.keys():
                         guild = (
-                            select(Guilds)
-                            .options(selectinload(Guilds.users))
-                            .filter_by(guild_name=data["guild_name"]))
+                            select(Guilds).options(selectinload(Guilds.users)).filter_by(guild_name=data["guild_name"])
+                        )
 
                         guild = session.scalars(guild).first()
                         if not guild:
@@ -602,7 +586,7 @@ class GuildsDbase(DataBase):
         """
 
         guilds_list = []
-        is_dict = True if type(data) == dict else False
+        is_dict = True if type(data) is dict else False
 
         if is_dict:
             data = [data]
@@ -614,17 +598,20 @@ class GuildsDbase(DataBase):
                     for guild in guilds:
                         if data["guild_id"] == guild.guild_id:
                             if data.get("guild_sets"):
-                                enc = JsonEncoder
-                                data["guild_sets"] = None if data.get(
-                                    "guild_sets") is None else enc.code_to_json(data["guild_sets"])
+                                enc = JsonEncoder()
+                                data["guild_sets"] = (
+                                    None if data.get("guild_sets") is None else enc.code_to_json(data["guild_sets"])
+                                )
 
-                            guild.guild_name = guild.guild_name if data.get("guild_name") is None else data[
-                                "guild_name"]
-                            guild.count_members = guild.count_members if data.get("count_members") is None else \
-                                data[
-                                    "count_members"]
-                            guild.guild_sets = guild.guild_sets if data.get("guild_sets") is None else data[
-                                "guild_sets"]
+                            guild.guild_name = (
+                                guild.guild_name if data.get("guild_name") is None else data["guild_name"]
+                            )
+                            guild.count_members = (
+                                guild.count_members if data.get("count_members") is None else data["count_members"]
+                            )
+                            guild.guild_sets = (
+                                guild.guild_sets if data.get("guild_sets") is None else data["guild_sets"]
+                            )
 
                             guilds_list.append(guild)
 
@@ -650,10 +637,7 @@ class GuildsDbase(DataBase):
         user_list = []
         with self.Session() as session:
             try:
-                guilds = (select(Guilds)
-                          .options(selectinload(Guilds.users))
-                          .filter_by(guild_id=guild_id)
-                          )
+                guilds = select(Guilds).options(selectinload(Guilds.users)).filter_by(guild_id=guild_id)
 
                 res = session.scalars(guilds).first().users
                 if not res:
@@ -662,10 +646,12 @@ class GuildsDbase(DataBase):
 
                 for user in res:
                     if len(user_list) != 20:
-                        user_data = {"username": user.username,
-                                     "ds_id": user.ds_id,
-                                     "scores": user.scores,
-                                     "experience": user.experience}
+                        user_data = {
+                            "username": user.username,
+                            "ds_id": user.ds_id,
+                            "scores": user.scores,
+                            "experience": user.experience,
+                        }
                         user_list.append(user_data)
                     else:
                         break
@@ -705,12 +691,13 @@ class RelationshipsDBase(DataBase):
         Gets a complex data structure:
 
         data = [{"users": list[ds_id: int],
-                "guilds": list[guild_id: int}]]
+                "guilds": list[guild_id: int]}
+                ]
 
         Returns True if operation was successful and None if there was an error
         """
 
-        is_dict = True if type(data) == dict else False
+        is_dict = True if type(data) is dict else False
 
         if is_dict:
             data = [data]
@@ -748,7 +735,7 @@ class RelationshipsDBase(DataBase):
         Returns True if operation was successful and None if there was an error
         """
 
-        is_dict = True if type(data) == dict else False
+        # is_dict = True if type(data) is dict else False
 
         with self.Session() as session:
             try:
