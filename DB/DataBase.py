@@ -1,14 +1,16 @@
 """Database Management"""
 
 import asyncio
-from typing import Union, Any
+from typing import Union
 import traceback
 
 from sqlalchemy import select
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, selectinload
+from sqlalchemy.exc import IntegrityError
 
-from DB.models import Users, Guilds, Base
+from models import Users, Guilds, Base
+from DB.JSONEnc import JsonEncoder
 
 
 class DataBase:
@@ -17,7 +19,7 @@ class DataBase:
     def __init__(self, echo_mode: bool = False):
         try:
             self.echo = echo_mode
-            self.engine = create_engine("sqlite:///DB/DataBase.db", echo=self.echo)
+            self.engine = create_engine("sqlite:///DataBase.db", echo=self.echo)
             self.Session = sessionmaker(self.engine)
         except Exception:
             print(traceback.format_exc())
@@ -27,13 +29,21 @@ class DataBase:
 
 
 class UserDBase(DataBase):
+    """
+    Class for managing with Users data
+
+    You can choose echo mode by passing the echo_mode parameter
+    """
+
     async def add_user(self, data: Union[dict, list[dict]]) -> Union[Users, list[Users], None]:
         """
         Adds a user to the database
 
         Accepts a dictionary or a list of dictionaries like:
-        {"username": str,
-        "ds_id": int}   (ds_id is unique identifier of discord)
+        {"username": str,   required parameter  (user discord username)
+        "ds_id": int,       required parameter  (ds_id is unique identifier of Discord)
+        "scores": int,                          (user scores)
+        "experience": int}                      (user experience)
 
         Returns a User model object if the operation is successful,
         or nothing if there is an error
@@ -46,23 +56,39 @@ class UserDBase(DataBase):
             data = [data]
 
         with self.Session() as session:
-            try:
-                for data in data:
+            for data in data:
+                try:
                     user = Users(username=data["username"], ds_id=data["ds_id"],
-                                 scores=data["scores"] if data.get("scores") else 0,
+                                 scores=data["scores"] if data.get("scores") else 10,
                                  experience=data["experience"] if data.get("experience") else 0)
+
+                    session.add(user)
+                    session.commit()
+
                     user_list.append(user)
                     print(user)
 
-                session.add_all(user_list)
-                session.commit()
+                except IntegrityError:
+                    session.rollback()
+                    user = await self.get_user(data)
+                    if user:
+                        print(f"{user} already in database")
+                        user_list.append(user)
+                    else:
+                        print("Something went wrong when get user for add function")
+                        print(traceback.format_exc())
 
-                return user_list[0] if is_dict else user_list
-            except Exception:
-                print("Something went wrong then adding user")
-                print(traceback.format_exc())
+                        return
 
-        return
+                except Exception:
+                    print("Something went wrong when adding user")
+                    print(traceback.format_exc())
+                    return
+
+        if len(user_list) != 0:
+            return user_list[0] if is_dict else user_list
+        else:
+            return
 
     @staticmethod
     def get_user_static(session, data):
@@ -75,9 +101,12 @@ class UserDBase(DataBase):
 
         Attention:
         Search by ds_id is the preferred authentication method.
+        You can't get access to guilds with this function, please, use the
+        get_user_with_guilds function
 
-        Returns a User model object if the operation is successful,
-        or nothing if there is an error
+        If a dictionary was passed to the function, it will return a user object.
+        If a list was passed, it will return a list of user objects.
+        On error will return a None object.
         """
 
         is_dict = True if type(data) == dict else False
@@ -88,41 +117,28 @@ class UserDBase(DataBase):
 
         try:
             for data in data:
-                if type(data) == list:
-                    for ds_id in data:
-                        user = (select(Users)
-                                .filter_by(ds_id=ds_id))
 
-                        user = session.scalars(user).first()
-                        if not user:
-                            print("Something went wrong when get user for relationship")
-                            return
+                if "ds_id" in data.keys():
+                    user = (select(Users)
+                            .filter_by(ds_id=data["ds_id"]))
+                    user = session.scalars(user).first()
+                    if not user:
+                        print("Can't find user by discord id in database")
+                        return
 
-                        user_list.append(user)
+                    user_list.append(user)
 
-                else:
+                elif "username" in data.keys():
+                    user = (select(Users)
+                            .filter_by(username=data["username"]))
+                    user = session.scalars(user).first()
+                    if not user:
+                        print("Can't find user by username in database")
+                        return
 
-                    if "ds_id" in data.keys():
-                        user = (select(Users)
-                                .filter_by(ds_id=data["ds_id"]))
-                        user = session.scalars(user).first()
-                        if not user:
-                            print("Can't find user by discord id in database")
-                            return
+                    user_list.append(user)
 
-                        user_list.append(user)
-
-                    elif "username" in data.keys():
-                        user = (select(Users)
-                                .filter_by(username=data["username"]))
-                        user = session.scalars(user).first()
-                        if not user:
-                            print("Can't find user by username in database")
-                            return
-
-                        user_list.append(user)
-
-                    return user_list[0] if is_dict else user_list
+                return user_list[0] if is_dict else user_list
 
         except Exception:
             print("Something went wrong when get user")
@@ -143,8 +159,9 @@ class UserDBase(DataBase):
         Attention:
         Search by ds_id is the preferred authentication method.
 
-        Returns a User model object if the operation is successful,
-        or nothing if there is an error
+        If a dictionary was passed to the function, it will return a user object with guilds.
+        If a list was passed, it will return a list of user objects with guilds.
+        On error will return a None object.
         """
 
         is_dict = True if type(data) == dict else False
@@ -158,17 +175,18 @@ class UserDBase(DataBase):
                 if type(data) == list:
                     for ds_id in data:
                         user = (select(Users)
-                                .options(Users.guilds)
+                                .options(selectinload(Users.guilds))
                                 .filter_by(ds_id=ds_id))
 
                         user = session.scalars(user).first()
                         if not user:
-                            print("Something went wrong when get user for relationship")
+                            print("Something went wrong when get user with guilds for relationship")
                             return
 
                         user_list.append(user)
 
                 else:
+
                     if "ds_id" in data.keys():
                         user = (select(Users)
                                 .options(selectinload(Users.guilds))
@@ -194,24 +212,30 @@ class UserDBase(DataBase):
             return user_list[0] if is_dict else user_list
 
         except Exception:
-            print("Something went wrong when get user")
+            print("Something went wrong when get user with guilds")
             print(traceback.format_exc())
 
         return
 
     async def get_user(self, data: Union[dict, list[dict]]) -> Union[Users, list[Users], None]:
         """
-        Gets user with get_user_static method from database
-        get_user_static is a staticmethod
+        Calls staticmethod get_user_static
 
-        Accepts data.
-        Data have to have at least one parameter: ds_id or username.
+        get_user_static:
+            A static method that gets user from database
+            Called from others async functions
 
-        Attention:
-        Search by ds_id is the preferred authentication method.
+            Accepts session and data.
+            Data have to have at least one parameter: ds_id or username.
 
-        Returns a User model object if the operation is successful,
-        or nothing if there is an error
+            Attention:
+            Search by ds_id is the preferred authentication method.
+            You can't get access to guilds with this function, please, use the
+            get_user_with_guilds function
+
+            If a dictionary was passed to the function, it will return a user object.
+            If a list was passed, it will return a list of user objects.
+            On error will return a None object.
         """
 
         with self.Session() as session:
@@ -223,17 +247,22 @@ class UserDBase(DataBase):
 
     async def get_user_with_guilds(self, data: Union[dict, list[dict]]) -> Union[Users, list[Users], None]:
         """
-        Method that gets the user from the database with the guilds in which he belongs
-        get_user_static_with_guilds is a staticmethod
+        Calls staticmethod get_user_static_with_guilds
 
-        Accepts data.
-        Data have to have at least one parameter: ds_id or username.
+        get_user_static_with_guilds:
+            A static method that gets the user from the database with the guilds in which he belongs.
+            Use selectinload parameter for query
+            Called from others async functions
 
-        Attention:
-        Search by ds_id is the preferred authentication method.
+            Accepts session and data.
+            Data have to have at least one parameter: ds_id or username.
 
-        Returns a User model object if the operation is successful,
-        or nothing if there is an error
+            Attention:
+            Search by ds_id is the preferred authentication method.
+
+            If a dictionary was passed to the function, it will return a user object with guilds.
+            If a list was passed, it will return a list of user objects with guilds.
+            On error will return a None object.
         """
 
         with self.Session() as session:
@@ -252,9 +281,11 @@ class UserDBase(DataBase):
 
         Attention:
         Search by ds_id is the preferred authentication method.
+        You can't change any relationships with this function, please, use RelationshipsDBase
+        class to manage relationships
 
         Returns a User model object if the operation is successful,
-        or nothing if there is an error
+        or None if there is an error
         """
 
         is_dict = True if type(data) == dict else False
@@ -270,7 +301,8 @@ class UserDBase(DataBase):
                         if data["ds_id"] == user.ds_id:
                             user.username = user.username if data.get("username") is None else data["username"]
                             user.scores = user.scores if data.get("scores") is None else data["scores"]
-                            user.experience = user.experience if data.get("experience") is None else data["experience"]
+                            user.experience = user.experience if data.get("experience") is None else data[
+                                "experience"]
 
                 session.commit()
 
@@ -281,7 +313,13 @@ class UserDBase(DataBase):
                 print("Something went wrong when update user")
                 print(traceback.format_exc())
 
-    async def get_top_users_by_scores(self) -> Union[list, None]:
+    async def get_top_users_by_scores(self) -> Union[list[Users], None]:
+        """
+        Gets the top users from database by scores from all guilds
+
+        Returns a list of Users from scores top if the operation is
+        successful, or None if error.
+        """
         with self.Session() as session:
             try:
                 users = (select(Users)
@@ -300,12 +338,31 @@ class UserDBase(DataBase):
 
         return
 
-    ####################################   GUILDS   ############################################
+
+####################################   GUILDS   ############################################
 
 
 class GuildsDbase(DataBase):
-    async def add_guild(self, data: Union[dict, list[dict]]) -> Union[Guilds, list[Guilds], None]:
+    """
+    Class for managing with Guilds data
 
+    You can choose echo mode by passing the echo_mode parameter
+    """
+
+    async def add_guild(self, data: Union[dict, list[dict]]) -> Union[Guilds, list[Guilds], None]:
+        """
+        Adds a guild to the database
+
+        Accepts a dictionary or a list of dictionaries like:
+
+        {"guild_id": str,     required parameter  (name of the guild)
+        "guild_id": int,      required parameter  (ds_id is unique identifier of Discord)
+        "count_members": int,                     (count of users (members) on this guild)
+        "guild_sets": str}                        (a string with a json string inside, contains server parameters)
+
+        Returns a Guild model object if the operation is successful,
+        or nothing if there is an error
+        """
         guilds_list = []
         is_dict = True if type(data) == dict else False
 
@@ -313,26 +370,57 @@ class GuildsDbase(DataBase):
             data = [data]
 
         with self.Session() as session:
-            try:
-                for data in data:
+            for data in data:
+                try:
+
                     guild = Guilds(guild_id=data["guild_id"], guild_name=data["guild_name"],
-                                   count_members=(data["count_members"] if data.get("count_members") else 0))
+                                   count_members=0 if data.get("count_members") is None else data["count_members"])
+
+                    session.add(guild)
+                    session.commit()
+
                     guilds_list.append(guild)
+                    print(guild)
 
-                session.add_all(guilds_list)
-                session.commit()
+                except IntegrityError:
+                    session.rollback()
+                    guild = await self.get_guild(data)
+                    if guild:
+                        print(f"{guild} already in database")
+                        guilds_list.append(guild)
+                    else:
+                        print("Something went wrong when get guild fo add function")
+                        print(traceback.format_exc())
 
-                return guilds_list[0] if is_dict else guilds_list
+                        return
 
-            except Exception:
-                print("Something went wrong then adding guild")
-                print(traceback.format_exc())
+                except Exception:
+                    print("Something went wrong then adding guild")
+                    print(traceback.format_exc())
 
-        return
+        if len(guilds_list) != 0:
+            return guilds_list[0] if is_dict else guilds_list
+        else:
+            return
 
     @staticmethod
     def get_guild_static(session, data):
+        """
+        A static method that gets guild from database
+        Called from others async functions
 
+        Accepts session and data.
+        Data have to have at least one parameter: guild_id or guild_name.
+
+        Attention:
+        Search by guild_id is the preferred authentication method.
+        You can't get access to users with this function, please, use the
+        get_guild_with_users function
+
+        If a dictionary was passed to the function, it will return a guild object.
+        If a list was passed, it will return a list of guilds objects.
+        On error will return a None object.
+        """
         guild_list = []
         is_dict = True if type(data) == dict else False
 
@@ -341,21 +429,10 @@ class GuildsDbase(DataBase):
 
         try:
             for data in data:
-
-                if type(data) == list:
-                    for guild_id in data:
-                        guild = (select(Guilds)
-                                 .filter_by(guild_id=guild_id))
-
-                        guild = session.scalars(guild).first()
-                        if not guild:
-                            print("Something went wrong when get guild for relationship")
-                            return
-
-                        guild_list.append(guild)
-
                 if "guild_id" in data.keys():
-                    guild = select(Guilds).filter_by(guild_id=data["guild_id"])
+                    guild = (select(Guilds)
+                             .filter_by(guild_id=data["guild_id"]))
+
                     guild = session.scalars(guild).first()
                     if not guild:
                         print("Can't find guild by discord id in database")
@@ -382,7 +459,21 @@ class GuildsDbase(DataBase):
 
     @staticmethod
     def get_guild_static_with_users(session, data):
+        """
+        A static method that gets the guild from the database along with the users that are on this guild.
+        Use selectinload parameter for query
+        Called from others async functions
 
+        Accepts session and data.
+        Data have to have at least one parameter: guild_id or guild_name.
+
+        Attention:
+        Search by guild_id is the preferred authentication method.
+
+        If a dictionary was passed to the function, it will return a guild object with users.
+        If a list was passed, it will return a list of guilds objects with users.
+        On error will return a None object.
+        """
         guild_list = []
         is_dict = True if type(data) == dict else False
 
@@ -409,20 +500,26 @@ class GuildsDbase(DataBase):
 
                     if "guild_id" in data.keys():
                         guild = (
-                            select(Guilds).options(selectinload(Guilds.users)).filter_by(guild_id=data["guild_id"]))
+                            select(Guilds)
+                            .options(selectinload(Guilds.users))
+                            .filter_by(guild_id=data["guild_id"]))
+
                         guild = session.scalars(guild).first()
                         if not guild:
-                            print("Can't find guild by discord id in database")
+                            print("Can't find guild with users by discord id in database")
                             return
 
                         guild_list.append(guild)
 
                     elif "guild_name" in data.keys():
                         guild = (
-                            select(Guilds).options(selectinload(Guilds.users)).filter_by(guild_name=data["guild_name"]))
+                            select(Guilds)
+                            .options(selectinload(Guilds.users))
+                            .filter_by(guild_name=data["guild_name"]))
+
                         guild = session.scalars(guild).first()
                         if not guild:
-                            print("Can't find guild by guild name in database")
+                            print("Can't find guild with users by guild name in database")
                             return
 
                         guild_list.append(guild)
@@ -436,14 +533,73 @@ class GuildsDbase(DataBase):
         return
 
     async def get_guild(self, data: Union[dict, list[dict]]) -> Union[Guilds, list[Guilds], None]:
+        """
+        Calls staticmethod get_guild_static
+
+        get_guild_static:
+            A static method that gets guild from database
+            Called from others async functions
+
+            Accepts session and data.
+            Data have to have at least one parameter: guild_id or guild_name.
+
+            Attention:
+            Search by guild_id is the preferred authentication method.
+            You can't get access to users with this function, please, use the
+            get_guild_with_users function
+
+            If a dictionary was passed to the function, it will return a guild object.
+            If a list was passed, it will return a list of guilds objects.
+            On error will return a None object.
+        """
         with self.Session() as session:
-            return self.get_guild_static(session, data)
+            guild = self.get_guild_static(session, data)
+            if guild:
+                print(guild)
+
+            return guild
 
     async def get_guild_with_users(self, data: Union[dict, list[dict]]) -> Union[Guilds, list[Guilds], None]:
+        """
+        Calls staticmethod get_guild_static_with_users
+
+        get_guild_static_with_users:
+            A static method that gets the guild from the database along with the users that are on this guild.
+            Use selectinload parameter for query
+            Called from others async functions
+
+            Accepts session and data.
+            Data have to have at least one parameter: guild_id or guild_name.
+
+            Attention:
+            Search by guild_id is the preferred authentication method.
+
+            If a dictionary was passed to the function, it will return a guild object with users.
+            If a list was passed, it will return a list of guilds objects with users.
+            On error will return a None object.
+        """
         with self.Session() as session:
-            return self.get_guild_static_with_users(session, data)
+            guild = self.get_guild_static_with_users(session, data)
+            if guild:
+                print(guild)
+
+            return guild
 
     async def update_guild(self, data: Union[dict, list[dict]]) -> Union[Guilds, list[Guilds], None]:
+        """
+        Updates guild from database. Use get_guild_static for getting user.
+
+        Accepts data.
+        Data have to have at least one parameter: guild_id or guild_name
+
+        Attention:
+        Search by guild_id is the preferred authentication method.
+        You can't change any relationships with this function, please, use RelationshipsDBase
+        class to manage relationships
+
+        Returns a guild model object if the operation is successful,
+        or None if there is an error
+        """
 
         guilds_list = []
         is_dict = True if type(data) == dict else False
@@ -457,10 +613,18 @@ class GuildsDbase(DataBase):
                 for data in data:
                     for guild in guilds:
                         if data["guild_id"] == guild.guild_id:
-                            guild.guild_name = guild.guild_name if data.get("guild_name") is None else data["guild_name"]
-                            guild.count_members = guild.count_members if data.get("count_members") is None else data[
-                                "count_members"]
-                            guild.guild_sets = guild.guild_sets if data.get("guild_sets") is None else data["guild_sets"]
+                            if data.get("guild_sets"):
+                                enc = JsonEncoder
+                                data["guild_sets"] = None if data.get(
+                                    "guild_sets") is None else enc.code_to_json(data["guild_sets"])
+
+                            guild.guild_name = guild.guild_name if data.get("guild_name") is None else data[
+                                "guild_name"]
+                            guild.count_members = guild.count_members if data.get("count_members") is None else \
+                                data[
+                                    "count_members"]
+                            guild.guild_sets = guild.guild_sets if data.get("guild_sets") is None else data[
+                                "guild_sets"]
 
                             guilds_list.append(guild)
 
@@ -474,19 +638,41 @@ class GuildsDbase(DataBase):
 
         return
 
-    async def get_top_by_scores(self):
+    async def get_top_users_by_scores(self, guild_id: int):
+        """
+        Gets the top users from database by scores from this guild
+
+        Receives guild_id for getting guild
+
+        Returns a list of Users from scores top if the operation is
+        successful, or None if error.
+        """
+        user_list = []
         with self.Session() as session:
             try:
                 guilds = (select(Guilds)
                           .options(selectinload(Guilds.users))
-                          .limit(20))
+                          .filter_by(guild_id=guild_id)
+                          )
 
-                res = session.scalars(guilds).all()
+                res = session.scalars(guilds).first().users
                 if not res:
                     print("Can't get users in guild by scores")
                     return
 
-                print(res)
+                for user in res:
+                    if len(user_list) != 20:
+                        user_data = {"username": user.username,
+                                     "ds_id": user.ds_id,
+                                     "scores": user.scores,
+                                     "experience": user.experience}
+                        user_list.append(user_data)
+                    else:
+                        break
+
+                sorted_res = sorted(user_list, key=lambda x: x["scores"], reverse=True)
+
+                print(sorted_res)
                 return res
 
             except:
@@ -499,16 +685,29 @@ class GuildsDbase(DataBase):
 
 
 class RelationshipsDBase(DataBase):
+    """
+    Class for managing with relationships
 
-    def __init__(self, echo_mode):
+    This class inherits from UserDBase and GuildDBase classes and use their methods
+
+    You can choose echo mode by passing the echo_mode parameter
+    """
+
+    def __init__(self, echo_mode: bool = False):
         super().__init__(echo_mode)
-        self.guilds_db = GuildsDbase()
-        self.users_db = UserDBase()
+        self.guilds_db = GuildsDbase(echo_mode)
+        self.users_db = UserDBase(echo_mode)
 
-    async def add_relationship(self, data: Union[dict, list[dict]]) -> Any:
+    async def add_relationship(self, data: Union[dict, list[dict]]) -> Union[True, None]:
         """
-        data = [{"users": list[ds_id],
-                "guilds": list[guild_id}]]
+        Adds a relationship between the user and the guild
+
+        Gets a complex data structure:
+
+        data = [{"users": list[ds_id: int],
+                "guilds": list[guild_id: int}]]
+
+        Returns True if operation was successful and None if there was an error
         """
 
         is_dict = True if type(data) == dict else False
@@ -519,247 +718,58 @@ class RelationshipsDBase(DataBase):
         with self.Session() as session:
             try:
                 for data in data:
-                    received_users = await self.users_db.get_user_with_guilds(data["users"])
-                    received_guilds = await self.guilds_db.get_guild_with_users(data["guilds"])
+                    received_users = self.users_db.get_user_static_with_guilds(session, data["users"])
+                    received_guilds = self.guilds_db.get_guild_static_with_users(session, data["guilds"])
 
-                    for user in received_users:
-                        for guild in received_guilds:
-                            if user not in guild.users:
-                                guild.users.append(user)
+                    for guild in received_guilds:
+                        for user in received_users:
+                            guild.users.append(user)
+                            print(guild, user)
 
-                        print(user, guild)
-
-                session.commit()
+                    session.commit()
 
                 return True
 
             except Exception:
+                print("Something went wrong when add relationships between users and guilds")
                 print(traceback.format_exc())
-                return
 
-    async def delete_relationship(self):
-        pass
+        return
 
-    ####################################   USERS TESTS   ############################################
+    async def delete_relationship(self, data) -> Union[True, None]:
+        """
+        Deletes a relationship between the user and the guild
 
+        Gets a complex data structure:
 
-async def test_add_user(users_echo=False):
-    db = UserDBase(users_echo)
+        data = [{"ds_id": int,
+                 "guild_id": int}]
 
-    data = {"username": "TopNik_",
-            "ds_id": 785364734786,
-            "scores": 20}
+        Returns True if operation was successful and None if there was an error
+        """
 
-    await db.add_user(data)
+        is_dict = True if type(data) == dict else False
 
+        with self.Session() as session:
+            try:
+                for data in data:
+                    received_users = self.users_db.get_user_static_with_guilds(session, data["users"])
+                    received_guilds = self.guilds_db.get_guild_static_with_users(session, data["guilds"])
 
-async def test_add_some_users(users_echo=False):
-    db = UserDBase(users_echo)
+                    # guild[0].users.remove(user[0])
 
-    data = [{"username": "Andre",
-             "ds_id": 674325879834},
-            {"username": "Minion",
-             "ds_id": 977865342843}]
+                    for guild in received_guilds:
+                        for user in received_users:
+                            if user in guild.users:
+                                guild.users.remove(user)
+                                print(guild, user)
 
-    await db.add_user(data)
+                    session.commit()
 
+                return True
 
-async def test_get_user(users_echo=False):
-    db = UserDBase(users_echo)
+            except Exception:
+                print("Something went wrong when delete relationships between users and guilds")
+                print(traceback.format_exc())
 
-    data = {"ds_id": 785364734786}
-
-    await db.get_user(data)
-
-
-async def test_get_some_users(users_echo=False):
-    db = UserDBase(users_echo)
-
-    data = [{"ds_id": 674325879834},
-            {"ds_id": 977865342843}]
-
-    await db.get_user(data)
-
-
-async def test_get_user_with_guilds(users_echo=False):
-    db = UserDBase(users_echo)
-
-    data = {"ds_id": 785364734786}
-
-    res = await db.get_user_with_guilds(data)
-
-    print(res.guilds)
-
-
-async def test_get_some_users_with_guilds(users_echo=False):
-    db = UserDBase(users_echo)
-
-    data = [{"ds_id": 674325879834},
-            {"ds_id": 977865342843}]
-
-    res = await db.get_user_with_guilds(data)
-
-    for user in res:
-        print(user.guilds)
-
-
-async def test_update_user(users_echo=False):
-    db = UserDBase(users_echo)
-
-    data = {"ds_id": 785364734786,
-            "username": "Nikita073_"}
-
-    await db.update_user(data)
-
-
-async def test_update_some_users(users_echo=False):
-    db = UserDBase(users_echo)
-
-    data = [{"ds_id": 674325879834,
-             "username": "андре",
-             "scores": 10_000},
-            {"ds_id": 977865342843,
-             "experience": 1_000}]
-
-    await db.update_user(data)
-
-
-async def test_get_top_users_by_scores(users_echo=False):
-    db = UserDBase(users_echo)
-
-    res = await db.get_top_users_by_scores()
-
-    print(res)
-
-    ####################################   GUILDS TESTS   ############################################
-
-
-async def test_add_guild(guilds_echo=False):
-    db = GuildsDbase(guilds_echo)
-
-    data = {"guild_id": 785312593614209055,
-            "guild_name": "Homey Temple"}
-
-    await db.add_guild(data)
-
-
-async def test_add_some_guilds(guilds_echo=False):
-    db = GuildsDbase(guilds_echo)
-
-    data = [{"guild_id": 710525764470308975,
-             "guild_name": "NetherWorld"}]
-
-    await db.add_guild(data)
-
-
-async def test_get_guild(guilds_echo=False):
-    db = GuildsDbase(guilds_echo)
-
-    data = {"guild_id": 710525764470308975}
-
-    await db.get_guild(data)
-
-
-async def test_get_some_guilds(guilds_echo=False):
-    db = GuildsDbase(guilds_echo)
-
-    data = [{"guild_id": 710525764470308975},
-            {"guild_id": 785312593614209055}]
-
-    await db.get_guild(data)
-
-
-async def test_update_guild(guilds_echo=False):
-    db = GuildsDbase(guilds_echo)
-
-    data = {"guild_id": 710525764470308975,
-            "guild_name": "NetWorld"}
-
-    await db.update_guild(data)
-
-
-async def test_update_some_guilds(guilds_echo=False):
-    db = GuildsDbase(guilds_echo)
-
-    data = [{"guild_id": 710525764470308975,
-             "count_members": 5000},
-            {"guild_id": 785312593614209055,
-             "count_members": 100}]
-
-    await db.update_guild(data)
-
-
-async def test_get_top_by_scores(guilds_echo=False):
-    db = GuildsDbase(guilds_echo)
-
-    await db.get_top_by_scores()
-
-    ####################################   RELATIONSHIPS TESTS   ############################################
-
-
-async def test_add_relationship(rel_echo=False):
-    db = RelationshipsDBase(rel_echo)
-
-    users = [{"ds_id": 785364734786},
-             {"ds_id": 674325879834}]
-
-    guild = [{"guild_id": 785312593614209055}]
-
-    data = {"users": users,
-            "guilds": guild}
-
-    await db.add_relationship(data)
-
-    ####################################   DATABASE TESTS   ############################################
-
-
-async def main():
-    users_echo = False
-
-    # USERS TESTS
-    # await test_add_user(users_echo)
-    # await test_add_some_users(users_echo)
-
-    # await test_get_user(users_echo)
-    # await test_get_some_users(users_echo)
-
-    # await test_get_user_with_guilds(users_echo)
-    # await test_get_some_users_with_guilds(users_echo)
-
-    # await test_update_user(users_echo)
-    # await test_update_some_users(users_echo)
-
-    # await test_get_top_users_by_scores(users_echo)
-
-    ###################################################
-
-    guilds_echo = False
-
-    # GUILDS TESTS
-    # await test_add_guild(guilds_echo)
-    # await test_add_some_guilds(guilds_echo)
-
-    # await test_get_guild(guilds_echo)
-    # await test_get_some_guilds(guilds_echo)
-
-    # await test_update_guild(guilds_echo)
-    # await test_update_some_guilds(guilds_echo)
-
-    # await test_get_top_by_scores(guilds_echo)
-
-    ###################################################
-
-    rel_echo = True
-
-    # RELATIONSHIPS TESTS
-    await test_add_relationship(rel_echo)
-
-
-if __name__ == "__main__":
-    echo = False
-    engine = create_engine("sqlite:///DataBase.db", echo=echo)
-    Base.metadata.drop_all(engine)
-    Base.metadata.create_all(engine)
-    engine.echo = True
-
-    asyncio.run(main())
+        return
