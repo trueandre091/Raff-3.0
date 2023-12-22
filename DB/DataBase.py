@@ -9,7 +9,7 @@ from sqlalchemy.orm import sessionmaker, selectinload
 from sqlalchemy.exc import IntegrityError
 
 
-from models import Users, Guilds
+from DB.models import Users, Guilds
 from DB.JSONEnc import JsonEncoder
 
 
