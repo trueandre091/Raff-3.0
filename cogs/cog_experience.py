@@ -11,15 +11,16 @@ from DB.models import Users
 DB = UserDBase()
 
 
+async def formula(user: Users, factor: int):
+    return math.floor(math.pow(user.experience/factor, 1/3))
+
+
 async def convert_ex_to_lvl(user: Users):
     if user is None:
         return 0
     factors = cfg.COGS_SETTINGS["EXPERIENCE"]["LEVEL_FACTORS"]
 
-    try:
-        lvl = math.floor(math.log(user.experience - factors["K2"], factors["K1"]))
-    except ValueError:
-        lvl = 0
+    lvl = math.floor(math.pow(user.experience/factors["K1"], 1/3))
 
     return lvl
 
@@ -28,12 +29,12 @@ async def count_experience(message: disnake.Message):
     if message.author.bot:
         return
 
-    minute = timedelta(minutes=1)
+    lvl1 = await convert_ex_to_lvl(await DB.get_user({"ds_id": message.author.id}))
+
     flag = True
     skip_first_flag = False
     async for msg in message.channel.history(limit=50):
-        delta = message.created_at - msg.created_at
-        if delta <= minute and msg.author == message.author and skip_first_flag:
+        if message.created_at.minute == msg.created_at.minute and msg.author == message.author and skip_first_flag:
             flag = False
             break
         skip_first_flag = True
@@ -47,7 +48,12 @@ async def count_experience(message: disnake.Message):
         else:
             await DB.update_user({"ds_id": user.ds_id, "username": user.username, "experience": user.experience + ex})
 
-    await convert_ex_to_lvl(await DB.get_user({"ds_id": message.author.id}))
+    lvl2 = await convert_ex_to_lvl(await DB.get_user({"ds_id": message.author.id}))
+
+    if lvl1 != lvl2:
+
+        await message.reply(f"{message.author.mention}, поздравляю с {lvl2} уровнем! 😜")
+
 
 
 class ExperienceCommands(commands.Cog):

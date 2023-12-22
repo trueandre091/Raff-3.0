@@ -19,7 +19,7 @@ class DataBase:
     def __init__(self, echo_mode: bool = False):
         try:
             self.echo = echo_mode
-            self.engine = create_engine("sqlite:///DataBase.db", echo=self.echo)
+            self.engine = create_engine("sqlite:///DB/DataBase.db", echo=self.echo)
             self.Session = sessionmaker(self.engine)
         except Exception:
             print(traceback.format_exc())
@@ -61,7 +61,7 @@ class UserDBase(DataBase):
                     user = Users(
                         username=data["username"],
                         ds_id=data["ds_id"],
-                        scores=data["scores"] if data.get("scores") else 10,
+                        scores=data["scores"] if data.get("scores") else 0,
                         experience=data["experience"] if data.get("experience") else 0,
                     )
 
@@ -320,7 +320,6 @@ class UserDBase(DataBase):
                     print("Can't get top users by scores")
                     return
 
-                print(type(res))
                 return res
 
             except Exception:
