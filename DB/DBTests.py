@@ -19,7 +19,10 @@ async def test_add_user(users_echo=False):
 async def test_add_some_users(users_echo=False):
     db = UserDBase(users_echo)
 
-    data = [{"username": "Andre", "ds_id": 674325879834}, {"username": "Minion", "ds_id": 977865342843}]
+    data = [
+        {"username": "Andre", "ds_id": 674325879834},
+        {"username": "Minion", "ds_id": 977865342843},
+    ]
 
     await db.add_user(data)
 

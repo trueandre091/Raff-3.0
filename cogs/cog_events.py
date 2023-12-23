@@ -4,10 +4,13 @@ from disnake.ext import commands
 import asyncio
 
 import config as cfg
+
 FOLDER = getcwd()
 
 
-async def creating_message_with_nearest_events(event: disnake.GuildScheduledEvent) -> str:
+async def creating_message_with_nearest_events(
+    event: disnake.GuildScheduledEvent,
+) -> str:
     """Creating an embed"""
     weekly, special = [], []
     flag1, flag2 = False, False
@@ -41,6 +44,7 @@ async def delete_previous_message(self, channel) -> None:
 
 class AutoSendingMessage(commands.Cog):
     """Auto sending the message of list of events"""
+
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.settings = cfg.COGS_SETTINGS["EVENTS"]

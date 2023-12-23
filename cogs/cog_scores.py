@@ -51,7 +51,9 @@ async def top_create_embed(bot: commands.Bot, embed_dict: dict):
         if member is None or user.scores == 0:
             continue
 
-        embed_dict['description'] += f"`{place + 1}.` {member.mention} — `{user.scores} оч.`\n"
+        embed_dict[
+            "description"
+        ] += f"`{place + 1}.` {member.mention} — `{user.scores} оч.`\n"
         if amount1 <= user.scores < amount2:
             flag1 = True
             first_lvl_members.append(user)
@@ -64,25 +66,31 @@ async def top_create_embed(bot: commands.Bot, embed_dict: dict):
         place += 1
 
     if flag1 or flag2 or flag3:
-        embed_dict['description'] += "\n**Получат роли**"
+        embed_dict["description"] += "\n**Получат роли**"
         index_of_field = 0
         if flag1:
-            embed_dict['fields'].append({'name': '1-го уровня:', 'value': '', 'inline': True})
+            embed_dict["fields"].append(
+                {"name": "1-го уровня:", "value": "", "inline": True}
+            )
             for user in first_lvl_members:
                 member = guild.get_member(user.ds_id)
-                embed_dict['fields'][index_of_field]['value'] += f"{member.mention} "
+                embed_dict["fields"][index_of_field]["value"] += f"{member.mention} "
             index_of_field += 1
         if flag2:
-            embed_dict['fields'].append({'name': '3-го уровня:', 'value': '', 'inline': True})
+            embed_dict["fields"].append(
+                {"name": "3-го уровня:", "value": "", "inline": True}
+            )
             for user in third_lvl_members:
                 member = guild.get_member(user.ds_id)
-                embed_dict['fields'][index_of_field]['value'] += f"{member.mention} "
+                embed_dict["fields"][index_of_field]["value"] += f"{member.mention} "
             index_of_field += 1
         if flag3:
-            embed_dict['fields'].append({'name': '5-го уровня:', 'value': '', 'inline': True})
+            embed_dict["fields"].append(
+                {"name": "5-го уровня:", "value": "", "inline": True}
+            )
             for user in fifth_lvl_members:
                 member = guild.get_member(user.ds_id)
-                embed_dict['fields'][index_of_field]['value'] += f"{member.mention} "
+                embed_dict["fields"][index_of_field]["value"] += f"{member.mention} "
             index_of_field += 1
 
     # flag1, flag2, flag3 = False, False, False
@@ -140,19 +148,30 @@ class ScoresOperations(commands.Cog):
 
     @commands.slash_command(
         description="Прибавить очки 1 участнику",
-        default_member_permissions=disnake.Permissions(administrator=True)
+        default_member_permissions=disnake.Permissions(administrator=True),
     )
     async def add_one(
-            self, interaction: disnake.ApplicationCommandInteraction, участник: disnake.Member, количество: int
+        self,
+        interaction: disnake.ApplicationCommandInteraction,
+        участник: disnake.Member,
+        количество: int,
     ):
         """Adding to a member a certain amount of scores"""
         await counter_functions.count_added_scores(количество)
 
         user = await DB.get_user({"ds_id": участник.id})
         if user is None:
-            await DB.add_user({"ds_id": участник.id, "username": участник.name, "scores": количество})
+            await DB.add_user(
+                {"ds_id": участник.id, "username": участник.name, "scores": количество}
+            )
         else:
-            await DB.update_user({"ds_id": user.ds_id, "username": user.username, "scores": user.scores + количество})
+            await DB.update_user(
+                {
+                    "ds_id": user.ds_id,
+                    "username": user.username,
+                    "scores": user.scores + количество,
+                }
+            )
 
         # data = await load_database()
         # if str(участник.id) not in data:
@@ -161,28 +180,42 @@ class ScoresOperations(commands.Cog):
         #     data[str(участник.id)] += количество
         # await dump_database(data)
 
-        user = await DB.get_user({'ds_id': участник.id})
-        await interaction.response.send_message(f"Теперь у {участник} {user.scores} оч.")
+        user = await DB.get_user({"ds_id": участник.id})
+        await interaction.response.send_message(
+            f"Теперь у {участник} {user.scores} оч."
+        )
 
     @commands.slash_command(
         description="Вычесть очки у 1 участника",
-        default_member_permissions=disnake.Permissions(administrator=True)
+        default_member_permissions=disnake.Permissions(administrator=True),
     )
     async def remove_one(
-            self, interaction: disnake.ApplicationCommandInteraction, участник: disnake.Member, количество: int
+        self,
+        interaction: disnake.ApplicationCommandInteraction,
+        участник: disnake.Member,
+        количество: int,
     ):
         """Removing from a member a certain amount of scores"""
         await counter_functions.count_removed_scores(количество)
 
         user = await DB.get_user({"ds_id": участник.id})
         if not user:
-            await interaction.response.send_message(f"У {участник} и так ничего нет... куда меньше...")
+            await interaction.response.send_message(
+                f"У {участник} и так ничего нет... куда меньше..."
+            )
         else:
             if количество >= user.scores:
-                await DB.update_user({"ds_id": user.ds_id, "username": user.username, "scores": 0})
+                await DB.update_user(
+                    {"ds_id": user.ds_id, "username": user.username, "scores": 0}
+                )
             else:
                 await DB.update_user(
-                    {"ds_id": участник.id, "username": участник.name, "scores": user.scores - количество})
+                    {
+                        "ds_id": участник.id,
+                        "username": участник.name,
+                        "scores": user.scores - количество,
+                    }
+                )
 
         # data = await load_database()
         # if str(участник.id) not in data:
@@ -194,14 +227,21 @@ class ScoresOperations(commands.Cog):
         #         data[str(участник.id)] -= количество
         # await dump_database(data)
 
-        user = await DB.get_user({'disc_id': участник.id})
-        await interaction.response.send_message(f"Теперь у {участник} {user.scores} оч.")
+        user = await DB.get_user({"disc_id": участник.id})
+        await interaction.response.send_message(
+            f"Теперь у {участник} {user.scores} оч."
+        )
 
     @commands.slash_command(
         description="Вычесть очки у любого кол-ва участников (упомянуть через пробел)",
-        default_member_permissions=disnake.Permissions(administrator=True)
+        default_member_permissions=disnake.Permissions(administrator=True),
     )
-    async def remove_any(self, interaction: disnake.ApplicationCommandInteraction, участники: str, количество: int):
+    async def remove_any(
+        self,
+        interaction: disnake.ApplicationCommandInteraction,
+        участники: str,
+        количество: int,
+    ):
         """Removing from several members a certain amount of scores"""
         guild = self.bot.get_guild(cfg.GUILD_ID)
         members_list = участники.split()
@@ -224,38 +264,54 @@ class ScoresOperations(commands.Cog):
         # await dump_database(data)
 
         for member in members_list:
-            member_id = int(member.strip('<@>'))
+            member_id = int(member.strip("<@>"))
             member = guild.get_member(member_id)
             user = await DB.get_user({"ds_id": member_id})
             if not user:
-                await DB.update_user({"ds_id": member.id, "username": member.name, "scores": 0})
+                await DB.update_user(
+                    {"ds_id": member.id, "username": member.name, "scores": 0}
+                )
                 members_list_values.append(0)
             else:
                 if количество >= user.scores:
-                    await DB.update_user({"ds_id": user.ds_id, "username": user.username, "scores": 0})
+                    await DB.update_user(
+                        {"ds_id": user.ds_id, "username": user.username, "scores": 0}
+                    )
                     members_list_values.append(0)
                 else:
                     await DB.update_user(
-                        {"ds_id": user.ds_id, "username": user.username, "scores": user.scores - количество})
+                        {
+                            "ds_id": user.ds_id,
+                            "username": user.username,
+                            "scores": user.scores - количество,
+                        }
+                    )
                     members_list_values.append(user.scores - количество)
 
         members_dict = dict(zip(members_list, members_list_values))
         embed = disnake.Embed(
             title=f"{количество} оч. было вычтено у указанных участников",
             description="Настоящее количество очков у каждого:",
-            color=0x2b2d31
+            color=0x2B2D31,
         )
         for member, value in members_dict.items():
-            member_id = int(member.strip('<@>'))
-            embed.add_field(name=interaction.guild.get_member(member_id), value=f"```{value} оч.```")
+            member_id = int(member.strip("<@>"))
+            embed.add_field(
+                name=interaction.guild.get_member(member_id), value=f"```{value} оч.```"
+            )
 
         await interaction.response.send_message(embed=embed)
 
     @commands.slash_command(
         description="Прибавить очки любому кол-ву участников (упомянуть через пробел)",
-        default_member_permissions=disnake.Permissions(administrator=True)
+        default_member_permissions=disnake.Permissions(administrator=True),
     )
-    async def add_any(self, interaction: disnake.ApplicationCommandInteraction, участники: str, количество: int):
+    async def add_any(
+        self,
+        interaction: disnake.ApplicationCommandInteraction,
+        участники: str,
+        количество: int,
+    ):
         """Adding to several members a certain amount of scores"""
         guild = self.bot.get_guild(cfg.GUILD_ID)
         members_list = участники.split()
@@ -275,117 +331,160 @@ class ScoresOperations(commands.Cog):
         # await dump_database(data)
 
         for member in members_list:
-            member_id = int(member.strip('<@>'))
+            member_id = int(member.strip("<@>"))
             member = guild.get_member(member_id)
             user = await DB.get_user({"ds_id": member_id})
             if not user:
-                await DB.add_user({"ds_id": member_id, "username": member.name, "scores": количество})
+                await DB.add_user(
+                    {"ds_id": member_id, "username": member.name, "scores": количество}
+                )
                 members_list_values.append(количество)
             else:
                 await DB.update_user(
-                    {"ds_id": user.ds_id, "username": user.username, "scores": user.scores + количество})
+                    {
+                        "ds_id": user.ds_id,
+                        "username": user.username,
+                        "scores": user.scores + количество,
+                    }
+                )
                 members_list_values.append(user.scores + количество)
 
         members_dict = dict(zip(members_list, members_list_values))
         embed = disnake.Embed(
             title=f"{количество} оч. было прибавлено к указанным участникам",
             description="Настоящее количество очков у каждого:",
-            color=0x2b2d31
+            color=0x2B2D31,
         )
         for member, value in members_dict.items():
-            member_id = int(member.strip('<@>'))
+            member_id = int(member.strip("<@>"))
             user = await DB.get_user({"ds_id": member_id})
-            embed.add_field(name=interaction.guild.get_member(member_id), value=f"```{user.scores} оч.```")
+            embed.add_field(
+                name=interaction.guild.get_member(member_id),
+                value=f"```{user.scores} оч.```",
+            )
 
         await interaction.response.send_message(embed=embed)
 
     @commands.slash_command(
         description="Установить определённое кол-во очков участнику",
-        default_member_permissions=disnake.Permissions(administrator=True)
+        default_member_permissions=disnake.Permissions(administrator=True),
     )
     async def set_just_one(
-            self, interaction: disnake.ApplicationCommandInteraction, участник: disnake.Member, количество: int
+        self,
+        interaction: disnake.ApplicationCommandInteraction,
+        участник: disnake.Member,
+        количество: int,
     ):
         """Setting for a member a certain amount of scores"""
         user = await DB.get_user({"ds_id": участник.id})
         if not user:
-            await DB.add_user({"ds_id": участник.id, "username": участник.name, "scores": количество})
+            await DB.add_user(
+                {"ds_id": участник.id, "username": участник.name, "scores": количество}
+            )
         else:
-            await DB.update_user({"ds_id": участник.id, "username": участник.name, "scores": количество})
+            await DB.update_user(
+                {"ds_id": участник.id, "username": участник.name, "scores": количество}
+            )
 
         await interaction.response.send_message(f"У {участник} теперь {количество}")
 
 
 async def convert(user: Users, embed_dict):
     if user is None:
-        embed_dict['fields'][0]['value'] = f'```0 оч.```'
-        embed_dict['fields'][1]['value'] = f'```0 лвл.```'
+        embed_dict["fields"][0]["value"] = f"```0 оч.```"
+        embed_dict["fields"][1]["value"] = f"```0 лвл.```"
     else:
-        embed_dict['fields'][0]['value'] = f"```{user.scores} оч.```"
-        embed_dict['fields'][1]['value'] = f"```{await convert_ex_to_lvl(user)} лвл.```"
+        embed_dict["fields"][0]["value"] = f"```{user.scores} оч.```"
+        embed_dict["fields"][1]["value"] = f"```{await convert_ex_to_lvl(user)} лвл.```"
 
 
 class SpecialScoresCommands(commands.Cog):
     """Special scores commands: /реп, /топ, /reset"""
+
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.slash_command(description="Показать кол-во очков и уровень у себя / участника")
-    async def реп(self, interaction: disnake.ApplicationCommandInteraction, участник: disnake.Member = None):
+    @commands.slash_command(
+        description="Показать кол-во очков и уровень у себя / участника"
+    )
+    async def реп(
+        self,
+        interaction: disnake.ApplicationCommandInteraction,
+        участник: disnake.Member = None,
+    ):
         """Showing user's or a somebody's amount of scores"""
         embed_dict = {
-            'fields': [{'inline': True, 'name': 'Очки'}, {'inline': True, 'name': 'Опыт'}],
-            'footer': {'text': interaction.guild.name, 'icon_url': interaction.guild.icon.url},
-            'thumbnail': {'url': ''},
-            'color': 0x2b2d31
+            "fields": [
+                {"inline": True, "name": "Очки"},
+                {"inline": True, "name": "Опыт"},
+            ],
+            "footer": {
+                "text": interaction.guild.name,
+                "icon_url": interaction.guild.icon.url,
+            },
+            "thumbnail": {"url": ""},
+            "color": 0x2B2D31,
         }
 
         if участник:
-            embed_dict['title'] = участник.name
+            embed_dict["title"] = участник.name
             try:
-                embed_dict['thumbnail']['url'] = участник.avatar.url
+                embed_dict["thumbnail"]["url"] = участник.avatar.url
             except AttributeError:
-                embed_dict['thumbnail']['url'] = 'https://i.postimg.cc/CMsM38p8/1.png'
+                embed_dict["thumbnail"]["url"] = "https://i.postimg.cc/CMsM38p8/1.png"
             user = await DB.get_user({"ds_id": участник.id})
             await convert(user, embed_dict)
         else:
-            embed_dict['title'] = interaction.author.name
+            embed_dict["title"] = interaction.author.name
             try:
-                embed_dict['thumbnail']['url'] = interaction.author.avatar.url
+                embed_dict["thumbnail"]["url"] = interaction.author.avatar.url
             except AttributeError:
-                embed_dict['thumbnail']['url'] = 'https://i.postimg.cc/CMsM38p8/1.png'
+                embed_dict["thumbnail"]["url"] = "https://i.postimg.cc/CMsM38p8/1.png"
             user = await DB.get_user({"ds_id": interaction.author.id})
             await convert(user, embed_dict)
 
-        await interaction.response.send_message(embed=disnake.Embed.from_dict(embed_dict))
+        await interaction.response.send_message(
+            embed=disnake.Embed.from_dict(embed_dict)
+        )
 
     @commands.cooldown(1, 5)
     @commands.slash_command(description="Таблица лидеров по очкам")
     async def топ(self, interaction: disnake.ApplicationCommandInteraction):
         """Sending a leaderboard of members by points"""
-        await interaction.response.send_message('...')
+        await interaction.response.send_message("...")
 
         embed_dict = {
-            'title': 'Таблица лидеров по очкам: 📊',
-            'description': '',
-            'fields': [],
-            'color': 0x2b2d31,
-            'footer': {'text': interaction.guild.name, 'icon_url': interaction.guild.icon.url}
+            "title": "Таблица лидеров по очкам: 📊",
+            "description": "",
+            "fields": [],
+            "color": 0x2B2D31,
+            "footer": {
+                "text": interaction.guild.name,
+                "icon_url": interaction.guild.icon.url,
+            },
         }
         embed_dict = await top_create_embed(self.bot, embed_dict)
 
-        await interaction.edit_original_response(content='', embed=disnake.Embed.from_dict(embed_dict))
+        await interaction.edit_original_response(
+            content="", embed=disnake.Embed.from_dict(embed_dict)
+        )
 
     @топ.error
-    async def on_test_error(self, interaction: disnake.Interaction, error: commands.CommandError):
+    async def on_test_error(
+        self, interaction: disnake.Interaction, error: commands.CommandError
+    ):
         if isinstance(error, commands.CommandOnCooldown):
-            await interaction.response.send_message("Нужно немного подождать...", delete_after=5, ephemeral=True)
+            await interaction.response.send_message(
+                "Нужно немного подождать...", delete_after=5, ephemeral=True
+            )
 
     @commands.slash_command(
         description="Сброс всех очков (пароль)",
-        default_member_permissions=disnake.Permissions(administrator=True)
+        default_member_permissions=disnake.Permissions(administrator=True),
     )
-    async def reset(self, interaction: disnake.ApplicationCommandInteraction, пароль: int):
+    async def reset(
+        self, interaction: disnake.ApplicationCommandInteraction, пароль: int
+    ):
         """Resetting scores database and making backup"""
         if пароль == cfg.SETTINGS["PASSWORD"]:
             # data = await load_database()
@@ -396,27 +495,45 @@ class SpecialScoresCommands(commands.Cog):
             top_dict = {}
             for user in top:
                 top_dict[str(user.ds_id)] = [user.username, user.scores]
-                await DB.update_user({"ds_id": user.ds_id, "username": user.username, "scores": 0})
+                await DB.update_user(
+                    {"ds_id": user.ds_id, "username": user.username, "scores": 0}
+                )
 
-            with (open(f"{FOLDER}/data/backups/backup_{date.today()}.json", 'w', encoding="utf-8") as f):
+            with open(
+                f"{FOLDER}/data/backups/backup_{date.today()}.json",
+                "w",
+                encoding="utf-8",
+            ) as f:
                 dump(top_dict, f)
-            await interaction.response.send_message(f"База данных сброшена, бэкап создан `{date.today()}`")
+            await interaction.response.send_message(
+                f"База данных сброшена, бэкап создан `{date.today()}`"
+            )
 
         else:
-
-            await interaction.response.send_message("Неверный пароль... Ты вор, сука?", delete_after=30)
+            await interaction.response.send_message(
+                "Неверный пароль... Ты вор, сука?", delete_after=30
+            )
 
     @commands.slash_command(
         description="Вернуть сброшенные данные по бекапу (пароль)",
-        default_member_permissions=disnake.Permissions(administrator=True)
+        default_member_permissions=disnake.Permissions(administrator=True),
     )
-    async def load_backup(self, interaction: disnake.ApplicationCommandInteraction, пароль: int, backup_date=None):
+    async def load_backup(
+        self,
+        interaction: disnake.ApplicationCommandInteraction,
+        пароль: int,
+        backup_date=None,
+    ):
         if пароль == cfg.SETTINGS["PASSWORD"]:
             if backup_date is None:
                 for i in range(100):
                     day = datetime.timedelta(i)
                     try:
-                        with (open(f"{FOLDER}/data/backups/backup_{date.today() - day}.json", 'r',encoding="utf-8") as f):
+                        with open(
+                            f"{FOLDER}/data/backups/backup_{date.today() - day}.json",
+                            "r",
+                            encoding="utf-8",
+                        ) as f:
                             data = load(f)
                     except:
                         pass
@@ -424,26 +541,39 @@ class SpecialScoresCommands(commands.Cog):
                         break
             else:
                 try:
-                    with (open(f"{FOLDER}/data/backups/backup_{backup_date}.json", 'r', encoding="utf-8") as f):
+                    with open(
+                        f"{FOLDER}/data/backups/backup_{backup_date}.json",
+                        "r",
+                        encoding="utf-8",
+                    ) as f:
                         data = load(f)
                 except:
-
-                    await interaction.response.send_message("Бэкап не найден", ephemeral=True)
+                    await interaction.response.send_message(
+                        "Бэкап не найден", ephemeral=True
+                    )
                     return
 
             for ds_id, other in data.items():
                 user = await DB.get_user({"ds_id": int(ds_id)})
                 if not user:
-                    await DB.add_user({"ds_id": ds_id, "username": other[0], "scores": other[1]})
+                    await DB.add_user(
+                        {"ds_id": ds_id, "username": other[0], "scores": other[1]}
+                    )
                 else:
-                    await DB.update_user({"ds_id": user.ds_id, "username": user.username, "scores": other[1]})
+                    await DB.update_user(
+                        {
+                            "ds_id": user.ds_id,
+                            "username": user.username,
+                            "scores": other[1],
+                        }
+                    )
 
             await interaction.response.send_message("Бекап загружен", ephemeral=True)
 
         else:
-
-            await interaction.response.send_message("Неверный пароль... Ты вор, сука?", delete_after=30)
-
+            await interaction.response.send_message(
+                "Неверный пароль... Ты вор, сука?", delete_after=30
+            )
 
 
 def setup(bot: commands.Bot):

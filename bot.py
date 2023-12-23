@@ -4,7 +4,10 @@ from cogs.on_message_functions import *
 from cogs.cog_experience import count_experience
 
 bot = commands.Bot(
-    command_prefix="none", help_command=None, intents=disnake.Intents.all(), chunk_guilds_at_startup=False
+    command_prefix="none",
+    help_command=None,
+    intents=disnake.Intents.all(),
+    chunk_guilds_at_startup=False,
 )
 bot.load_extension("cogs.cog_autoupdate")
 bot.load_extension("cogs.cog_counters")
@@ -23,7 +26,10 @@ async def on_member_join(member):
     settings = cfg.WELCOME_SETTINGS
     channel = bot.get_channel(settings["CHANNEL"])
     variables = {
-        "member.mention": member.mention, "member.name": member.name, "member.nick": member.nick, "member": member
+        "member.mention": member.mention,
+        "member.name": member.name,
+        "member.nick": member.nick,
+        "member": member,
     }
     embed_dict = {
         "title": settings["EMBED"]["TITLE"].format(**variables),
@@ -31,7 +37,7 @@ async def on_member_join(member):
         "image": {"url": settings["BACKGROUND_IMAGE"]},
         "thumbnail": {},
         "color": settings["EMBED"]["COLOR"],
-        "timestamp": str(datetime.now())
+        "timestamp": str(datetime.now()),
     }
     try:
         embed_dict["thumbnail"]["url"] = member.avatar.url
@@ -47,7 +53,10 @@ async def on_member_remove(member):
     settings = cfg.FAREWELL_SETTINGS
     channel = bot.get_channel(settings["CHANNEL"])
     variables = {
-        "member.mention": member.mention, "member.name": member.name, "member.nick": member.nick, "member": member
+        "member.mention": member.mention,
+        "member.name": member.name,
+        "member.nick": member.nick,
+        "member": member,
     }
 
     await channel.send(settings["MESSAGE"].format(**variables))

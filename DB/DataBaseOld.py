@@ -6,6 +6,7 @@ import traceback
 from sqlalchemy import select, update
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
+
 # from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 from models import Users, Guilds, Base
@@ -61,7 +62,8 @@ class DataBase:
 
             except:
                 print(
-                    f"Something went wrong with get_guild method id: {id}, guild_id: {guild_id}, guild_name: {guild_name}")
+                    f"Something went wrong with get_guild method id: {id}, guild_id: {guild_id}, guild_name: {guild_name}"
+                )
 
         return False
 
@@ -97,7 +99,8 @@ class DataBase:
 
             except Exception as e:
                 print(
-                    f'Something went wrong with get_guild method id: username: {data.get("username")}, disc_id: {data.get("disc_id")}')
+                    f'Something went wrong with get_guild method id: username: {data.get("username")}, disc_id: {data.get("disc_id")}'
+                )
                 print(traceback.format_exc())
 
         return
@@ -112,7 +115,11 @@ class DataBase:
 
                 return True
             except Exception as e:
-                print("Something went wrong then adding user", data["username"], data["disc_id"])
+                print(
+                    "Something went wrong then adding user",
+                    data["username"],
+                    data["disc_id"],
+                )
                 print(traceback.format_exc())
 
         return False
@@ -120,16 +127,23 @@ class DataBase:
     async def add_guild(self, data: dict) -> Union[True, False]:
         with self.Session() as session:
             try:
-                guild = Guilds(guild_id=data["guild_id"], guild_name=data["guild_name"],
-                               count_members=data["count_members"])
+                guild = Guilds(
+                    guild_id=data["guild_id"],
+                    guild_name=data["guild_name"],
+                    count_members=data["count_members"],
+                )
 
                 session.add(guild)
                 session.commit()
 
                 return True
             except:
-                print("Something went wrong then adding guild", data["guild_id"], data["guild_name"],
-                      data["count_members"])
+                print(
+                    "Something went wrong then adding guild",
+                    data["guild_id"],
+                    data["guild_name"],
+                    data["count_members"],
+                )
 
         return False
 
@@ -146,16 +160,25 @@ class DataBase:
                 return True
 
             except:
-                print("Something went wrong when updating user", data["username"], data["disc_id"], data["experience"],
-                      data["scores"])
+                print(
+                    "Something went wrong when updating user",
+                    data["username"],
+                    data["disc_id"],
+                    data["experience"],
+                    data["scores"],
+                )
 
         return False
 
     async def update_guild(self, data: dict) -> Union[True, False]:
         with self.Session() as session:
             try:
-                updated_guild = Guilds(guild_id=data["guild_id"], guild_name=data["guild_name"],
-                                       count_members=data["count_members"], guild_sets=data["guild_sets"])
+                updated_guild = Guilds(
+                    guild_id=data["guild_id"],
+                    guild_name=data["guild_name"],
+                    count_members=data["count_members"],
+                    guild_sets=data["guild_sets"],
+                )
 
                 session.add(updated_guild)
                 session.commit()
@@ -163,7 +186,11 @@ class DataBase:
                 return True
 
             except:
-                print("Something went wrong when updating guild", data["guild_id"], data["guild_name"])
+                print(
+                    "Something went wrong when updating guild",
+                    data["guild_id"],
+                    data["guild_name"],
+                )
 
         return False
 
@@ -175,25 +202,24 @@ async def main():
 
     db = DataBase()
 
-    user = {"username": "TopNik_",
-            "disc_id": 8326758751}
+    user = {"username": "TopNik_", "disc_id": 8326758751}
 
     res_u = await db.add_user(data=user)
 
     print("user", res_u)
 
-    guild = {"guild_id": 907645237,
-             "guild_name": "Homey Temple",
-             "count_members": 3000}
+    guild = {"guild_id": 907645237, "guild_name": "Homey Temple", "count_members": 3000}
 
     res_g = await db.add_guild(guild)
 
     print("guild", res_g)
 
-    update_user = {"username": "Nikita",
-                   "disc_id": 8326758751,
-                   "experience": 0,
-                   "scores": 10}
+    update_user = {
+        "username": "Nikita",
+        "disc_id": 8326758751,
+        "experience": 0,
+        "scores": 10,
+    }
 
     res_update_u = await db.update_user(update_user)
 

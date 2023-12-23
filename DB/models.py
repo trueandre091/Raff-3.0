@@ -10,6 +10,7 @@ intid = Annotated[int, mapped_column(primary_key=True)]
 
 class Base(DeclarativeBase):
     """Base class for inheritance new models"""
+
     repr_cols_num = 2
     repr_cols = tuple()
 
@@ -29,13 +30,9 @@ class Guild_User(Base):
     __tablename__ = "guild_user"
 
     # id: Mapped[intid]
-    ds_id: Mapped[int] = mapped_column(
-        ForeignKey("users.ds_id"),
-        primary_key=True
-    )
+    ds_id: Mapped[int] = mapped_column(ForeignKey("users.ds_id"), primary_key=True)
     guild_id: Mapped[int] = mapped_column(
-        ForeignKey("guilds.guild_id"),
-        primary_key=True
+        ForeignKey("guilds.guild_id"), primary_key=True
     )
 
     # id = Column(Integer, primary_key=True)
@@ -55,9 +52,13 @@ class Users(Base):
     experience: Mapped[int] = mapped_column(default=0)
     scores: Mapped[int] = mapped_column(default=0)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        default=datetime.utcnow, onupdate=datetime.utcnow
+    )
 
-    guilds: Mapped[list["Guilds"]] = relationship(back_populates="users", secondary="guild_user")
+    guilds: Mapped[list["Guilds"]] = relationship(
+        back_populates="users", secondary="guild_user"
+    )
 
     # guilds: Mapped["Guild_User"] = relationship(backref='user')
     # id = Column(Integer, primary_key=True)
@@ -70,6 +71,7 @@ class Users(Base):
 
 class Guilds(Base):
     """Guilds model for database"""
+
     __tablename__ = "guilds"
 
     # id: Mapped[intid]
@@ -77,9 +79,13 @@ class Guilds(Base):
     guild_name: Mapped[str]
     count_members: Mapped[int]
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow())
-    guild_sets: Mapped[str] = mapped_column(default=JsonEncoder.code_to_json(GUILD_CONFIG))
+    guild_sets: Mapped[str] = mapped_column(
+        default=JsonEncoder.code_to_json(GUILD_CONFIG)
+    )
 
-    users: Mapped[list["Users"]] = relationship(back_populates="guilds", secondary="guild_user")
+    users: Mapped[list["Users"]] = relationship(
+        back_populates="guilds", secondary="guild_user"
+    )
 
     # id = Column(Integer, primary_key=True)
     # guild_id = Column(Integer, nullable=False)

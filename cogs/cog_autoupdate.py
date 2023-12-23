@@ -23,8 +23,10 @@ class AutoUpdateMessagesTop(commands.Cog):
     async def reset_aup_top(self):
         """Resetting the database of members' weekly amount of messages"""
         today = datetime.now(timezone(timedelta(hours=3)))
-        if int(today.weekday()) == 0 and 0 <= int(today.strftime('%H')) <= 12:
-            with (open(f"{FOLDER}/data/lb_messages_data.json", "r", encoding="utf-8") as f):
+        if int(today.weekday()) == 0 and 0 <= int(today.strftime("%H")) <= 12:
+            with open(
+                f"{FOLDER}/data/lb_messages_data.json", "r", encoding="utf-8"
+            ) as f:
                 data = load(f)
 
             guild = self.bot.get_guild(cfg.GUILD_ID)
@@ -37,16 +39,18 @@ class AutoUpdateMessagesTop(commands.Cog):
                 if member is None or limit == self.settings["PREVIOUS_BESTS_LIMIT"]:
                     data.pop(key)
                     continue
-                with (open(f"{FOLDER}/data/counters.json", "r", encoding="utf-8") as f):
+                with open(f"{FOLDER}/data/counters.json", "r", encoding="utf-8") as f:
                     counters = load(f)
 
                 counters["PREVIOUS_BESTS"].append(key)
 
-                with (open(f"{FOLDER}/data/counters.json", "w", encoding="utf-8") as f):
+                with open(f"{FOLDER}/data/counters.json", "w", encoding="utf-8") as f:
                     dump(counters, f)
                 limit += 1
 
-            with (open(f"{FOLDER}/data/lb_messages_data.json", "w", encoding="utf-8") as f):
+            with open(
+                f"{FOLDER}/data/lb_messages_data.json", "w", encoding="utf-8"
+            ) as f:
                 dump({}, f)
 
     @reset_aup_top.before_loop
@@ -58,20 +62,20 @@ class AutoUpdateMessagesTop(commands.Cog):
         channel = self.bot.get_channel(self.settings["CHANNEL"])
         guild = self.bot.get_guild(cfg.GUILD_ID)
 
-        with (open(f"{FOLDER}/data/lb_messages_data.json", "r", encoding="utf-8") as f):
+        with open(f"{FOLDER}/data/lb_messages_data.json", "r", encoding="utf-8") as f:
             data = load(f)
-        with (open(f"{FOLDER}/data/counters.json", "r", encoding="utf-8") as f):
+        with open(f"{FOLDER}/data/counters.json", "r", encoding="utf-8") as f:
             counters = load(f)
 
         sort_data = sorted(data.items(), key=lambda x: x[1], reverse=True)
         data = dict(sort_data)
 
         embed_dict = {
-            'title': 'Таблица лидеров по сообщениям за неделю: 📊',
-            'description': '',
-            'fields': [],
-            'color': 0x2b2d31,
-            'footer': {'text': guild.name, 'icon_url': guild.icon.url}
+            "title": "Таблица лидеров по сообщениям за неделю: 📊",
+            "description": "",
+            "fields": [],
+            "color": 0x2B2D31,
+            "footer": {"text": guild.name, "icon_url": guild.icon.url},
         }
 
         place = 1
@@ -81,17 +85,24 @@ class AutoUpdateMessagesTop(commands.Cog):
                 if member is None:
                     data.pop(key)
                     continue
-                embed_dict['description'] += f"`{place}.` {member.mention} - {value}\n"
+                embed_dict["description"] += f"`{place}.` {member.mention} - {value}\n"
                 place += 1
 
         if len(counters["PREVIOUS_BESTS"]):
-            embed_dict["fields"].append({"name": "Топ 3 предыдущей недели:", "value": ""})
+            embed_dict["fields"].append(
+                {"name": "Топ 3 предыдущей недели:", "value": ""}
+            )
             for key in counters["PREVIOUS_BESTS"]:
-                embed_dict["fields"][-1]["value"] += f"{guild.get_member(int(key)).mention} "
+                embed_dict["fields"][-1][
+                    "value"
+                ] += f"{guild.get_member(int(key)).mention} "
 
         flag = True
         async for msg in channel.history(limit=3):
-            if 'Таблица лидеров по сообщениям за неделю' in msg.embeds[0].to_dict()['title']:
+            if (
+                "Таблица лидеров по сообщениям за неделю"
+                in msg.embeds[0].to_dict()["title"]
+            ):
                 await msg.edit(embed=disnake.Embed.from_dict(embed_dict))
                 flag = False
                 break
@@ -116,17 +127,17 @@ class AutoUpdateScoresTop(commands.Cog):
         channel = self.bot.get_channel(self.settings["CHANNEL"])
 
         embed_dict = {
-            'title': 'Таблица лидеров по очкам: 📊',
-            'description': '',
-            'fields': [],
-            'color': 0x2b2d31,
-            'footer': {'text': channel.guild.name, 'icon_url': channel.guild.icon.url}
+            "title": "Таблица лидеров по очкам: 📊",
+            "description": "",
+            "fields": [],
+            "color": 0x2B2D31,
+            "footer": {"text": channel.guild.name, "icon_url": channel.guild.icon.url},
         }
         embed_dict = await top_create_embed(self.bot, embed_dict)
 
         flag = True
         async for msg in channel.history(limit=3):
-            if 'Таблица лидеров по очкам' in msg.embeds[0].to_dict()['title']:
+            if "Таблица лидеров по очкам" in msg.embeds[0].to_dict()["title"]:
                 await msg.edit(embed=disnake.Embed.from_dict(embed_dict))
                 flag = False
                 break
