@@ -1,7 +1,6 @@
 import disnake
 from disnake.ext import commands
 from random import randint
-from datetime import timedelta
 import math
 
 import config as cfg
@@ -67,7 +66,9 @@ async def count_experience(message: disnake.Message):
     lvl2 = await convert_ex_to_lvl(await DB.get_user({"ds_id": message.author.id}))
 
     if lvl1 != lvl2:
-        await message.reply(f"{message.author.mention}, поздравляю с {lvl2} уровнем! 😜")
+        await message.reply(
+            f"{message.author.mention}, поздравляю с {lvl2} уровнем <a:A_applecatrun:992319318425620542>"
+        )
 
 
 class ExperienceCommands(commands.Cog):

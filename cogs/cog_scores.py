@@ -1,4 +1,5 @@
 import datetime
+import json
 from os import getcwd
 import disnake
 from disnake.ext import commands
@@ -535,7 +536,7 @@ class SpecialScoresCommands(commands.Cog):
                             encoding="utf-8",
                         ) as f:
                             data = load(f)
-                    except:
+                    except json.JSONDecodeError:
                         pass
                     else:
                         break
@@ -547,7 +548,7 @@ class SpecialScoresCommands(commands.Cog):
                         encoding="utf-8",
                     ) as f:
                         data = load(f)
-                except:
+                except json.JSONDecodeError:
                     await interaction.response.send_message(
                         "Бэкап не найден", ephemeral=True
                     )
