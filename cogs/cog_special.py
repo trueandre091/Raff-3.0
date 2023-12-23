@@ -6,7 +6,6 @@ import config as cfg
 
 class OnSpecialEvents(commands.Cog):
     """On special events"""
-
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.settings = cfg.COGS_SETTINGS["SPECIAL"]

@@ -18,6 +18,7 @@ bot.load_extension("cogs.cog_requests")
 bot.load_extension("cogs.cog_scores")
 bot.load_extension("cogs.cog_special")
 bot.load_extension("cogs.cog_experience")
+bot.load_extension("cogs.cog_setguilds")
 
 
 @bot.event
