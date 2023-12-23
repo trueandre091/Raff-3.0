@@ -15,10 +15,7 @@ async def creating_message_with_nearest_events(
     weekly, special = [], []
     flag1, flag2 = False, False
     for event in event.guild.scheduled_events:
-        if "недель" in event.name:
-            flag1 = True
-            weekly.append(event)
-        elif "актив" in event.name:
+        if "недель" in event.name or "недель" in event.description:
             flag1 = True
             weekly.append(event)
         else:
@@ -36,7 +33,7 @@ async def creating_message_with_nearest_events(
     return message
 
 
-async def delete_previous_message(self, channel) -> None:
+async def delete_previous_message(channel) -> None:
     async for message in channel.history(limit=1):
         await message.delete()
     await asyncio.sleep(2)
@@ -54,21 +51,21 @@ class AutoSendingMessage(commands.Cog):
     async def on_guild_scheduled_event_create(self, event):
         channel = self.bot.get_channel(self.settings["CHANNEL"])
 
-        await delete_previous_message(self, channel)
+        await delete_previous_message(channel)
         await channel.send(await creating_message_with_nearest_events(event))
 
     @commands.Cog.listener()
     async def on_guild_scheduled_event_delete(self, event):
         channel = self.bot.get_channel(self.settings["CHANNEL"])
 
-        await delete_previous_message(self, channel)
+        await delete_previous_message(channel)
         await channel.send(await creating_message_with_nearest_events(event))
 
     @commands.Cog.listener()
     async def on_guild_scheduled_event_update(self, before, after):
         channel = self.bot.get_channel(self.settings["CHANNEL"])
 
-        await delete_previous_message(self, channel)
+        await delete_previous_message(channel)
         await channel.send(await creating_message_with_nearest_events(after))
 
 

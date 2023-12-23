@@ -1,7 +1,12 @@
+from DB.JSONEnc import JsonEncoder
 import config as cfg
 from cogs.counter_functions import *
 from cogs.on_message_functions import *
 from cogs.cog_experience import count_experience
+from DB.DataBase import GuildsDbase
+
+GDB = GuildsDbase()
+encoder = JsonEncoder()
 
 bot = commands.Bot(
     command_prefix="none",
@@ -9,8 +14,8 @@ bot = commands.Bot(
     intents=disnake.Intents.all(),
     chunk_guilds_at_startup=False,
 )
-bot.load_extension("cogs.cog_autoupdate")
-bot.load_extension("cogs.cog_counters")
+# bot.load_extension("cogs.cog_autoupdate")
+# bot.load_extension("cogs.cog_counters")
 bot.load_extension("cogs.cog_events")
 bot.load_extension("cogs.cog_games")
 bot.load_extension("cogs.cog_orders")
@@ -21,10 +26,28 @@ bot.load_extension("cogs.cog_experience")
 bot.load_extension("cogs.cog_setguilds")
 
 
+async def guild_sets_check(guild_id: int, checking_set_1: str = None, checking_set_2: str = None) -> dict:
+    """Checking if guild exists in DB or if certain functions are turned on guild"""
+    guild = await GDB.get_guild(guild_id)
+    if guild:
+        guild = encoder.code_from_json(guild.guild_sets)
+        if checking_set_1 and checking_set_2:
+            if guild[checking_set_1][checking_set_2]:
+                return guild[checking_set_1]
+        elif checking_set_1:
+            if guild[checking_set_1]:
+                return guild[checking_set_1]
+        else:
+            return guild
+
+
 @bot.event
-async def on_member_join(member):
+async def on_member_join(member: disnake.Member):
     """Greeting newbies when they come"""
-    settings = cfg.WELCOME_SETTINGS
+    settings = await guild_sets_check(member.guild.id, "WELCOME_SETTINGS", "CHANNEL")
+    if settings is None:
+        return
+
     channel = bot.get_channel(settings["CHANNEL"])
     variables = {
         "member.mention": member.mention,
@@ -51,7 +74,10 @@ async def on_member_join(member):
 @bot.event
 async def on_member_remove(member):
     """Farewell to members when they leave"""
-    settings = cfg.FAREWELL_SETTINGS
+    settings = await guild_sets_check(member.guild.id, "FAREWELL_SETTINGS", "CHANNEL")
+    if settings is None:
+        return
+
     channel = bot.get_channel(settings["CHANNEL"])
     variables = {
         "member.mention": member.mention,
@@ -66,18 +92,21 @@ async def on_member_remove(member):
 @bot.event
 async def on_message(message):
     """On every sent message functions"""
+    settings = await guild_sets_check(message.guild.id)
+    if settings is None:
+        return
 
     await count_every_message(message)
 
     await count_experience(message)
 
-    await moderation(message, cfg.MODERATION_SETTINGS)
+    await moderation(message, settings["MODERATION_SETTINGS"])
 
-    await reactions_thread_check(message, cfg.ADDING_REACTIONS_THREADS_SETTINGS)
+    await reactions_thread_check(message, settings["ADDING_REACTIONS_THREADS_SETTINGS"])
 
-    await boosts_check(message, cfg.BOOSTS_COUNTING_SETTINGS)
+    await boosts_check(message, settings["BOOSTS_COUNTING_SETTINGS"])
 
-    await order_command_check(bot, message, cfg.COGS_SETTINGS["ORDERS"])
+    await order_command_check(bot, message, settings["COGS_SETTINGS"]["ORDERS"])
 
 
 @bot.event
