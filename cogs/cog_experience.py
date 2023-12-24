@@ -3,41 +3,32 @@ from disnake.ext import commands
 from random import randint
 import math
 
-import config as cfg
+from bot import guild_sets_check
 from DB.DataBase import UserDBase
 from DB.models import Users
 
 DB = UserDBase()
 
 
-async def formula(user: Users, factor: int):
-    return math.floor(math.pow(user.experience / factor, 1 / 3))
-
-
-async def convert_ex_to_lvl(user: Users):
+async def convert_ex_to_lvl(user: Users, factor: int):
     if user is None:
         return 0
-    factors = cfg.COGS_SETTINGS["EXPERIENCE"]["LEVEL_FACTORS"]
 
-    lvl = math.floor(math.pow(user.experience / factors["K1"], 1 / 3))
+    lvl = math.floor(math.pow(user.experience / factor, 1 / 3))
 
     return lvl
 
 
-async def count_experience(message: disnake.Message):
-    if message.author.bot:
+async def count_experience(message: disnake.Message, settings: dict):
+    if message.author.bot or settings["FACTOR"] is None:
         return
 
-    lvl1 = await convert_ex_to_lvl(await DB.get_user({"ds_id": message.author.id}))
+    lvl1 = await convert_ex_to_lvl(await DB.get_user({"ds_id": message.author.id}), settings["FACTOR"])
 
     flag = True
     skip_first_flag = False
     async for msg in message.channel.history(limit=50):
-        if (
-            message.created_at.minute == msg.created_at.minute
-            and msg.author == message.author
-            and skip_first_flag
-        ):
+        if message.created_at.minute == msg.created_at.minute and msg.author == message.author and skip_first_flag:
             flag = False
             break
         skip_first_flag = True
@@ -63,7 +54,7 @@ async def count_experience(message: disnake.Message):
                 }
             )
 
-    lvl2 = await convert_ex_to_lvl(await DB.get_user({"ds_id": message.author.id}))
+    lvl2 = await convert_ex_to_lvl(await DB.get_user({"ds_id": message.author.id}), settings["FACTOR"])
 
     if lvl1 != lvl2:
         await message.reply(
@@ -76,7 +67,8 @@ class ExperienceCommands(commands.Cog):
         self.bot = bot
 
     @commands.slash_command(
-        description="Прибавить опыт любому кол-ву участников (упомянуть через пробел)"
+        description="Прибавить опыт любому кол-ву участников (упомянуть через пробел)",
+        default_member_permissions=disnake.Permissions(administrator=True),
     )
     async def add_ex(
         self,
@@ -85,7 +77,13 @@ class ExperienceCommands(commands.Cog):
         количество: int,
     ):
         """Adding to several members a certain amount of scores"""
-        guild = self.bot.get_guild(cfg.GUILD_ID)
+        settings = await guild_sets_check(interaction.guild.id, "COGS_SETTINGS", "EXPERIENCE", "FACTOR")
+        if settings is None:
+            await interaction.response.send_message("Данная функция не включена на сервере", ephemeral=True)
+
+            return
+
+        guild = self.bot.get_guild(interaction.guild.id)
         members_list = участники.split()
         members_list_values = []
 
@@ -129,7 +127,8 @@ class ExperienceCommands(commands.Cog):
         await interaction.response.send_message(embed=embed)
 
     @commands.slash_command(
-        description="Вычесть опыт любому кол-ву участников (упомянуть через пробел)"
+        description="Вычесть опыт любому кол-ву участников (упомянуть через пробел)",
+        default_member_permissions=disnake.Permissions(administrator=True),
     )
     async def remove_ex(
         self,
@@ -138,6 +137,12 @@ class ExperienceCommands(commands.Cog):
         количество: int,
     ):
         """Adding to several members a certain amount of scores"""
+        settings = await guild_sets_check(interaction.guild.id, "COGS_SETTINGS", "EXPERIENCE", "FACTOR")
+        if settings is None:
+            await interaction.response.send_message("Данная функция не включена на сервере", ephemeral=True)
+
+            return
+
         members_list = участники.split()
         members_list_values = []
 

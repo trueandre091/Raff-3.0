@@ -3,7 +3,7 @@ import disnake
 from disnake.ext import commands
 import asyncio
 
-import config as cfg
+from bot import guild_sets_check
 
 FOLDER = getcwd()
 
@@ -44,26 +44,27 @@ class AutoSendingMessage(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.settings = cfg.COGS_SETTINGS["EVENTS"]
-        self.channel = self.bot.get_channel(self.settings["CHANNEL"])
 
     @commands.Cog.listener()
     async def on_guild_scheduled_event_create(self, event):
-        channel = self.bot.get_channel(self.settings["CHANNEL"])
+        settings = await guild_sets_check(event.guild.id, "COGS_SETTINGS", "EVENTS", "CHANNEL")
+        channel = self.bot.get_channel(settings["EVENTS"]["CHANNEL"])
 
         await delete_previous_message(channel)
         await channel.send(await creating_message_with_nearest_events(event))
 
     @commands.Cog.listener()
     async def on_guild_scheduled_event_delete(self, event):
-        channel = self.bot.get_channel(self.settings["CHANNEL"])
+        settings = await guild_sets_check(event.guild.id, "COGS_SETTINGS", "EVENTS", "CHANNEL")
+        channel = self.bot.get_channel(settings["EVENTS"]["CHANNEL"])
 
         await delete_previous_message(channel)
         await channel.send(await creating_message_with_nearest_events(event))
 
     @commands.Cog.listener()
     async def on_guild_scheduled_event_update(self, before, after):
-        channel = self.bot.get_channel(self.settings["CHANNEL"])
+        settings = await guild_sets_check(after.guild.id, "COGS_SETTINGS", "EVENTS", "CHANNEL")
+        channel = self.bot.get_channel(settings["EVENTS"]["CHANNEL"])
 
         await delete_previous_message(channel)
         await channel.send(await creating_message_with_nearest_events(after))

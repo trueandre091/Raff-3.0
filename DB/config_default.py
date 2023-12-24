@@ -29,22 +29,15 @@ GUILD_CONFIG = {
         "MESSAGE": "{member.mention} / {member.name} / {member.nick} ушёл.",
     },
     "ADDING_REACTIONS_THREADS_SETTINGS": {
-        "CHANNELS": {
-            "CHANNEL_ANNOUNCE": 858731672677515294,
-            "CHANNEL_SUGGEST": 785312596546813976,
-            "CHANNEL_SOON_EVENTS": 1160687361269694505,
+        "858731672677515294": {"REACTIONS": [], "THREAD": None},
+        "785312596546813976": {
+            "REACTIONS": ["<:B_00like:1001544330613375026>", "<:B_00likenot:1001544295532204082>"],
+            "THREAD": True,
         },
-        "REACTIONS": {
-            "LIKE": "<:B_00like:1001544330613375026>",
-            "DISLIKE": "<:B_00likenot:1001544295532204082>",
-            "TICK": "✅",
+        "1160687361269694505": {
+            "REACTIONS": ["<:B_00like:1001544330613375026>", "<:B_00likenot:1001544295532204082>", "✅"],
+            "THREAD": False,
         },
-        "MATCHED_REACTIONS_TO_CHANNELS": {
-            "CHANNEL_ANNOUNCE": ["LIKE", "DISLIKE"],
-            "CHANNEL_SUGGEST": ["LIKE", "DISLIKE"],
-            "CHANNEL_SOON_EVENTS": ["LIKE", "DISLIKE", "TICK"],
-        },
-        "THREAD": ["CHANNEL_SUGGEST", "CHANNEL_ANNOUNCE"],
     },
     "MODERATION_SETTINGS": {"GIF": {"MESSAGES_FOR_GIF": 15}},
     "BOOSTS_COUNTING_SETTINGS": {
@@ -55,6 +48,26 @@ GUILD_CONFIG = {
         "REMINDER": 478321260481478677,
     },
     "COGS_SETTINGS": {
+        "SPECIAL": {
+            "ROLES": {
+                "BOOSTS": {
+                    "ROLES_HAVE": [
+                        1056169412585066536,
+                        1028040256903188530,
+                        1056169408487247952,
+                        1056169387872227370,
+                        1071772832599650324,
+                        785875027085492245,
+                    ],
+                    "ROLES_GET": [1056171848552939581],
+                }
+            },
+            "EVENTS": {
+                "TIME": 1860,
+                "CHANNELS": [858737175439736873, 1186721973242429480, 1046504818249846845, 1010586706677866626],
+                "SCORES": 1,
+            },
+        },
         "SCORES": {
             "AMOUNT_TO_FIRST_LVL": 8,
             "AMOUNT_TO_THIRD_LVL": 12,
@@ -80,5 +93,6 @@ GUILD_CONFIG = {
             },
             "LOGS_MESSAGE": {"CHANNEL": 981593893567070298},
         },
+        "EXPERIENCE": {"FACTOR": 5},
     },
 }

@@ -6,6 +6,9 @@ from cogs import counter_functions
 
 async def moderation(message: disnake.Message, settings: dict):
     """Moderation functions"""
+    if settings["GIF"]["MESSAGES_FOR_GIF"] is None or type(settings["GIF"]["MESSAGES_FOR_GIF"]) is not int:
+        return
+
     await gif_moderation(message, settings["GIF"])
 
 
@@ -65,59 +68,55 @@ async def gif_moderation(message: disnake.Message, settings: dict):
 
 async def reactions_thread_check(message: disnake.Message, settings: dict) -> None:
     """Adding reactions and(or) a thread to a message in the certain channels"""
-    if message.channel.id in settings["CHANNELS"].values():
-        channels = settings["CHANNELS"]
-        channels_thread = settings["THREAD"]
-        reactions = settings["REACTIONS"]
-        matched_channels_to_reactions = settings["MATCHED_REACTIONS_TO_CHANNELS"]
-        channels = {str(value): key for key, value in channels.items()}
-        message_channel_name = channels[str(message.channel.id)]
+    if not settings:
+        return
 
-        if message_channel_name in channels_thread:
+    if str(message.channel.id) in settings:
+        channel_id = message.channel.id
+
+        if settings[str(channel_id)]["THREAD"]:
             await message.create_thread(name="Комментарии")
 
-        for channel in matched_channels_to_reactions:
-            if message_channel_name == channel:
-                for reaction in matched_channels_to_reactions[channel]:
-                    await message.add_reaction(reactions[reaction])
+        if settings[str(channel_id)]["REACTIONS"]:
+            for reaction in settings[str(channel_id)]["REACTIONS"]:
+                try:
+                    await message.add_reaction(reaction)
+                except TypeError as E:
+                    await message.reply(f"Эмодзи не найден: {E}")
+                except disnake.NotFound as E:
+                    await message.reply(f"Эмодзи некорректно введён: {E}")
 
 
 async def boosts_check(message: disnake.Message, settings: dict) -> None:
     """Checking if it's a boost (and counting number of them through separate function if so)"""
+    if not settings["BOOST_BOTS"] or not settings["REMINDER"]:
+        return
+
     if message.author.id in settings["BOOST_BOTS"].values():
         if message.author.id == settings["BOOST_BOTS"]["SD.C Monitoring"]:
             flag = True
             skip_first_flag = False
             async for msg in message.channel.history(limit=50):
                 if skip_first_flag:
-                    if (
-                        msg.type == disnake.MessageType.application_command
-                        and msg.interaction.name == "up"
-                    ):
+                    if msg.type == disnake.MessageType.application_command and msg.interaction.name == "up":
                         flag = False
                     if msg.author.id == settings["REMINDER"] and "/up" in msg.content:
                         break
                 skip_first_flag = False
 
             if flag:
-                print(1)
-
                 await counter_functions.count_users_boosts(message.interaction.user.id)
 
         if message.author.id == settings["BOOST_BOTS"]["DSMonitoring"]:
-            if (
-                "Вы успешно лайкнули сервер."
-                in message.embeds[-1].to_dict()["description"]
-            ):
-                print(1)
-
+            if "Вы успешно лайкнули сервер." in message.embeds[-1].to_dict()["description"]:
                 await counter_functions.count_users_boosts(message.interaction.user.id)
 
 
-async def order_command_check(
-    bot: commands.Bot, message: disnake.Message, settings: dict
-) -> None:
+async def order_command_check(bot: commands.Bot, message: disnake.Message, settings: dict) -> None:
     """A temporary way to use the slash command '/заказ'"""
+    if message.guild.id != 785312593614209055:
+        return
+
     if "/заказ " in message.content:
         channel = bot.get_channel(settings["CHANNEL"])
 
@@ -137,9 +136,7 @@ async def order_command_check(
                 color=0x2B2D31,
                 timestamp=datetime.now(),
             )
-            embed.set_footer(
-                text="Тоже хочешь заказать что-нибудь? Пропиши /заказ через нашего бота!"
-            )
+            embed.set_footer(text="Тоже хочешь заказать что-нибудь? Пропиши /заказ через нашего бота!")
 
             await message.reply(
                 f"Доброго времени суток {message.author.mention}! Бармен скоро подойдёт 🐥",

@@ -14,8 +14,8 @@ bot = commands.Bot(
     intents=disnake.Intents.all(),
     chunk_guilds_at_startup=False,
 )
-# bot.load_extension("cogs.cog_autoupdate")
-# bot.load_extension("cogs.cog_counters")
+bot.load_extension("cogs.cog_autoupdate")
+bot.load_extension("cogs.cog_counters")
 bot.load_extension("cogs.cog_events")
 bot.load_extension("cogs.cog_games")
 bot.load_extension("cogs.cog_orders")
@@ -26,12 +26,17 @@ bot.load_extension("cogs.cog_experience")
 bot.load_extension("cogs.cog_setguilds")
 
 
-async def guild_sets_check(guild_id: int, checking_set_1: str = None, checking_set_2: str = None) -> dict:
+async def guild_sets_check(
+    guild_id: int, checking_set_1: str = None, checking_set_2: str = None, checking_set_3: str = None
+) -> dict:
     """Checking if guild exists in DB or if certain functions are turned on guild"""
     guild = await GDB.get_guild(guild_id)
     if guild:
         guild = encoder.code_from_json(guild.guild_sets)
-        if checking_set_1 and checking_set_2:
+        if checking_set_1 and checking_set_2 and checking_set_3:
+            if guild[checking_set_1][checking_set_2][checking_set_3]:
+                return guild[checking_set_1]
+        elif checking_set_1 and checking_set_2:
             if guild[checking_set_1][checking_set_2]:
                 return guild[checking_set_1]
         elif checking_set_1:
@@ -98,7 +103,7 @@ async def on_message(message):
 
     await count_every_message(message)
 
-    await count_experience(message)
+    await count_experience(message, settings["COGS_SETTINGS"]["EXPERIENCE"])
 
     await moderation(message, settings["MODERATION_SETTINGS"])
 
