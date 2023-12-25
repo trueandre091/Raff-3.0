@@ -3,11 +3,8 @@ from disnake.ext import commands
 from random import randint
 import math
 
-from bot import guild_sets_check
-from DB.DataBase import UserDBase
+from cogs.guilds_functions import guild_sets_check, DB, GDB, encoder
 from DB.models import Users
-
-DB = UserDBase()
 
 
 async def convert_ex_to_lvl(user: Users, factor: int):
@@ -20,8 +17,10 @@ async def convert_ex_to_lvl(user: Users, factor: int):
 
 
 async def count_experience(message: disnake.Message, settings: dict):
-    if message.author.bot or settings["FACTOR"] is None:
+    if not settings["GENERAL_SETTINGS"]["EXPERIENCE"] or message.author.bot:
         return
+
+    settings = settings["COGS_SETTINGS"]["EXPERIENCE"]
 
     lvl1 = await convert_ex_to_lvl(await DB.get_user({"ds_id": message.author.id}), settings["FACTOR"])
 
@@ -77,10 +76,9 @@ class ExperienceCommands(commands.Cog):
         количество: int,
     ):
         """Adding to several members a certain amount of scores"""
-        settings = await guild_sets_check(interaction.guild.id, "COGS_SETTINGS", "EXPERIENCE", "FACTOR")
-        if settings is None:
+        guild = await guild_sets_check(interaction.guild.id, "GENERAL_SETTINGS", "EXPERIENCE")
+        if not guild:
             await interaction.response.send_message("Данная функция не включена на сервере", ephemeral=True)
-
             return
 
         guild = self.bot.get_guild(interaction.guild.id)
@@ -137,10 +135,9 @@ class ExperienceCommands(commands.Cog):
         количество: int,
     ):
         """Adding to several members a certain amount of scores"""
-        settings = await guild_sets_check(interaction.guild.id, "COGS_SETTINGS", "EXPERIENCE", "FACTOR")
-        if settings is None:
+        guild = await guild_sets_check(interaction.guild.id, "GENERAL_SETTINGS", "EXPERIENCE")
+        if not guild:
             await interaction.response.send_message("Данная функция не включена на сервере", ephemeral=True)
-
             return
 
         members_list = участники.split()

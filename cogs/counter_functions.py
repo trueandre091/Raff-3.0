@@ -6,7 +6,7 @@ FOLDER = getcwd()
 
 
 async def count_orders_counter() -> None:
-    """Сounting the number of orders"""
+    """Counting the number of orders"""
     with open(f"{FOLDER}/data/counters.json", "r", encoding="utf-8") as f:
         data = load(f)
 
@@ -17,7 +17,7 @@ async def count_orders_counter() -> None:
 
 
 async def count_failed_gif_counter() -> None:
-    """Сounting the number of failed attempts to send"""
+    """Counting the number of failed attempts to send"""
     with open(f"{FOLDER}/data/counters.json", "r", encoding="utf-8") as f:
         data = load(f)
 
@@ -28,7 +28,7 @@ async def count_failed_gif_counter() -> None:
 
 
 async def count_number_of_events_counter() -> None:
-    """Сounting the number of events"""
+    """Counting the number of events"""
     with open(f"{FOLDER}/data/counters.json", "r", encoding="utf-8") as f:
         data = load(f)
 

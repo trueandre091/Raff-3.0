@@ -6,10 +6,8 @@ from cogs import counter_functions
 
 async def moderation(message: disnake.Message, settings: dict):
     """Moderation functions"""
-    if settings["GIF"]["MESSAGES_FOR_GIF"] is None or type(settings["GIF"]["MESSAGES_FOR_GIF"]) is not int:
-        return
-
-    await gif_moderation(message, settings["GIF"])
+    if settings["GENERAL_SETTINGS"]["MODERATION"]["GIF"]:
+        await gif_moderation(message, settings["MODERATION_SETTINGS"]["GIF"])
 
 
 async def gif_moderation(message: disnake.Message, settings: dict):
@@ -68,8 +66,10 @@ async def gif_moderation(message: disnake.Message, settings: dict):
 
 async def reactions_thread_check(message: disnake.Message, settings: dict) -> None:
     """Adding reactions and(or) a thread to a message in the certain channels"""
-    if not settings:
+    if not settings["ADDING_REACTIONS_THREADS_SETTINGS"]:
         return
+
+    settings = settings["ADDING_REACTIONS_THREADS_SETTINGS"]
 
     if str(message.channel.id) in settings:
         channel_id = message.channel.id
@@ -89,8 +89,14 @@ async def reactions_thread_check(message: disnake.Message, settings: dict) -> No
 
 async def boosts_check(message: disnake.Message, settings: dict) -> None:
     """Checking if it's a boost (and counting number of them through separate function if so)"""
-    if not settings["BOOST_BOTS"] or not settings["REMINDER"]:
+    if (
+        not settings["GENERAL_SETTINGS"]["COUNTING_BOOSTS"]
+        or not settings["BOOSTS_COUNTING_SETTINGS"]["BOOST_BOTS"]
+        or settings["BOOSTS_COUNTING_SETTINGS"]["REMINDER"] is None
+    ):
         return
+
+    settings = settings["BOOSTS_COUNTING_SETTINGS"]
 
     if message.author.id in settings["BOOST_BOTS"].values():
         if message.author.id == settings["BOOST_BOTS"]["SD.C Monitoring"]:
@@ -116,6 +122,8 @@ async def order_command_check(bot: commands.Bot, message: disnake.Message, setti
     """A temporary way to use the slash command '/заказ'"""
     if message.guild.id != 785312593614209055:
         return
+
+    settings = settings["COGS_SETTINGS"]["ORDERS"]
 
     if "/заказ " in message.content:
         channel = bot.get_channel(settings["CHANNEL"])

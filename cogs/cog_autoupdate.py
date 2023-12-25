@@ -4,7 +4,7 @@ from disnake.ext import commands, tasks
 from json import load, dump
 from datetime import datetime, timezone, timedelta
 
-from bot import guild_sets_check
+from cogs.guilds_functions import guild_sets_check, GDB, DB
 import config as cfg
 from cogs.cog_scores import top_create_embed
 

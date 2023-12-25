@@ -3,33 +3,34 @@ import disnake
 from disnake.ext import commands
 import asyncio
 
-from bot import guild_sets_check
+from cogs.guilds_functions import guild_sets_check, DB, GDB, encoder
 
 FOLDER = getcwd()
 
 
-async def creating_message_with_nearest_events(
-    event: disnake.GuildScheduledEvent,
-) -> str:
+async def creating_message_with_nearest_events(event: disnake.GuildScheduledEvent, categories: list) -> str:
     """Creating an embed"""
-    weekly, special = [], []
-    flag1, flag2 = False, False
-    for event in event.guild.scheduled_events:
-        if "недель" in event.name or "недель" in event.description:
-            flag1 = True
-            weekly.append(event)
+    dict_of_categories = {}
+    used = []
+    categories.append("Другие")
+    for category in categories:
+        dict_of_categories[category] = []
+        if category != "Другие":
+            for event in event.guild.scheduled_events:
+                if category in event.name or category in event.description:
+                    dict_of_categories[category].append(event)
+                    used.append(event)
         else:
-            flag2 = True
-            special.append(event)
+            unused = event.guild.scheduled_events - used
+            for event in unused:
+                dict_of_categories[category].append(event)
+
     message = "# БЛИЖАЙШИЕ ИВЕНТЫ\n"
-    if flag1:
-        message += "* Еженедельные ивенты:\n"
-        for event in weekly:
-            message += f"{event.url}\n"
-    if flag2:
-        message += "* Особые ивенты:\n"
-        for event in special:
-            message += f"{event.url}\n"
+    for category, events in dict_of_categories.items():
+        if events:
+            message += f"* {category}:\n"
+            for event in events:
+                message += f"{event.url}\n"
     return message
 
 
@@ -47,27 +48,42 @@ class AutoSendingMessage(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_scheduled_event_create(self, event):
-        settings = await guild_sets_check(event.guild.id, "COGS_SETTINGS", "EVENTS", "CHANNEL")
-        channel = self.bot.get_channel(settings["EVENTS"]["CHANNEL"])
+        guild = await guild_sets_check(event.guild.id, "GENERAL_SETTINGS", "NEAREST_EVENTS")
+        if not guild:
+            return
+
+        guild = await GDB.get_guild({"guild_id": event.guild.id})
+        settings = encoder.code_from_json(guild.guild_sets)["COGS_SETTINGS"]["EVENTS"]
+        channel = self.bot.get_channel(settings["CHANNEL"])
 
         await delete_previous_message(channel)
-        await channel.send(await creating_message_with_nearest_events(event))
+        await channel.send(await creating_message_with_nearest_events(event, settings["CATEGORIES"]))
 
     @commands.Cog.listener()
     async def on_guild_scheduled_event_delete(self, event):
-        settings = await guild_sets_check(event.guild.id, "COGS_SETTINGS", "EVENTS", "CHANNEL")
-        channel = self.bot.get_channel(settings["EVENTS"]["CHANNEL"])
+        guild = await guild_sets_check(event.guild.id, "GENERAL_SETTINGS", "NEAREST_EVENTS")
+        if not guild:
+            return
+
+        guild = await GDB.get_guild({"guild_id": event.guild.id})
+        settings = encoder.code_from_json(guild.guild_sets)["COGS_SETTINGS"]["EVENTS"]
+        channel = self.bot.get_channel(settings["CHANNEL"])
 
         await delete_previous_message(channel)
-        await channel.send(await creating_message_with_nearest_events(event))
+        await channel.send(await creating_message_with_nearest_events(event, settings["CATEGORIES"]))
 
     @commands.Cog.listener()
     async def on_guild_scheduled_event_update(self, before, after):
-        settings = await guild_sets_check(after.guild.id, "COGS_SETTINGS", "EVENTS", "CHANNEL")
-        channel = self.bot.get_channel(settings["EVENTS"]["CHANNEL"])
+        guild = await guild_sets_check(after.guild.id, "GENERAL_SETTINGS", "NEAREST_EVENTS")
+        if not guild:
+            return
+
+        guild = await GDB.get_guild({"guild_id": after.guild.id})
+        settings = encoder.code_from_json(guild.guild_sets)["COGS_SETTINGS"]["EVENTS"]
+        channel = self.bot.get_channel(settings["CHANNEL"])
 
         await delete_previous_message(channel)
-        await channel.send(await creating_message_with_nearest_events(after))
+        await channel.send(await creating_message_with_nearest_events(after, settings["CATEGORIES"]))
 
 
 def setup(bot: commands.Bot):
