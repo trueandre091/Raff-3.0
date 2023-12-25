@@ -49,6 +49,7 @@ class Users(Base):
     username: Mapped[str]
     experience: Mapped[int] = mapped_column(default=0)
     scores: Mapped[int] = mapped_column(default=0)
+    count_messages: Mapped[int] = mapped_column(default=0)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -73,6 +74,7 @@ class Guilds(Base):
     guild_name: Mapped[str]
     count_members: Mapped[int]
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow())
+    updated_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
     guild_sets: Mapped[str] = mapped_column(default=JsonEncoder.code_to_json(GUILD_CONFIG))
 
     users: Mapped[list["Users"]] = relationship(back_populates="guilds", secondary="guild_user")
@@ -90,6 +92,7 @@ if __name__ == "__main__":
     Guild_User.__table__.drop(engine)
     Users.__table__.drop(engine)
     Guilds.__table__.drop(engine)
+    # Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
 
     # res = JsonEncoder.code_to_json(GUILD_CONFIG)
