@@ -31,9 +31,7 @@ class Guild_User(Base):
 
     # id: Mapped[intid]
     ds_id: Mapped[int] = mapped_column(ForeignKey("users.ds_id"), primary_key=True)
-    guild_id: Mapped[int] = mapped_column(
-        ForeignKey("guilds.guild_id"), primary_key=True
-    )
+    guild_id: Mapped[int] = mapped_column(ForeignKey("guilds.guild_id"), primary_key=True)
 
     # id = Column(Integer, primary_key=True)
     # ds_id = Column(Integer, ForeignKey("users.ds_id"))
@@ -52,13 +50,9 @@ class Users(Base):
     experience: Mapped[int] = mapped_column(default=0)
     scores: Mapped[int] = mapped_column(default=0)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(
-        default=datetime.utcnow, onupdate=datetime.utcnow
-    )
+    updated_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    guilds: Mapped[list["Guilds"]] = relationship(
-        back_populates="users", secondary="guild_user"
-    )
+    guilds: Mapped[list["Guilds"]] = relationship(back_populates="users", secondary="guild_user")
 
     # guilds: Mapped["Guild_User"] = relationship(backref='user')
     # id = Column(Integer, primary_key=True)
@@ -79,13 +73,9 @@ class Guilds(Base):
     guild_name: Mapped[str]
     count_members: Mapped[int]
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow())
-    guild_sets: Mapped[str] = mapped_column(
-        default=JsonEncoder.code_to_json(GUILD_CONFIG)
-    )
+    guild_sets: Mapped[str] = mapped_column(default=JsonEncoder.code_to_json(GUILD_CONFIG))
 
-    users: Mapped[list["Users"]] = relationship(
-        back_populates="guilds", secondary="guild_user"
-    )
+    users: Mapped[list["Users"]] = relationship(back_populates="guilds", secondary="guild_user")
 
     # id = Column(Integer, primary_key=True)
     # guild_id = Column(Integer, nullable=False)
@@ -97,7 +87,9 @@ class Guilds(Base):
 
 if __name__ == "__main__":
     engine = create_engine("sqlite:///DataBase.db", echo=True)
-    Base.metadata.drop_all(engine)
+    Guild_User.__table__.drop(engine)
+    Users.__table__.drop(engine)
+    Guilds.__table__.drop(engine)
     Base.metadata.create_all(engine)
 
     # res = JsonEncoder.code_to_json(GUILD_CONFIG)
