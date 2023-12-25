@@ -39,7 +39,7 @@ async def find_guilds_by_param(bot, parameter: str) -> list:
 
 
 # dict = {
-#     "TOKEN": "MTA0NjE2ODk4Mzg5NzkxNTQxMg.GLp_Co.yDNHE78R6GqaJmgMWv169RZZXx86vaHmiy_EYQ",
+#     "TOKEN": "",
 #     "GUILD_ID": 785312593614209055,
 #     "SETTINGS": {"PASSWORD": 152364},
 #     "TIMERS": {
