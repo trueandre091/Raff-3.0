@@ -26,6 +26,8 @@ bot.load_extension("cogs.cog_requests")
 # bot.load_extension("cogs.cog_scores")
 # bot.load_extension("cogs.cog_special")
 bot.load_extension("cogs.cog_experience")
+
+
 # bot.load_extension("cogs.cog_setguilds")
 
 
@@ -101,6 +103,11 @@ async def on_message(message):
     await boosts_check(message, guild)
 
     await order_command_check(bot, message, guild)
+
+
+@bot.event
+async def on_guild_join():
+    pass
 
 
 @bot.event
