@@ -65,6 +65,7 @@ class UserDBase(DataBase):
                         ds_id=data["ds_id"],
                         scores=data["scores"] if data.get("scores") else 0,
                         experience=data["experience"] if data.get("experience") else 0,
+                        count_messages=data["count_messages"] if data.get("count_messages") else 0
                     )
 
                     session.add(user)
@@ -328,6 +329,9 @@ class UserDBase(DataBase):
                                 user.experience
                                 if data.get("experience") is None
                                 else data["experience"]
+                            )
+                            user.count_messages = (
+                                user.count_messages if data.get("count_messages") is None else data["count_messages"]
                             )
 
                 session.commit()
