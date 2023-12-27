@@ -28,7 +28,7 @@ bot.load_extension("cogs.cog_requests")
 bot.load_extension("cogs.cog_experience")
 
 
-# bot.load_extension("cogs.cog_setguilds")
+bot.load_extension("cogs.cog_setguilds")
 
 
 @bot.event
@@ -106,8 +106,16 @@ async def on_message(message):
 
 
 @bot.event
-async def on_guild_join():
-    pass
+async def on_guild_join(guild: disnake.Guild):
+    gdb = GuildsDbase()
+    data = {"guild_id": guild.id,
+            "guild_name": guild.name,
+            "count_members": guild.member_count}
+
+    for _ in range(5):
+        res = await gdb.add_guild(data)
+        if res:
+            break
 
 
 @bot.event
