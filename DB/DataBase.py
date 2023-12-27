@@ -372,8 +372,8 @@ class GuildsDbase(DataBase):
 
         Accepts a dictionary or a list of dictionaries like:
 
-        {"guild_id": str,     required parameter  (name of the guild)
-        "guild_id": int,      required parameter  (ds_id is unique identifier of Discord)
+        {"guild_id": int,     required parameter  (name of the guild)
+        "guild_name": str,    required parameter  (ds_id is unique identifier of Discord)
         "count_members": int,                     (count of users (members) on this guild)
         "guild_sets": str}                        (a string with a json string inside, contains server parameters)
 
