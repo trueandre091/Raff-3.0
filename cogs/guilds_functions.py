@@ -1,3 +1,4 @@
+from disnake.ext import commands
 from DB.JSONEnc import JsonEncoder
 from DB.DataBase import GuildsDbase, UserDBase
 
@@ -15,27 +16,57 @@ async def guild_sets_check(
         guild = encoder.code_from_json(guild.guild_sets)
         if checking_set_1 and checking_set_2 and checking_set_3:
             if guild[checking_set_1][checking_set_2][checking_set_3]:
-                return guild[checking_set_1][checking_set_2][checking_set_3]
+                return guild
         elif checking_set_1 and checking_set_2:
             if guild[checking_set_1][checking_set_2]:
-                return guild[checking_set_1][checking_set_2]
+                return guild
         elif checking_set_1:
             if guild[checking_set_1]:
-                return guild[checking_set_1]
+                return guild
         else:
             return guild
 
 
-async def find_guilds_by_param(bot, parameter: str) -> list:
+async def find_guilds_by_param(
+    bot: commands.Bot,
+    checking_set_1: str = None,
+    checking_set_2: str = None,
+    checking_set_3: str = None,
+    encode: bool = True,
+) -> list:
     """Finding servers by certain parameter, returns a list"""
     list_of_guilds = []
-    for bot_guild in bot.guilds:
-        guild = await GDB.get_guild({"guild_id": bot_guild.id})
+    for guild in bot.guilds:
+        list_of_guilds.append({"guild_id": guild.id})
+    list_of_guilds = await GDB.get_guild_with_users(list_of_guilds)
+    list_res = []
+    for guild in list_of_guilds:
         if guild:
-            settings = encoder.code_from_json(guild.guild_sets)["GENERAL_SETTINGS"]
-            if settings[parameter]:
-                list_of_guilds.append(guild)
-    return list_of_guilds
+            guild_dict = encoder.code_from_json(guild.guild_sets)
+            if checking_set_1 and checking_set_2 and checking_set_3:
+                if guild_dict[checking_set_1][checking_set_2][checking_set_3]:
+                    if encode:
+                        list_res.append(guild_dict)
+                    else:
+                        list_res.append(guild)
+            elif checking_set_1 and checking_set_2:
+                if guild_dict[checking_set_1][checking_set_2]:
+                    if encode:
+                        list_res.append(guild_dict)
+                    else:
+                        list_res.append(guild)
+            elif checking_set_1:
+                if guild_dict[checking_set_1]:
+                    if encode:
+                        list_res.append(guild_dict)
+                    else:
+                        list_res.append(guild)
+            else:
+                if encode:
+                    list_res.append(guild_dict)
+                else:
+                    list_res.append(guild)
+    return list_res
 
 
 # dict = {

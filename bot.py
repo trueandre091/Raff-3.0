@@ -1,15 +1,8 @@
-from DB.JSONEnc import JsonEncoder
 import config as cfg
 from cogs.counter_functions import *
 from cogs.on_message_functions import *
 from cogs.guilds_functions import guild_sets_check
-
 from cogs.cog_experience import count_experience
-from DB.DataBase import GuildsDbase, UserDBase
-
-DB = UserDBase()
-GDB = GuildsDbase()
-encoder = JsonEncoder()
 
 bot = commands.Bot(
     command_prefix="none",
@@ -35,11 +28,9 @@ bot.load_extension("cogs.cog_experience")
 async def on_member_join(member: disnake.Member):
     """Greeting newbies when they come"""
     guild = await guild_sets_check(member.guild.id, "GENERAL_SETTINGS", "WELCOME")
-    if not guild:
+    if guild is None:
         return
-
-    guild = await GDB.get_guild({"guild_id": member.guild.id})
-    settings = encoder.code_from_json(guild.guild_sets)["WELCOME_SETTINGS"]
+    settings = guild["WELCOME_SETTINGS"]
 
     channel = bot.get_channel(settings["CHANNEL"])
     variables = {
@@ -68,11 +59,9 @@ async def on_member_join(member: disnake.Member):
 async def on_member_remove(member):
     """Farewell to members when they leave"""
     guild = await guild_sets_check(member.guild.id, "GENERAL_SETTINGS", "FAREWELL")
-    if not guild:
+    if guild is None:
         return
-
-    guild = await GDB.get_guild({"guild_id": member.guild.id})
-    settings = encoder.code_from_json(guild.guild_sets)["FAREWELL_SETTINGS"]
+    settings = guild["FAREWELL_SETTINGS"]
 
     channel = bot.get_channel(settings["CHANNEL"])
     variables = {
@@ -89,7 +78,7 @@ async def on_member_remove(member):
 async def on_message(message):
     """On every sent message functions"""
     guild = await guild_sets_check(message.guild.id)
-    if not guild:
+    if guild is None:
         return
 
     await count_every_message(message)

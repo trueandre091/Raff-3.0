@@ -18,8 +18,7 @@ class Commands(commands.Cog):
         if not settings:
             return
 
-        guild = await GDB.get_guild({"guild_id": interaction.guild.id})
-        settings = encoder.code_from_json(guild.guild_sets)["COGS_SETTINGS"]["ORDERS"]
+        settings = settings["COGS_SETTINGS"]["ORDERS"]
 
         channel = self.bot.get_channel(settings["CHANNEL"])
         if channel is None:

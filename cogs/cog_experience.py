@@ -3,7 +3,7 @@ from disnake.ext import commands
 from random import randint
 import math
 
-from cogs.guilds_functions import guild_sets_check, DB, GDB, encoder
+from cogs.guilds_functions import guild_sets_check, DB
 from DB.models import Users
 
 
@@ -77,7 +77,7 @@ class ExperienceCommands(commands.Cog):
     ):
         """Adding to several members a certain amount of scores"""
         guild = await guild_sets_check(interaction.guild.id, "GENERAL_SETTINGS", "EXPERIENCE")
-        if not guild:
+        if guild is None:
             await interaction.response.send_message("Данная функция не включена на сервере", ephemeral=True)
             return
 
@@ -136,7 +136,7 @@ class ExperienceCommands(commands.Cog):
     ):
         """Adding to several members a certain amount of scores"""
         guild = await guild_sets_check(interaction.guild.id, "GENERAL_SETTINGS", "EXPERIENCE")
-        if not guild:
+        if guild is None:
             await interaction.response.send_message("Данная функция не включена на сервере", ephemeral=True)
             return
 

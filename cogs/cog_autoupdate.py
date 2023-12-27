@@ -1,11 +1,9 @@
 from os import getcwd
 import disnake
 from disnake.ext import commands, tasks
-from json import load, dump
 from datetime import datetime, timezone, timedelta
 
-from cogs.guilds_functions import guild_sets_check, GDB, DB
-import config as cfg
+from cogs.guilds_functions import GDB, DB, find_guilds_by_param
 from cogs.cog_scores import top_create_embed
 
 FOLDER = getcwd()
@@ -16,7 +14,6 @@ class AutoUpdateMessagesTop(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.settings = cfg.COGS_SETTINGS["AUTOUPDATE"]
         self.aup_top.start()
         self.reset_aup_top.start()
 
@@ -25,30 +22,14 @@ class AutoUpdateMessagesTop(commands.Cog):
         """Resetting the database of members' weekly amount of messages"""
         today = datetime.now(timezone(timedelta(hours=3)))
         if int(today.weekday()) == 0 and 0 <= int(today.strftime("%H")) <= 12:
-            with open(f"{FOLDER}/data/lb_messages_data.json", "r", encoding="utf-8") as f:
-                data = load(f)
+            guilds = await find_guilds_by_param(
+                self.bot, "GENERAL_SETTINGS", "AUTOUPDATE_MESSAGES", "MESSAGES", encode=False
+            )
 
-            guild = self.bot.get_guild(cfg.GUILD_ID)
-            sort_data = sorted(data.items(), key=lambda x: x[1], reverse=True)
-            data = dict(sort_data)
-
-            limit = 1
-            for key in data:
-                member = guild.get_member(int(key))
-                if member is None or limit == self.settings["PREVIOUS_BESTS_LIMIT"]:
-                    data.pop(key)
-                    continue
-                with open(f"{FOLDER}/data/counters.json", "r", encoding="utf-8") as f:
-                    counters = load(f)
-
-                counters["PREVIOUS_BESTS"].append(key)
-
-                with open(f"{FOLDER}/data/counters.json", "w", encoding="utf-8") as f:
-                    dump(counters, f)
-                limit += 1
-
-            with open(f"{FOLDER}/data/lb_messages_data.json", "w", encoding="utf-8") as f:
-                dump({}, f)
+            for guild in guilds:
+                print(1)
+                for user in guild.users:
+                    await DB.update_user({"ds_id": user.ds_id, "count_messages": 0})
 
     @reset_aup_top.before_loop
     async def before(self):
@@ -56,48 +37,46 @@ class AutoUpdateMessagesTop(commands.Cog):
 
     @tasks.loop(seconds=15)
     async def aup_top(self):
-        channel = self.bot.get_channel(self.settings["CHANNEL"])
-        guild = self.bot.get_guild(cfg.GUILD_ID)
+        guilds = await find_guilds_by_param(self.bot, "GENERAL_SETTINGS", "AUTOUPDATE_MESSAGES", "MESSAGES")
 
-        with open(f"{FOLDER}/data/lb_messages_data.json", "r", encoding="utf-8") as f:
-            data = load(f)
-        with open(f"{FOLDER}/data/counters.json", "r", encoding="utf-8") as f:
-            counters = load(f)
+        for settings in guilds:
+            channel = self.bot.get_channel(settings["COGS_SETTINGS"]["AUTOUPDATE"]["CHANNEL"])
+            guild = self.bot.get_guild(settings["GUILD_ID"])
+            if channel is None:
+                continue
 
-        sort_data = sorted(data.items(), key=lambda x: x[1], reverse=True)
-        data = dict(sort_data)
+            top = await GDB.get_top_users_by_messages({"guild_id": guild.id})
+            if top is None:
+                continue
 
-        embed_dict = {
-            "title": "Таблица лидеров по сообщениям за неделю: 📊",
-            "description": "",
-            "fields": [],
-            "color": 0x2B2D31,
-            "footer": {"text": guild.name, "icon_url": guild.icon.url},
-        }
+            embed_dict = {
+                "title": "Таблица лидеров по сообщениям за неделю: 📊",
+                "description": "",
+                "fields": [],
+                "color": 0x2B2D31,
+                "footer": {"text": guild.name, "icon_url": guild.icon.url},
+            }
 
-        place = 1
-        for key, value in data.items():
-            if place <= self.settings["MESSAGES"]["PLACE_LIMIT"]:
-                member = guild.get_member(int(key))
-                if member is None:
-                    data.pop(key)
-                    continue
-                embed_dict["description"] += f"`{place}.` {member.mention} - {value}\n"
-                place += 1
+            place = 1
+            for user in top:
+                if place <= settings["COGS_SETTINGS"]["AUTOUPDATE"]["MESSAGES"]["PLACE_LIMIT"]:
+                    member = guild.get_member(user.ds_id)
+                    if member is None:
+                        continue
+                    embed_dict["description"] += f"`{place}.` {member.mention} - {user.count_messages}\n"
+                    place += 1
 
-        if len(counters["PREVIOUS_BESTS"]):
-            embed_dict["fields"].append({"name": "Топ 3 предыдущей недели:", "value": ""})
-            for key in counters["PREVIOUS_BESTS"]:
-                embed_dict["fields"][-1]["value"] += f"{guild.get_member(int(key)).mention} "
-
-        flag = True
-        async for msg in channel.history(limit=3):
-            if "Таблица лидеров по сообщениям за неделю" in msg.embeds[0].to_dict()["title"]:
-                await msg.edit(embed=disnake.Embed.from_dict(embed_dict))
-                flag = False
-                break
-        if flag:
-            await channel.send(embed=disnake.Embed.from_dict(embed_dict))
+            flag = True
+            async for msg in channel.history(limit=50):
+                try:
+                    if "Таблица лидеров по сообщениям за неделю" in msg.embeds[0].to_dict()["title"]:
+                        await msg.edit(embed=disnake.Embed.from_dict(embed_dict))
+                        flag = False
+                        break
+                except:
+                    pass
+            if flag:
+                await channel.send(embed=disnake.Embed.from_dict(embed_dict))
 
     @aup_top.before_loop
     async def before(self):
@@ -109,30 +88,37 @@ class AutoUpdateScoresTop(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.settings = cfg.COGS_SETTINGS["AUTOUPDATE"]
         self.aup_top.start()
 
     @tasks.loop(seconds=60)
     async def aup_top(self):
-        channel = self.bot.get_channel(self.settings["CHANNEL"])
+        guilds = await find_guilds_by_param(self.bot, "GENERAL_SETTINGS", "AUTOUPDATE_MESSAGES", "SCORES")
 
-        embed_dict = {
-            "title": "Таблица лидеров по очкам: 📊",
-            "description": "",
-            "fields": [],
-            "color": 0x2B2D31,
-            "footer": {"text": channel.guild.name, "icon_url": channel.guild.icon.url},
-        }
-        embed_dict = await top_create_embed(self.bot, embed_dict)
+        for settings in guilds:
+            channel = self.bot.get_channel(settings["COGS_SETTINGS"]["AUTOUPDATE"]["CHANNEL"])
+            if channel is None:
+                continue
 
-        flag = True
-        async for msg in channel.history(limit=3):
-            if "Таблица лидеров по очкам" in msg.embeds[0].to_dict()["title"]:
-                await msg.edit(embed=disnake.Embed.from_dict(embed_dict))
-                flag = False
-                break
-        if flag:
-            await channel.send(embed=disnake.Embed.from_dict(embed_dict))
+            embed_dict = {
+                "title": "Таблица лидеров по очкам: 📊",
+                "description": "",
+                "fields": [],
+                "color": 0x2B2D31,
+                "footer": {"text": channel.guild.name, "icon_url": channel.guild.icon.url},
+            }
+            embed_dict = await top_create_embed(self.bot, settings, embed_dict)
+
+            flag = True
+            async for msg in channel.history(limit=50):
+                try:
+                    if "Таблица лидеров по сообщениям за неделю" in msg.embeds[0].to_dict()["title"]:
+                        await msg.edit(embed=disnake.Embed.from_dict(embed_dict))
+                        flag = False
+                        break
+                except:
+                    pass
+            if flag:
+                await channel.send(embed=disnake.Embed.from_dict(embed_dict))
 
     @aup_top.before_loop
     async def before(self):

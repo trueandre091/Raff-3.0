@@ -8,7 +8,7 @@ GUILD_CONFIG = {
         "WELCOME": False,
         "FAREWELL": False,
         "MODERATION": {"GIF": False},
-        "AUTOUPDATE_MESSAGES": False,
+        "AUTOUPDATE_MESSAGES": {"MESSAGES": False, "SCORES": False},
         "NEAREST_EVENTS": False,
         "EXPERIENCE": False,
         "GAMES": {"BLACKJACK": False, "ROULETTE": False},

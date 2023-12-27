@@ -136,8 +136,8 @@ class BlackJack(commands.Cog):
 
     @commands.slash_command(description="Сыграть в BlackJack на свои очки (/rep)")
     async def блекджек(self, interaction: disnake.ApplicationCommandInteraction, ставка: int = None):
-        guild = await guild_sets_check(interaction.guild.id, "GENERAL_SETTINGS", "GAMES", "BLACKJACK")
-        if not guild:
+        settings = await guild_sets_check(interaction.guild.id, "GENERAL_SETTINGS", "GAMES", "BLACKJACK")
+        if settings is None:
             return
 
         user = await DB.get_user({"ds_id": interaction.author.id})
@@ -290,12 +290,11 @@ class Roulette(commands.Cog):
     @commands.cooldown(1, 5)
     @commands.slash_command(description="Крутануть рулеточку на свои РЕАЛЬНЫЕ очки (/rep)")
     async def рулетка(self, interaction: disnake.ApplicationCommandInteraction, ставка: int = None):
-        guild = await guild_sets_check(interaction.guild.id, "GENERAL_SETTINGS", "GAMES", "ROULETTE")
-        if not guild:
+        settings = await guild_sets_check(interaction.guild.id, "GENERAL_SETTINGS", "GAMES", "ROULETTE")
+        if settings is None:
             return
 
-        guild = await GDB.get_guild({"guild_id": interaction.guild.id})
-        settings = encoder.code_from_json(guild.guild_sets)["COGS_SETTINGS"]["GAMES"]["ROULETTE"]
+        settings = settings["COGS_SETTINGS"]["GAMES"]["ROULETTE"]
 
         user = await DB.get_user({"ds_id": interaction.author.id})
 
