@@ -1,11 +1,33 @@
 import disnake
 from disnake.ext import commands
 from disnake.ui import View, button, select, Button, Modal
-from disnake.ui import Select
+from disnake.ui import Select, channel_select
 from disnake import SelectOption, ModalInteraction
 import datetime
 from DB.DataBase import GuildsDbase
 from DB.JSONEnc import JsonEncoder
+
+
+class GuildSettings:
+    def __init__(self, interaction: disnake.Interaction, settings):
+        self.interaction = interaction
+        self.gdb = GuildsDbase()
+        self.settings = settings
+
+    async def create_home_view(self):
+        await self.interaction.edit_original_response(
+            embed=disnake.Embed.from_dict(create_hello_embed()), view=GuildSetsHomeScreenView()
+        )
+
+    async def create_welcome_view(self):
+        await self.interaction.edit_original_response(
+            embed=disnake.Embed.from_dict(create_welcome_cfg()), view=GuildSetsGreetView()
+        )
+
+    async def create_farewell_view(self):
+        await self.interaction.edit_original_response(
+            embed=disnake.Embed.from_dict(create_farewell_cfg()), view=GuildSetsGreetView()
+        )
 
 
 class GuildSetsHomeScreenView(View):
@@ -37,34 +59,25 @@ class GuildSetsHomeScreenView(View):
     async def select_set_callback(self, selectMenu: Select, interaction: disnake.Interaction):
         value = selectMenu.values
         if value == "greetings":
-            self.clear_items()
-            greet_view = GuildSetsGreetView()
-            await interaction.edit_original_response(
-                embed=disnake.Embed.from_dict(create_welcome_cfg()), view=greet_view
-            )
+            pass
 
 
-class GuildSetsGreetView(GuildSetsHomeScreenView):
-    @select(
-        select_type=disnake.ComponentType.channel_select,
+class GuildSetsGreetView(View):
+    @channel_select(
         channel_types=[disnake.ChannelType.text, disnake.ChannelType.news],
         placeholder="В каком канале приветствовать?",
         min_values=0,
-        options=[
-            SelectOption(label="Ничего", description="Отключить приветствия", emoji="❌", value="greetings_disable")
-        ],
     )
     async def callback(self, selectMenu: Select, interaction: disnake.Interaction):
         pass
 
     @button(label="Назад")
     async def to_back_callback(self, button: Button, interaction: disnake.Interaction):
-        home_screen = GuildSetsHomeScreenView()
-        await interaction.edit_original_response(embed=disnake.Embed.from_dict(create_hello_embed()), view=home_screen)
+        await GuildSettings.create_home_view()
 
     @button(label="Настроить")
     async def open_greet_set_callback(self, button: Button, interaction: disnake.Interaction):
-        await interaction.response.send_mpdal(GreetModal())
+        await interaction.response.send_modal(GreetModal())
 
 
 class GreetModal(Modal):
@@ -121,7 +134,7 @@ class GreetModal(Modal):
             await gdb.update_guild({"guild_id": guild.guild_id, "guild_sets": settings})
 
 
-class GuildSetsFarewellView(GuildSetsHomeScreenView):
+class GuildSetsFarewellView(View):
     pass
 
 
@@ -134,6 +147,7 @@ def create_hello_embed():
         "author": None,
         "fields": [
             {
+                "name": "",
                 "value": "Прежде чем начать пользоваться этим ботом и использовать весь функционал его необходимо настроить. "
                 "Конечно, ты можешь пропустить этот шаг и вернуться к его настройке позже просто написав '/Настройка бота'\n"
                 "(не переживай, настраивать бота могут только администраторы сервера)"
@@ -197,9 +211,9 @@ class GuildsManage(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
-    @commands.slash_command(name="Настройка бота", description="Поменять настройки сервера")
+    @commands.slash_command(name="настройка_бота", description="Поменять настройки сервера")
     @commands.has_permissions(administrator=True)
-    async def set_guild_settings(self, interaction: disnake.Interaction):
+    async def set_guild_settings(self, interaction: disnake.ApplicationCommandInteraction):
         db = GuildsDbase()
         data = {
             "guild_id": interaction.guild.id,
@@ -208,9 +222,25 @@ class GuildsManage(commands.Cog):
         }
         guild_sets = await db.add_guild(data)
         if guild_sets:
-            embed_dict = create_hello_embed()
-            view = GuildSetsHomeScreenView()
-            await interaction.response.send_message(embed=disnake.Embed.from_dict(embed_dict), view=view)
+            set_view = GuildSettings(interaction, guild_sets.guild_sets)
+            await interaction.send(".")
+            await set_view.create_home_view()
+
+    @commands.slash_command(name="add_to_db")
+    @commands.is_owner()
+    async def add_guild_to_db(self, interaction: disnake.ApplicationCommandInteraction):
+        gdb = GuildsDbase()
+        data = {
+            "guild_id": interaction.guild.id,
+            "guild_name": interaction.guild.name,
+            "count_members": interaction.guild.member_count,
+        }
+
+        for _ in range(5):
+            res = await gdb.add_guild(data)
+            if res:
+                await interaction.response.send_message(f"Success {res}")
+                break
 
 
 def setup(bot: commands.Bot):
