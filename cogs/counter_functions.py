@@ -1,7 +1,8 @@
 from os import getcwd
 import disnake
 from json import load, dump
-from guilds_functions import DB
+# from guilds_functions import DB
+from DB.DataBase import UserDBase as DB
 
 FOLDER = getcwd()
 
