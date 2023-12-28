@@ -16,6 +16,7 @@ GUILD_CONFIG = {
         "REQUESTS": False,
         "SCORES": False,
         "COUNTING_BOOSTS": False,
+        "ADDING_REACTIONS_THREADS": False,
     },
     "WELCOME_SETTINGS": {
         "CHANNEL": None,
