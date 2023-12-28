@@ -3,6 +3,7 @@ from cogs.counter_functions import *
 from cogs.on_message_functions import *
 from cogs.guilds_functions import guild_sets_check, GDB
 from cogs.cog_experience import count_experience
+from DB.DataBase import GuildsDBase
 
 bot = commands.Bot(
     command_prefix="none",
