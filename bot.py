@@ -96,7 +96,7 @@ async def on_message(message):
 
 @bot.event
 async def on_guild_join(guild: disnake.Guild):
-    gdb = GuildsDbase()
+    gdb = GuildsDBase()
     data = {"guild_id": guild.id,
             "guild_name": guild.name,
             "count_members": guild.member_count}

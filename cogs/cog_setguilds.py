@@ -4,14 +4,14 @@ from disnake.ui import View, button, select, Button, Modal
 from disnake.ui import Select, channel_select
 from disnake import SelectOption, ModalInteraction
 import datetime
-from DB.DataBase import GuildsDbase
+from DB.DataBase import GuildsDBase
 from DB.JSONEnc import JsonEncoder
 
 
 class GuildSettings:
     def __init__(self, interaction: disnake.Interaction, settings):
         self.interaction = interaction
-        self.gdb = GuildsDbase()
+        self.gdb = GuildsDBase()
         self.settings = settings
 
     async def create_home_view(self):
@@ -120,7 +120,7 @@ class GreetModal(Modal):
         url_to_ava = interaction.text_values["url_to_ava"]
         background_image = interaction.text_values["background_image"]
 
-        gdb = GuildsDbase()
+        gdb = GuildsDBase()
         enc = JsonEncoder()
 
         guild = await gdb.get_guild({"guild_id": interaction.guild.id})
@@ -214,7 +214,7 @@ class GuildsManage(commands.Cog):
     @commands.slash_command(name="настройка_бота", description="Поменять настройки сервера")
     @commands.has_permissions(administrator=True)
     async def set_guild_settings(self, interaction: disnake.ApplicationCommandInteraction):
-        db = GuildsDbase()
+        db = GuildsDBase()
         data = {
             "guild_id": interaction.guild.id,
             "guild_name": interaction.guild.name,
@@ -229,7 +229,7 @@ class GuildsManage(commands.Cog):
     @commands.slash_command(name="add_to_db")
     @commands.is_owner()
     async def add_guild_to_db(self, interaction: disnake.ApplicationCommandInteraction):
-        gdb = GuildsDbase()
+        gdb = GuildsDBase()
         data = {
             "guild_id": interaction.guild.id,
             "guild_name": interaction.guild.name,

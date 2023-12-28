@@ -49,7 +49,7 @@ class Users(Base):
     username: Mapped[str]
     experience: Mapped[int] = mapped_column(default=0)
     scores: Mapped[int] = mapped_column(default=0)
-    count_messages: Mapped[int] = mapped_column(default=0)
+    messages: Mapped[int] = mapped_column(default=0)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
 

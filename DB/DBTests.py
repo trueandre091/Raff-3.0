@@ -2,7 +2,7 @@ import asyncio
 from sqlalchemy import create_engine
 from DB.models import Base
 from DB.JSONEnc import JsonEncoder
-from DataBase import UserDBase, GuildsDbase, RelationshipsDBase
+from DataBase import UserDBase, GuildsDBase, RelationshipsDBase
 
 
 ####################################   USERS TESTS   ############################################
@@ -94,7 +94,7 @@ async def test_get_top_users_by_scores(users_echo=False):
 
 
 async def test_add_guild(guilds_echo=False):
-    db = GuildsDbase(guilds_echo)
+    db = GuildsDBase(guilds_echo)
 
     data = {"guild_id": 785312593614209055, "guild_name": "Homey Temple"}
 
@@ -102,7 +102,7 @@ async def test_add_guild(guilds_echo=False):
 
 
 async def test_add_some_guilds(guilds_echo=False):
-    db = GuildsDbase(guilds_echo)
+    db = GuildsDBase(guilds_echo)
 
     data = [
         {"guild_id": 785312593614209055, "guild_name": "Homey Temple"},
@@ -113,7 +113,7 @@ async def test_add_some_guilds(guilds_echo=False):
 
 
 async def test_get_guild(guilds_echo=False):
-    db = GuildsDbase(guilds_echo)
+    db = GuildsDBase(guilds_echo)
     enc = JsonEncoder
 
     data = {"guild_id": 710525764470308975}
@@ -126,7 +126,7 @@ async def test_get_guild(guilds_echo=False):
 
 
 async def test_get_guild_with_users(guilds_echo=False):
-    db = GuildsDbase(guilds_echo)
+    db = GuildsDBase(guilds_echo)
 
     data = {"guild_id": 785312593614209055}
 
@@ -136,7 +136,7 @@ async def test_get_guild_with_users(guilds_echo=False):
 
 
 async def test_get_some_guilds(guilds_echo=False):
-    db = GuildsDbase(guilds_echo)
+    db = GuildsDBase(guilds_echo)
 
     data = [{"guild_id": 710525764470308975}, {"guild_id": 785312593614209055}]
 
@@ -144,7 +144,7 @@ async def test_get_some_guilds(guilds_echo=False):
 
 
 async def test_update_guild(guilds_echo=False):
-    db = GuildsDbase(guilds_echo)
+    db = GuildsDBase(guilds_echo)
 
     data = {"guild_id": 710525764470308975, "guild_name": "NetWorld"}
 
@@ -152,7 +152,7 @@ async def test_update_guild(guilds_echo=False):
 
 
 async def test_update_some_guilds(guilds_echo=False):
-    db = GuildsDbase(guilds_echo)
+    db = GuildsDBase(guilds_echo)
 
     data = [
         {"guild_id": 710525764470308975, "count_members": 5000},
@@ -163,7 +163,7 @@ async def test_update_some_guilds(guilds_echo=False):
 
 
 async def test_guild_get_top_users_by_scores(guilds_echo=False):
-    db = GuildsDbase(guilds_echo)
+    db = GuildsDBase(guilds_echo)
 
     await db.get_top_users_by_scores(785312593614209055)
 

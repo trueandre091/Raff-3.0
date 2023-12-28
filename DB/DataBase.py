@@ -296,8 +296,8 @@ class UserDBase(DataBase):
                             user.username = user.username if data.get("username") is None else data["username"]
                             user.scores = user.scores if data.get("scores") is None else data["scores"]
                             user.experience = user.experience if data.get("experience") is None else data["experience"]
-                            user.count_messages = (
-                                user.count_messages if data.get("count_messages") is None else data["count_messages"]
+                            user.messages = (
+                                user.messages if data.get("count_messages") is None else data["count_messages"]
                             )
 
                 session.commit()
@@ -341,7 +341,7 @@ class UserDBase(DataBase):
         """
         with self.Session() as session:
             try:
-                users = select(Users).order_by(Users.count_messages.desc()).limit(20)
+                users = select(Users).order_by(Users.messages.desc()).limit(20)
                 res = session.scalars(users).all()
                 if res is None:
                     print("Can't get top users by scores")
@@ -359,7 +359,7 @@ class UserDBase(DataBase):
 ####################################   GUILDS   ############################################
 
 
-class GuildsDbase(DataBase):
+class GuildsDBase(DataBase):
     """
     Class for managing with Guilds data
 
@@ -754,7 +754,7 @@ class RelationshipsDBase(DataBase):
 
     def __init__(self, echo_mode: bool = False):
         super().__init__(echo_mode)
-        self.guilds_db = GuildsDbase(echo_mode)
+        self.guilds_db = GuildsDBase(echo_mode)
         self.users_db = UserDBase(echo_mode)
 
     async def add_relationship(self, data: Union[dict, list[dict]]) -> Union[True, None]:

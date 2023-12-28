@@ -57,7 +57,7 @@ async def count_every_message(message: disnake.Message) -> None:
         if user is None:
             await DB.add_user({"ds_id": author_id, "count_messages": 1})
         else:
-            await DB.update_user({"ds_id": author_id, "count_messages": user.count_messages + 1})
+            await DB.update_user({"ds_id": author_id, "count_messages": user.messages + 1})
 
 
 async def count_users_boosts(author_id: int) -> None:

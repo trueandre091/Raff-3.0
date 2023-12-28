@@ -1,9 +1,9 @@
 from disnake.ext import commands
 from DB.JSONEnc import JsonEncoder
-from DB.DataBase import GuildsDbase, UserDBase
+from DB.DataBase import GuildsDBase, UserDBase
 
 DB = UserDBase()
-GDB = GuildsDbase()
+GDB = GuildsDBase()
 encoder = JsonEncoder()
 
 

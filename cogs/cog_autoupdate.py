@@ -63,7 +63,7 @@ class AutoUpdateMessagesTop(commands.Cog):
                     member = guild.get_member(user.ds_id)
                     if member is None:
                         continue
-                    embed_dict["description"] += f"`{place}.` {member.mention} - {user.count_messages}\n"
+                    embed_dict["description"] += f"`{place}.` {member.mention} - {user.messages}\n"
                     place += 1
 
             flag = True
