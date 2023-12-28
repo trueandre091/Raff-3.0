@@ -21,7 +21,7 @@ async def creating_message_with_nearest_events(event: disnake.GuildScheduledEven
                     dict_of_categories[category].append(event)
                     used.append(event)
         else:
-            unused = event.guild.scheduled_events - used
+            unused = set(event.guild.scheduled_events) - set(used)
             for event in unused:
                 dict_of_categories[category].append(event)
 
@@ -52,11 +52,11 @@ class AutoSendingMessage(commands.Cog):
         if settings is None:
             return
 
-        channel = self.bot.get_channel(settings["COGS_SETTINGS"]["EVENTS"]["CHANNEL"])
+        channel = self.bot.get_channel(settings["COGS_SETTINGS"]["NEAREST_EVENTS"]["CHANNEL"])
 
         await delete_previous_message(channel)
         await channel.send(
-            await creating_message_with_nearest_events(event, settings["COGS_SETTINGS"]["EVENTS"]["CATEGORIES"])
+            await creating_message_with_nearest_events(event, settings["COGS_SETTINGS"]["NEAREST_EVENTS"]["CATEGORIES"])
         )
 
     @commands.Cog.listener()
@@ -65,11 +65,11 @@ class AutoSendingMessage(commands.Cog):
         if settings is None:
             return
 
-        channel = self.bot.get_channel(settings["COGS_SETTINGS"]["EVENTS"]["CHANNEL"])
+        channel = self.bot.get_channel(settings["COGS_SETTINGS"]["NEAREST_EVENTS"]["CHANNEL"])
 
         await delete_previous_message(channel)
         await channel.send(
-            await creating_message_with_nearest_events(event, settings["COGS_SETTINGS"]["EVENTS"]["CATEGORIES"])
+            await creating_message_with_nearest_events(event, settings["COGS_SETTINGS"]["NEAREST_EVENTS"]["CATEGORIES"])
         )
 
     @commands.Cog.listener()
@@ -78,11 +78,11 @@ class AutoSendingMessage(commands.Cog):
         if settings is None:
             return
 
-        channel = self.bot.get_channel(settings["COGS_SETTINGS"]["EVENTS"]["CHANNEL"])
+        channel = self.bot.get_channel(settings["COGS_SETTINGS"]["NEAREST_EVENTS"]["CHANNEL"])
 
         await delete_previous_message(channel)
         await channel.send(
-            await creating_message_with_nearest_events(after, settings["COGS_SETTINGS"]["EVENTS"]["CATEGORIES"])
+            await creating_message_with_nearest_events(after, settings["COGS_SETTINGS"]["NEAREST_EVENTS"]["CATEGORIES"])
         )
 
 

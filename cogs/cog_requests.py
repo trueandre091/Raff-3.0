@@ -75,14 +75,13 @@ class SendMessage(commands.Cog):
 
         settings = settings["COGS_SETTINGS"]["REQUESTS"]
 
-        channel = self.bot.get_channel(settings["BUTTONS_MESSAGE"]["CHANNEL"])
         embed = disnake.Embed(
             title=settings["BUTTONS_MESSAGE"]["EMBED"]["TITLE"],
             description=settings["BUTTONS_MESSAGE"]["EMBED"]["DESCRIPTION"],
             color=settings["BUTTONS_MESSAGE"]["EMBED"]["COLOR"],
         )
 
-        await channel.send(
+        await interaction.channel.send(
             embed=embed,
             components=[
                 disnake.ui.Button(

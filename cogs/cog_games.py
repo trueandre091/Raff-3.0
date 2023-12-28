@@ -24,7 +24,7 @@ def return_corr_embed(interaction):
 async def bj_designed_embed_start(embed_dict: dict, interaction: disnake.ApplicationCommandInteraction, bet: int):
     embed_dict["title"] = "Привет, приятель"
 
-    await interaction.response.send_message(embed=disnake.Embed.from_dict(embed_dict))
+    await interaction.edit_original_response("", embed=disnake.Embed.from_dict(embed_dict))
     await asyncio.sleep(1)
 
     embed_dict["title"] = "Захотел поиграть в BlackJack?"
@@ -153,10 +153,18 @@ class BlackJack(commands.Cog):
                     delete_after=5,
                     ephemeral=True,
                 )
+        else:
+            ставка = 1
+
+        game_bj = GameBlackJack(author, commands, ставка)
+
+        await interaction.response.send_message("**BLACKJACK**")
+
+        async for msg in interaction.channel.history(limit=1):
+            game_bj.id_message = msg.id
 
         await bj_designed_embed_start(return_corr_embed(interaction), interaction, ставка)
 
-        game_bj = GameBlackJack(author, commands, ставка)
         game_bj.player_start()
 
         await bj_designed_embed(
@@ -165,9 +173,6 @@ class BlackJack(commands.Cog):
             game_bj.current,
             game_bj.score,
         )
-
-        async for message in interaction.channel.history(limit=1):
-            game_bj.id_message = message.id
 
     @commands.Cog.listener()
     async def on_interaction(self, interaction: disnake.MessageInteraction):
@@ -209,7 +214,7 @@ class BlackJack(commands.Cog):
                                 )
                                 await asyncio.sleep(2)
 
-                                while obj.bot_score <= 15:
+                                while obj.bot_score <= 15 or obj.score > obj.bot_score:
                                     current = obj.deck.pop()
                                     obj.bot_score = return_scores(current, obj.bot_score)
 

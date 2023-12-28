@@ -35,7 +35,7 @@ class AutoUpdateMessagesTop(commands.Cog):
     async def before(self):
         await self.bot.wait_until_ready()
 
-    @tasks.loop(seconds=15)
+    @tasks.loop(seconds=10)
     async def aup_top(self):
         guilds = await find_guilds_by_param(self.bot, "GENERAL_SETTINGS", "AUTOUPDATE_MESSAGES", "MESSAGES")
 
@@ -90,7 +90,7 @@ class AutoUpdateScoresTop(commands.Cog):
         self.bot = bot
         self.aup_top.start()
 
-    @tasks.loop(seconds=60)
+    @tasks.loop(seconds=15)
     async def aup_top(self):
         guilds = await find_guilds_by_param(self.bot, "GENERAL_SETTINGS", "AUTOUPDATE_MESSAGES", "SCORES")
 

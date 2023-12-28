@@ -1,7 +1,7 @@
 from os import getcwd
 import disnake
 from json import load, dump
-from guilds_functions import DB
+from cogs.guilds_functions import DB
 
 FOLDER = getcwd()
 
@@ -55,9 +55,9 @@ async def count_every_message(message: disnake.Message) -> None:
         author_id = message.author.id
         user = await DB.get_user({"ds_id": author_id})
         if user is None:
-            await DB.add_user({"ds_id": author_id, "count_messages": 1})
+            await DB.add_user({"ds_id": author_id, "username": message.author.name, "messages": 1})
         else:
-            await DB.update_user({"ds_id": author_id, "count_messages": user.messages + 1})
+            await DB.update_user({"ds_id": author_id, "username": message.author.name, "messages": user.messages + 1})
 
 
 async def count_users_boosts(author_id: int) -> None:

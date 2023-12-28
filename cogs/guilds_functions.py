@@ -38,24 +38,29 @@ async def find_guilds_by_param(
     list_of_guilds = []
     for guild in bot.guilds:
         list_of_guilds.append({"guild_id": guild.id})
-    list_of_guilds = await GDB.get_guild_with_users(list_of_guilds)
+    print(checking_set_1, checking_set_2, checking_set_3)
+    list_of_guilds = await GDB.get_guild(list_of_guilds)
+    if list_of_guilds is None:
+        print(1)
+        return []
+
     list_res = []
     for guild in list_of_guilds:
         if guild:
             guild_dict = encoder.code_from_json(guild.guild_sets)
-            if checking_set_1 and checking_set_2 and checking_set_3:
+            if checking_set_1 is not None and checking_set_2 is not None and checking_set_3 is not None:
                 if guild_dict[checking_set_1][checking_set_2][checking_set_3]:
                     if encode:
                         list_res.append(guild_dict)
                     else:
                         list_res.append(guild)
-            elif checking_set_1 and checking_set_2:
+            elif checking_set_1 is not None and checking_set_2 is not None:
                 if guild_dict[checking_set_1][checking_set_2]:
                     if encode:
                         list_res.append(guild_dict)
                     else:
                         list_res.append(guild)
-            elif checking_set_1:
+            elif checking_set_1 is not None:
                 if guild_dict[checking_set_1]:
                     if encode:
                         list_res.append(guild_dict)
