@@ -66,7 +66,7 @@ async def gif_moderation(message: disnake.Message, settings: dict):
 
 async def reactions_thread_check(message: disnake.Message, settings: dict) -> None:
     """Adding reactions and(or) a thread to a message in the certain channels"""
-    if not settings["GENERAL_SETTINGS"]["ADDING_REACTIONS_THREADS_SETTINGS"]:
+    if not settings["GENERAL_SETTINGS"]["ADDING_REACTIONS_THREADS"]:
         return
 
     settings = settings["ADDING_REACTIONS_THREADS_SETTINGS"]
