@@ -6,11 +6,24 @@ from disnake import SelectOption, ModalInteraction
 import datetime
 from DB.DataBase import GuildsDBase
 from DB.JSONEnc import JsonEncoder
+import random
 
 
 async def stud_interaction(interaction: disnake.ApplicationCommandInteraction):
+    phrases = [
+        "Выполняю...",
+        "Подчиняюсь...",
+        "Секунду...",
+        "Реализую...",
+        "Инициализирую...",
+        "Загружаю...",
+        "Ищу...",
+        "Завариваю кофе...",
+        "Подготавливаю...",
+        "Придумываю шутку...",
+    ]
     await interaction.response.send_message(
-        "Выполняю...", delete_after=0.1, ephemeral=True
+        random.choice(phrases), delete_after=0.01, ephemeral=True
     )
 
 
@@ -29,33 +42,45 @@ class GuildSettings:
 
     async def create_welcome_view(self):
         await self.interaction.edit_original_response(
-            embed=disnake.Embed.from_dict(create_welcome_cfg()),
-            view=GuildSetsGreetView(self, self.settings),
+            embed=disnake.Embed.from_dict(create_welcome_embed()),
+            view=GuildSetsGreetView(self),
         )
 
     async def create_farewell_view(self):
         await self.interaction.edit_original_response(
-            embed=disnake.Embed.from_dict(create_farewell_cfg()),
-            view=GuildSetsFarewellView(self, self.settings),
+            embed=disnake.Embed.from_dict(create_farewell_embed()),
+            view=GuildSetsFarewellView(self),
         )
 
     async def create_feedback_view(self):
         await self.interaction.edit_original_response(
-            embed=disnake.Embed.from_dict(create_feedback_cfg()),
-            view=GuildSetsFeedbackView(self, self.settings),
+            embed=disnake.Embed.from_dict(create_feedback_embed()),
+            view=GuildSetsFeedbackView(self),
         )
 
     async def create_scores_exp_view(self):
         await self.interaction.edit_original_response(
-            embed=disnake.Embed.from_dict(()),
-            view=GuildSetsScoresExpView(self, self.settings),
+            embed=disnake.Embed.from_dict((create_scores_exp_embed())),
+            view=GuildSetsScoresExpView(self),
         )
 
     async def create_games_view(self):
         await self.interaction.edit_original_response(
-            embed=disnake.Embed.from_dict(()),
-            view=GuildSetsGamesView(self, self.settings),
+            embed=disnake.Embed.from_dict((create_games_embed())),
+            view=GuildSetsGamesView(self),
         )
+
+    async def create_blackjack_view(self):
+        await self.interaction.edit_original_response(
+            embed=disnake.Embed.from_dict((create_blackjack_embed())),
+            view=SetBlackJackView(self),
+        )
+
+    # async def create_roulette_view(self):
+    #     await self.interaction.edit_original_response(
+    #         embed=disnake.Embed.from_dict(()),
+    #         view=GuildSetsGamesView(self, self.settings),
+    #     )
 
 
 class GuildSetsHomeScreenView(View):
@@ -137,11 +162,11 @@ class GuildSetsHomeScreenView(View):
 
         elif value == "scores_exp":
             await stud_interaction(interaction)
-            await GuildSettings.create_welcome_view(self.parent)
+            await GuildSettings.create_scores_exp_view(self.parent)
 
         elif value == "games":
             await stud_interaction(interaction)
-            await GuildSettings.create_welcome_view(self.parent)
+            await GuildSettings.create_games_view(self.parent)
 
         elif value == "nearest_events":
             await stud_interaction(interaction)
@@ -155,12 +180,19 @@ class GuildSetsHomeScreenView(View):
             await stud_interaction(interaction)
             await GuildSettings.create_welcome_view(self.parent)
 
+    @button(label="Сохранить", style=disnake.ButtonStyle.green)
+    async def save_callback(self, button: Button, interaction: disnake.Interaction):
+        pass
+
+    @button(label="Сбросить", style=disnake.ButtonStyle.danger)
+    async def reset_callback(self, button: Button, interaction: disnake.Interaction):
+        pass
+
 
 class GuildSetsGreetView(View):
-    def __init__(self, parent, settings):
+    def __init__(self, parent):
         super().__init__()
         self.parent = parent
-        self.settings = settings
 
     @channel_select(
         channel_types=[disnake.ChannelType.text, disnake.ChannelType.news],
@@ -171,19 +203,28 @@ class GuildSetsGreetView(View):
         pass
 
     @button(label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger)
-    async def to_back_callback(self, button: Button, interaction: disnake.Interaction):
+    async def to_back_callback(self, btn: Button, interaction: disnake.Interaction):
+        await stud_interaction(interaction)
         await GuildSettings.create_home_view(self.parent)
 
     @button(label="Настроить")
     async def open_greet_set_callback(
-        self, button: Button, interaction: disnake.Interaction
+        self, btn: Button, interaction: disnake.Interaction
     ):
-        await interaction.response.send_modal(GreetModal(self.settings))
+        await interaction.response.send_modal(GreetModal(self.parent))
+
+    @button(label="Вкл", style=disnake.ButtonStyle.green)
+    async def enable_callback(self, btn: Button, interaction: disnake.Interaction):
+        pass
+
+    @button(label="Выкл", style=disnake.ButtonStyle.danger)
+    async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
+        pass
 
 
 class GreetModal(Modal):
-    def __init__(self, settings):
-        self.settings = settings
+    def __init__(self, parent):
+        self.settings = parent.settings
         options = [
             TextInput(
                 label="Заголовок",
@@ -241,10 +282,10 @@ class GreetModal(Modal):
 
 
 class GuildSetsFarewellView(View):
-    def __init__(self, parent, settings):
+    def __init__(self, parent):
         super().__init__()
         self.parent = parent
-        self.settings = settings
+        self.settings = parent.settings
 
     @channel_select(
         channel_types=[disnake.ChannelType.text, disnake.ChannelType.news],
@@ -255,14 +296,23 @@ class GuildSetsFarewellView(View):
         pass
 
     @button(label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger)
-    async def to_back_callback(self, button: Button, interaction: disnake.Interaction):
+    async def to_back_callback(self, btn: Button, interaction: disnake.Interaction):
+        await stud_interaction(interaction)
         await GuildSettings.create_home_view(self.parent)
 
     @button(label="Настроить")
     async def open_farewell_set_callback(
-        self, button: Button, interaction: disnake.Interaction
+        self, btn: Button, interaction: disnake.Interaction
     ):
         await interaction.response.send_modal(FarewellModal(self.settings))
+
+    @button(label="Вкл", style=disnake.ButtonStyle.green)
+    async def enable_callback(self, btn: Button, interaction: disnake.Interaction):
+        pass
+
+    @button(label="Выкл", style=disnake.ButtonStyle.danger)
+    async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
+        pass
 
 
 class FarewellModal(Modal):
@@ -270,8 +320,9 @@ class FarewellModal(Modal):
         self.settings = settings
         components = [
             TextInput(
+                style=disnake.TextInputStyle.paragraph,
                 label="Сообщение",
-                value=settings["FAREWELL_SETTINGS"]["MESSAGE"],
+                value=self.settings["FAREWELL_SETTINGS"]["MESSAGE"],
                 max_length=256,
                 custom_id="message",
             ),
@@ -280,10 +331,10 @@ class FarewellModal(Modal):
 
 
 class GuildSetsFeedbackView(View):
-    def __init__(self, parent, settings):
+    def __init__(self, parent):
         super().__init__()
         self.parent = parent
-        self.settings = settings
+        self.settings = parent.settings
 
     @channel_select(
         channel_types=[disnake.ChannelType.text, disnake.ChannelType.news],
@@ -294,14 +345,23 @@ class GuildSetsFeedbackView(View):
         pass
 
     @button(label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger)
-    async def to_back_callback(self, button: Button, interaction: disnake.Interaction):
+    async def to_back_callback(self, btn: Button, interaction: disnake.Interaction):
+        await stud_interaction(interaction)
         await GuildSettings.create_home_view(self.parent)
 
     @button(label="Настроить")
     async def open_feedback_set_callback(
-        self, button: Button, interaction: disnake.Interaction
+        self, btn: Button, interaction: disnake.Interaction
     ):
         await interaction.response.send_modal(FeedbackModal(self.settings))
+
+    @button(label="Вкл", style=disnake.ButtonStyle.green)
+    async def enable_callback(self, btn: Button, interaction: disnake.Interaction):
+        pass
+
+    @button(label="Выкл", style=disnake.ButtonStyle.danger)
+    async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
+        pass
 
 
 class FeedbackModal(Modal):
@@ -309,25 +369,121 @@ class FeedbackModal(Modal):
         self.settings = settings
         components = [
             TextInput(
-                label="Сообшение",
+                style=disnake.TextInputStyle.paragraph,
+                label="Сообщение",
                 custom_id="message",
+                max_length=512,
             )
         ]
         super().__init__(title="Обратная связь", components=components)
 
 
 class GuildSetsScoresExpView(View):
-    def __init__(self, parent, settings):
+    def __init__(self, parent):
         super().__init__()
         self.parent = parent
-        self.settings = settings
+        self.settings = parent.settings
+
+    @button(label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger)
+    async def to_back_callback(self, btn: Button, interaction: disnake.Interaction):
+        await stud_interaction(interaction)
+        await GuildSettings.create_home_view(self.parent)
+
+    @button(label="Вкл", style=disnake.ButtonStyle.green)
+    async def enable_callback(self, btn: Button, interaction: disnake.Interaction):
+        pass
+
+    @button(label="Выкл", style=disnake.ButtonStyle.danger)
+    async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
+        pass
 
 
 class GuildSetsGamesView(View):
-    def __init__(self, parent, settings):
+    def __init__(self, parent):
         super().__init__()
         self.parent = parent
-        self.settings = settings
+        self.settings = parent.settings
+
+    @select(
+        custom_id="select_game",
+        min_values=1,
+        max_values=1,
+        placeholder="Что хочешь настроить?",
+        options=[
+            SelectOption(
+                label="BlackJack",
+                description="Настрой BlackJack",
+                emoji="♠️",
+                value="blackjack",
+            ),
+            SelectOption(
+                label="Рулетка",
+                description="Настрой рулетку",
+                emoji="♠️",
+                value="roulette",
+            ),
+        ],
+    )
+    async def select_game_callback(
+        self, selectMenu: Select, interaction: disnake.ApplicationCommandInteraction
+    ):
+        value = selectMenu.values[0]
+
+        if value == "blackjack":
+
+            await stud_interaction(interaction)
+            await GuildSettings.create_blackjack_view(self.parent)
+
+        elif value == "roulette":
+            roulette = SetRouletteView()
+
+    @button(label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger)
+    async def to_back_callback(self, btn: Button, interaction: disnake.Interaction):
+        await stud_interaction(interaction)
+        await GuildSettings.create_home_view(self.parent)
+
+    @button(label="Вкл", style=disnake.ButtonStyle.green)
+    async def enable_callback(self, btn: Button, interaction: disnake.Interaction):
+        pass
+
+    @button(label="Выкл", style=disnake.ButtonStyle.danger)
+    async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
+        pass
+
+
+class SetBlackJackView(View):
+    def __init__(self, parent):
+        super().__init__()
+        self.parent = parent
+        self.settings = parent.settings
+
+    @channel_select(
+        channel_types=[disnake.ChannelType.text, disnake.ChannelType.news],
+        placeholder="В каком канале будем играть?",
+        min_values=0,
+    )
+    async def select_callback(
+        self, selectMenu: Select, interaction: disnake.ApplicationCommandInteraction
+    ):
+        pass
+
+    @button(label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger)
+    async def to_back_callback(self, btn: Button, interaction: disnake.Interaction):
+        await stud_interaction(interaction)
+        await GuildSettings.create_games_view(self.parent)
+
+    @button(label="Вкл", style=disnake.ButtonStyle.green)
+    async def enable_callback(self, btn: Button, interaction: disnake.Interaction):
+        pass
+
+    @button(label="Выкл", style=disnake.ButtonStyle.danger)
+    async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
+        pass
+
+
+class SetRouletteView(View):
+    def __init__(self):
+        super().__init__()
 
 
 def create_hello_embed():
@@ -350,7 +506,7 @@ def create_hello_embed():
     return embed
 
 
-def create_welcome_cfg():
+def create_welcome_embed():
     embed = {
         "title": "Приветствие",
         "description": "Ты можешь поприветствовать новых участников своего сервера!",
@@ -377,7 +533,7 @@ def create_welcome_cfg():
     return embed
 
 
-def create_farewell_cfg():
+def create_farewell_embed():
     embed = {
         "title": "Прощание",
         "description": "Не забудь попрощаться с теми, кто ушёл!",
@@ -399,7 +555,7 @@ def create_farewell_cfg():
     return embed
 
 
-def create_feedback_cfg():
+def create_feedback_embed():
     embed = {
         "title": "Обратная связь",
         "description": "Получай отзывы и жалобы",
@@ -418,6 +574,90 @@ def create_feedback_cfg():
             },
         ],
     }
+    return embed
+
+
+def create_scores_exp_embed():
+    embed = {
+        "title": "Очки и опыт",
+        "description": "Система очков и опыта",
+        "color": 0x2B2D31,
+        "timestamp": datetime.datetime.now().isoformat(),
+        "author": None,
+        "fields": [
+            {
+                "name": "Базовые настройки",
+                "value": "Нажми 'Вкл', если хочешь использовать систему очков и опыта на своём сервере",
+            },
+        ],
+    }
+
+    return embed
+
+
+def create_games_embed():
+    embed = {
+        "title": "Игры",
+        "description": "Настрой игры",
+        "color": 0x2B2D31,
+        "timestamp": datetime.datetime.now().isoformat(),
+        "author": None,
+        "fields": [
+            {
+                "name": "Базовые настройки",
+                "value": "Нажми 'Вкл', если хочешь использовать систему очков и опыта на своём сервере",
+            },
+            {
+                "name": "Настрой их отдельно",
+                "value": "Выбери игру, которю хочешь настроить",
+            },
+        ],
+    }
+
+    return embed
+
+
+def create_blackjack_embed():
+    embed = {
+        "title": "BlackJack",
+        "description": "Настрой игры",
+        "color": 0x2B2D31,
+        "timestamp": datetime.datetime.now().isoformat(),
+        "author": None,
+        "fields": [
+            {
+                "name": "Базовые настройки",
+                "value": "Нажми 'Вкл', если хочешь использовать систему очков и опыта на своём сервере",
+            },
+            {
+                "name": "Настрой Blackjack",
+                "value": "Выбери канал, в котором будет разрешено играть",
+            },
+        ],
+    }
+
+    return embed
+
+
+def create_roulette_embed():
+    embed = {
+        "title": "Roulette",
+        "description": "Настрой игры",
+        "color": 0x2B2D31,
+        "timestamp": datetime.datetime.now().isoformat(),
+        "author": None,
+        "fields": [
+            {
+                "name": "Базовые настройки",
+                "value": "Нажми 'Вкл', если хочешь использовать систему очков и опыта на своём сервере",
+            },
+            {
+                "name": "Настрой рулетку",
+                "value": "Выбери канал, в котором будет разрешено играть",
+            },
+        ],
+    }
+
     return embed
 
 
