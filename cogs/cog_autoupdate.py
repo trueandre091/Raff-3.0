@@ -45,7 +45,11 @@ class AutoUpdateMessagesTop(commands.Cog):
             if channel is None:
                 continue
 
-            top = await GDB.get_top_users_by_messages({"guild_id": guild.id})
+            try:
+                top = await DB.get_top_users_by_messages()
+            except:
+                continue
+            print(top)
             if top is None:
                 continue
 
@@ -61,7 +65,7 @@ class AutoUpdateMessagesTop(commands.Cog):
             for user in top:
                 if place <= settings["COGS_SETTINGS"]["AUTOUPDATE"]["MESSAGES"]["PLACE_LIMIT"]:
                     member = guild.get_member(user.ds_id)
-                    if member is None:
+                    if member is None or user.messages == 0:
                         continue
                     embed_dict["description"] += f"`{place}.` {member.mention} - {user.messages}\n"
                     place += 1
@@ -111,7 +115,7 @@ class AutoUpdateScoresTop(commands.Cog):
             flag = True
             async for msg in channel.history(limit=50):
                 try:
-                    if "Таблица лидеров по сообщениям за неделю" in msg.embeds[0].to_dict()["title"]:
+                    if "Таблица лидеров по очкам" in msg.embeds[0].to_dict()["title"]:
                         await msg.edit(embed=disnake.Embed.from_dict(embed_dict))
                         flag = False
                         break

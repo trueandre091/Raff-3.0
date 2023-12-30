@@ -679,6 +679,7 @@ class GuildsDBase(DataBase):
                             "ds_id": user.ds_id,
                             "scores": user.scores,
                             "experience": user.experience,
+                            "messages": user.messages,
                         }
                         user_list.append(user_data)
                     else:
@@ -723,13 +724,13 @@ class GuildsDBase(DataBase):
                             "ds_id": user.ds_id,
                             "scores": user.scores,
                             "experience": user.experience,
-                            "count_messages": user.count_messages,
+                            "messages": user.messages,
                         }
                         user_list.append(user_data)
                     else:
                         break
 
-                sorted_res = sorted(user_list, key=lambda x: x["count_messages"], reverse=True)
+                sorted_res = sorted(user_list, key=lambda x: x["messages"], reverse=True)
 
                 print(sorted_res)
                 return res

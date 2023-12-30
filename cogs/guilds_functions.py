@@ -29,38 +29,36 @@ async def guild_sets_check(
 
 async def find_guilds_by_param(
     bot: commands.Bot,
-    checking_set_1: str = None,
-    checking_set_2: str = None,
-    checking_set_3: str = None,
+    checking_set_1: str = False,
+    checking_set_2: str = False,
+    checking_set_3: str = False,
     encode: bool = True,
 ) -> list:
     """Finding servers by certain parameter, returns a list"""
     list_of_guilds = []
     for guild in bot.guilds:
         list_of_guilds.append({"guild_id": guild.id})
-    print(checking_set_1, checking_set_2, checking_set_3)
     list_of_guilds = await GDB.get_guild(list_of_guilds)
     if list_of_guilds is None:
-        print(1)
         return []
 
     list_res = []
     for guild in list_of_guilds:
         if guild:
             guild_dict = encoder.code_from_json(guild.guild_sets)
-            if checking_set_1 is not None and checking_set_2 is not None and checking_set_3 is not None:
-                if guild_dict[checking_set_1][checking_set_2][checking_set_3]:
-                    if encode:
-                        list_res.append(guild_dict)
-                    else:
-                        list_res.append(guild)
-            elif checking_set_1 is not None and checking_set_2 is not None:
+            if checking_set_1 and checking_set_2 and checking_set_3:
                 if guild_dict[checking_set_1][checking_set_2]:
                     if encode:
                         list_res.append(guild_dict)
                     else:
                         list_res.append(guild)
-            elif checking_set_1 is not None:
+            elif checking_set_1 and checking_set_2:
+                if guild_dict[checking_set_1][checking_set_2]:
+                    if encode:
+                        list_res.append(guild_dict)
+                    else:
+                        list_res.append(guild)
+            elif checking_set_1:
                 if guild_dict[checking_set_1]:
                     if encode:
                         list_res.append(guild_dict)

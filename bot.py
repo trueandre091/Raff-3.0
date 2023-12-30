@@ -11,14 +11,14 @@ bot = commands.Bot(
     intents=disnake.Intents.all(),
     chunk_guilds_at_startup=False,
 )
-# bot.load_extension("cogs.cog_autoupdate")
-# bot.load_extension("cogs.cog_counters")
+bot.load_extension("cogs.cog_autoupdate")
+bot.load_extension("cogs.cog_counters")
 bot.load_extension("cogs.cog_events")
 bot.load_extension("cogs.cog_games")
 bot.load_extension("cogs.cog_orders")
 bot.load_extension("cogs.cog_requests")
-# bot.load_extension("cogs.cog_scores")
-# bot.load_extension("cogs.cog_special")
+bot.load_extension("cogs.cog_scores")
+bot.load_extension("cogs.cog_special")
 bot.load_extension("cogs.cog_experience")
 
 
@@ -116,11 +116,11 @@ dicts = {
         "MODERATION": {"GIF": False},
         "AUTOUPDATE_MESSAGES": {"MESSAGES": True, "SCORES": True},
         "NEAREST_EVENTS": True,
-        "EXPERIENCE": False,
+        "EXPERIENCE": True,
         "GAMES": {"BLACKJACK": True, "ROULETTE": False},
         "ORDERS": True,
         "REQUESTS": True,
-        "SCORES": False,
+        "SCORES": True,
         "COUNTING_BOOSTS": False,
         "ADDING_REACTIONS_THREADS": True,
     },
