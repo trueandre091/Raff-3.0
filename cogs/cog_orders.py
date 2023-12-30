@@ -13,8 +13,12 @@ class Commands(commands.Cog):
         self.bot = bot
 
     @commands.slash_command(description="Сделать заказ в баре")
-    async def сделать_заказ(self, interaction: disnake.ApplicationCommandInteraction, сообщение: str):
-        settings = await guild_sets_check(interaction.guild.id, "GENERAL_SETTINGS", "ORDERS")
+    async def сделать_заказ(
+        self, interaction: disnake.ApplicationCommandInteraction, сообщение: str
+    ):
+        settings = await guild_sets_check(
+            interaction.guild.id, "GENERAL_SETTINGS", "ORDERS"
+        )
         if not settings:
             return
 
@@ -41,7 +45,9 @@ class Commands(commands.Cog):
                 color=0x2B2D31,
                 timestamp=datetime.now(),
             )
-            embed.set_footer(text="Тоже хочешь заказать что-нибудь? Пропиши /сделать_заказ через нашего бота!")
+            embed.set_footer(
+                text="Тоже хочешь заказать что-нибудь? Пропиши /сделать_заказ через нашего бота!"
+            )
 
             await interaction.response.send_message(
                 f"Доброго времени суток {interaction.author.mention}! Бармен скоро подойдёт 🐥",

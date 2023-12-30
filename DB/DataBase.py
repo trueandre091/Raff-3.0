@@ -674,21 +674,23 @@ class GuildsDBase(DataBase):
 
                 for user in res:
                     if len(user_list) != 20:
-                        user_data = {
-                            "username": user.username,
-                            "ds_id": user.ds_id,
-                            "scores": user.scores,
-                            "experience": user.experience,
-                            "messages": user.messages,
-                        }
-                        user_list.append(user_data)
+                        user_list.append(user)
+                        # user_data = {
+                        #     "username": user.username,
+                        #     "ds_id": user.ds_id,
+                        #     "scores": user.scores,
+                        #     "experience": user.experience,
+                        #     "messages": user.messages,
+                        # }
+                        # user_list.append(user_data)
                     else:
                         break
 
-                sorted_res = sorted(user_list, key=lambda x: x["scores"], reverse=True)
+                # sorted_res = sorted(user_list, key=lambda x: x["scores"], reverse=True)
+                sorted_res = sorted(user_list, key=lambda x: x.scores, reverse=True)
 
                 print(sorted_res)
-                return res
+                return sorted_res
 
             except:
                 print("Something went wrong when get users top in guild by scores")
@@ -719,21 +721,23 @@ class GuildsDBase(DataBase):
 
                 for user in res:
                     if len(user_list) != 20:
-                        user_data = {
-                            "username": user.username,
-                            "ds_id": user.ds_id,
-                            "scores": user.scores,
-                            "experience": user.experience,
-                            "messages": user.messages,
-                        }
-                        user_list.append(user_data)
+                        user_list.append(user)
+                        # user_data = {
+                        #     "username": user.username,
+                        #     "ds_id": user.ds_id,
+                        #     "scores": user.scores,
+                        #     "experience": user.experience,
+                        #     "messages": user.messages,
+                        # }
+                        # user_list.append(user_data)
                     else:
                         break
 
-                sorted_res = sorted(user_list, key=lambda x: x["messages"], reverse=True)
+                # sorted_res = sorted(user_list, key=lambda x: x["messages"], reverse=True)
+                sorted_res = sorted(user_list, key=lambda x: x.messages, reverse=True)
 
                 print(sorted_res)
-                return res
+                return sorted_res
 
             except:
                 print("Something went wrong when get users top in guild by count of messages")

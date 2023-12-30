@@ -23,7 +23,11 @@ class AutoUpdateMessagesTop(commands.Cog):
         today = datetime.now(timezone(timedelta(hours=3)))
         if int(today.weekday()) == 0 and 0 <= int(today.strftime("%H")) <= 12:
             guilds = await find_guilds_by_param(
-                self.bot, "GENERAL_SETTINGS", "AUTOUPDATE_MESSAGES", "MESSAGES", encode=False
+                self.bot,
+                "GENERAL_SETTINGS",
+                "AUTOUPDATE_MESSAGES",
+                "MESSAGES",
+                encode=False,
             )
 
             for guild in guilds:
@@ -35,21 +39,24 @@ class AutoUpdateMessagesTop(commands.Cog):
     async def before(self):
         await self.bot.wait_until_ready()
 
-    @tasks.loop(seconds=10)
+    @tasks.loop(seconds=45)
     async def aup_top(self):
-        guilds = await find_guilds_by_param(self.bot, "GENERAL_SETTINGS", "AUTOUPDATE_MESSAGES", "MESSAGES")
+        guilds = await find_guilds_by_param(
+            self.bot, "GENERAL_SETTINGS", "AUTOUPDATE_MESSAGES", "MESSAGES"
+        )
 
         for settings in guilds:
-            channel = self.bot.get_channel(settings["COGS_SETTINGS"]["AUTOUPDATE"]["CHANNEL"])
+            channel = self.bot.get_channel(
+                settings["COGS_SETTINGS"]["AUTOUPDATE"]["CHANNEL"]
+            )
             guild = self.bot.get_guild(settings["GUILD_ID"])
             if channel is None:
                 continue
 
             try:
-                top = await DB.get_top_users_by_messages()
+                top = await GDB.get_top_users_by_messages(guild.id)
             except:
                 continue
-            print(top)
             if top is None:
                 continue
 
@@ -58,22 +65,37 @@ class AutoUpdateMessagesTop(commands.Cog):
                 "description": "",
                 "fields": [],
                 "color": 0x2B2D31,
-                "footer": {"text": guild.name, "icon_url": guild.icon.url},
+                "footer": {},
             }
+            try:
+                embed_dict["footer"] = {"text": guild.name, "icon_url": guild.icon.url}
+            except:
+                embed_dict["footer"] = {
+                    "text": guild.name,
+                    "icon_url": "https://im.wampi.ru/2023/11/02/Bez_nazvania1_20211210115049.png",
+                }
 
             place = 1
             for user in top:
-                if place <= settings["COGS_SETTINGS"]["AUTOUPDATE"]["MESSAGES"]["PLACE_LIMIT"]:
+                if (
+                    place
+                    <= settings["COGS_SETTINGS"]["AUTOUPDATE"]["MESSAGES"]["PLACE_LIMIT"]
+                ):
                     member = guild.get_member(user.ds_id)
                     if member is None or user.messages == 0:
                         continue
-                    embed_dict["description"] += f"`{place}.` {member.mention} - {user.messages}\n"
+                    embed_dict[
+                        "description"
+                    ] += f"`{place}.` {member.mention} - {user.messages}\n"
                     place += 1
 
             flag = True
             async for msg in channel.history(limit=50):
                 try:
-                    if "Таблица лидеров по сообщениям за неделю" in msg.embeds[0].to_dict()["title"]:
+                    if (
+                        "Таблица лидеров по сообщениям за неделю"
+                        in msg.embeds[0].to_dict()["title"]
+                    ):
                         await msg.edit(embed=disnake.Embed.from_dict(embed_dict))
                         flag = False
                         break
@@ -94,12 +116,16 @@ class AutoUpdateScoresTop(commands.Cog):
         self.bot = bot
         self.aup_top.start()
 
-    @tasks.loop(seconds=15)
+    @tasks.loop(minutes=1)
     async def aup_top(self):
-        guilds = await find_guilds_by_param(self.bot, "GENERAL_SETTINGS", "AUTOUPDATE_MESSAGES", "SCORES")
+        guilds = await find_guilds_by_param(
+            self.bot, "GENERAL_SETTINGS", "AUTOUPDATE_MESSAGES", "SCORES"
+        )
 
         for settings in guilds:
-            channel = self.bot.get_channel(settings["COGS_SETTINGS"]["AUTOUPDATE"]["CHANNEL"])
+            channel = self.bot.get_channel(
+                settings["COGS_SETTINGS"]["AUTOUPDATE"]["CHANNEL"]
+            )
             if channel is None:
                 continue
 
@@ -108,8 +134,19 @@ class AutoUpdateScoresTop(commands.Cog):
                 "description": "",
                 "fields": [],
                 "color": 0x2B2D31,
-                "footer": {"text": channel.guild.name, "icon_url": channel.guild.icon.url},
+                "footer": {},
             }
+            try:
+                embed_dict["footer"] = {
+                    "text": channel.guild.name,
+                    "icon_url": channel.guild.icon.url,
+                }
+            except:
+                embed_dict["footer"] = {
+                    "text": channel.guild.name,
+                    "icon_url": "https://im.wampi.ru/2023/11/02/Bez_nazvania1_20211210115049.png",
+                }
+
             embed_dict = await top_create_embed(self.bot, settings, embed_dict)
 
             flag = True

@@ -52,9 +52,7 @@ class CheckCommands(commands.Cog):
             "fields": [],
             "color": 0x2B2D31,
         }
-        await interaction.response.send_message(
-            embed=disnake.Embed.from_dict(embed_dict)
-        )
+        await interaction.response.send_message(embed=disnake.Embed.from_dict(embed_dict))
 
         data = await load_database()
         for key, value in data.items():

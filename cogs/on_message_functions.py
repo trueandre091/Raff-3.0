@@ -104,7 +104,10 @@ async def boosts_check(message: disnake.Message, settings: dict) -> None:
             skip_first_flag = False
             async for msg in message.channel.history(limit=50):
                 if skip_first_flag:
-                    if msg.type == disnake.MessageType.application_command and msg.interaction.name == "up":
+                    if (
+                        msg.type == disnake.MessageType.application_command
+                        and msg.interaction.name == "up"
+                    ):
                         flag = False
                     if msg.author.id == settings["REMINDER"] and "/up" in msg.content:
                         break
@@ -114,11 +117,16 @@ async def boosts_check(message: disnake.Message, settings: dict) -> None:
                 await counter_functions.count_users_boosts(message.interaction.user.id)
 
         if message.author.id == settings["BOOST_BOTS"]["DSMonitoring"]:
-            if "Вы успешно лайкнули сервер." in message.embeds[-1].to_dict()["description"]:
+            if (
+                "Вы успешно лайкнули сервер."
+                in message.embeds[-1].to_dict()["description"]
+            ):
                 await counter_functions.count_users_boosts(message.interaction.user.id)
 
 
-async def order_command_check(bot: commands.Bot, message: disnake.Message, settings: dict) -> None:
+async def order_command_check(
+    bot: commands.Bot, message: disnake.Message, settings: dict
+) -> None:
     """A temporary way to use the slash command '/заказ'"""
     if message.guild.id != 785312593614209055:
         return
@@ -144,7 +152,9 @@ async def order_command_check(bot: commands.Bot, message: disnake.Message, setti
                 color=0x2B2D31,
                 timestamp=datetime.now(),
             )
-            embed.set_footer(text="Тоже хочешь заказать что-нибудь? Пропиши /заказ через нашего бота!")
+            embed.set_footer(
+                text="Тоже хочешь заказать что-нибудь? Пропиши /заказ через нашего бота!"
+            )
 
             await message.reply(
                 f"Доброго времени суток {message.author.mention}! Бармен скоро подойдёт 🐥",

@@ -1,4 +1,5 @@
 GUILD_CONFIG = {
+    "GUILD_ID": None,
     "TIMERS": {
         "CHANNEL": None,
         "MESSAGE": "Таймер",
@@ -40,7 +41,10 @@ GUILD_CONFIG = {
     },
     "MODERATION_SETTINGS": {"GIF": {"MESSAGES_FOR_GIF": 10}},
     "BOOSTS_COUNTING_SETTINGS": {
-        "BOOST_BOTS": {"DSMonitoring": 575776004233232386, "SD.C Monitoring": 464272403766444044},
+        "BOOST_BOTS": {
+            "DSMonitoring": 575776004233232386,
+            "SD.C Monitoring": 464272403766444044,
+        },
         "REMINDER": 478321260481478677,
     },
     "COGS_SETTINGS": {
@@ -68,7 +72,10 @@ GUILD_CONFIG = {
             "SCORES": {"PLACE_LIMIT": 20},
             "CHANNEL": None,
         },
-        "NEAREST_EVENTS": {"CHANNEL": None, "CATEGORIES": ["Еженедельный ивент", "Особый ивент"]},
+        "NEAREST_EVENTS": {
+            "CHANNEL": None,
+            "CATEGORIES": ["Еженедельный ивент", "Особый ивент"],
+        },
         "ORDERS": {"CHANNEL": None, "BARMEN_ROLE": None},
         "REQUESTS": {
             "BUTTONS_MESSAGE": {

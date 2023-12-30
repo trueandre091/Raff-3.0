@@ -430,7 +430,6 @@ class GuildSetsGamesView(View):
         value = selectMenu.values[0]
 
         if value == "blackjack":
-
             await stud_interaction(interaction)
             await GuildSettings.create_blackjack_view(self.parent)
 
