@@ -35,7 +35,9 @@ class UserDBase(DataBase):
     You can choose echo mode by passing the echo_mode parameter
     """
 
-    async def add_user(self, data: Union[dict, list[dict]]) -> Union[Users, list[Users], None]:
+    async def add_user(
+        self, data: Union[dict, list[dict]]
+    ) -> Union[Users, list[Users], None]:
         """
         Adds a user to the database
 
@@ -175,18 +177,28 @@ class UserDBase(DataBase):
             for data in data:
                 if type(data) is list:
                     for ds_id in data:
-                        user = select(Users).options(selectinload(Users.guilds)).filter_by(ds_id=ds_id)
+                        user = (
+                            select(Users)
+                            .options(selectinload(Users.guilds))
+                            .filter_by(ds_id=ds_id)
+                        )
 
                         user = session.scalars(user).first()
                         if not user:
-                            print("Something went wrong when get user with guilds for relationship")
+                            print(
+                                "Something went wrong when get user with guilds for relationship"
+                            )
                             return
 
                         user_list.append(user)
 
                 else:
                     if "ds_id" in data.keys():
-                        user = select(Users).options(selectinload(Users.guilds)).filter_by(ds_id=data["ds_id"])
+                        user = (
+                            select(Users)
+                            .options(selectinload(Users.guilds))
+                            .filter_by(ds_id=data["ds_id"])
+                        )
                         user = session.scalars(user).first()
                         if not user:
                             print("Can't find user by discord id in database")
@@ -195,7 +207,11 @@ class UserDBase(DataBase):
                         user_list.append(user)
 
                     elif "username" in data.keys():
-                        user = select(Users).options(selectinload(Users.guilds)).filter_by(username=data["username"])
+                        user = (
+                            select(Users)
+                            .options(selectinload(Users.guilds))
+                            .filter_by(username=data["username"])
+                        )
                         user = session.scalars(user).first()
                         if not user:
                             print("Can't find user by username in database")
@@ -211,7 +227,9 @@ class UserDBase(DataBase):
 
         return
 
-    async def get_user(self, data: Union[dict, list[dict]]) -> Union[Users, list[Users], None]:
+    async def get_user(
+        self, data: Union[dict, list[dict]]
+    ) -> Union[Users, list[Users], None]:
         """
         Calls staticmethod get_user_static
 
@@ -239,7 +257,9 @@ class UserDBase(DataBase):
 
             return user
 
-    async def get_user_with_guilds(self, data: Union[dict, list[dict]]) -> Union[Users, list[Users], None]:
+    async def get_user_with_guilds(
+        self, data: Union[dict, list[dict]]
+    ) -> Union[Users, list[Users], None]:
         """
         Calls staticmethod get_user_static_with_guilds
 
@@ -266,7 +286,9 @@ class UserDBase(DataBase):
 
             return user
 
-    async def update_user(self, data: Union[dict, list[dict]]) -> Union[Users, list[Users], None]:
+    async def update_user(
+        self, data: Union[dict, list[dict]]
+    ) -> Union[Users, list[Users], None]:
         """
         Updates user from database. Use get_user_static for getting user.
 
@@ -293,11 +315,25 @@ class UserDBase(DataBase):
                 for data in data:
                     for user in users:
                         if data["ds_id"] == user.ds_id:
-                            user.username = user.username if data.get("username") is None else data["username"]
-                            user.scores = user.scores if data.get("scores") is None else data["scores"]
-                            user.experience = user.experience if data.get("experience") is None else data["experience"]
+                            user.username = (
+                                user.username
+                                if data.get("username") is None
+                                else data["username"]
+                            )
+                            user.scores = (
+                                user.scores
+                                if data.get("scores") is None
+                                else data["scores"]
+                            )
+                            user.experience = (
+                                user.experience
+                                if data.get("experience") is None
+                                else data["experience"]
+                            )
                             user.messages = (
-                                user.messages if data.get("messages") is None else data["messages"]
+                                user.messages
+                                if data.get("messages") is None
+                                else data["messages"]
                             )
 
                 session.commit()
@@ -366,7 +402,9 @@ class GuildsDBase(DataBase):
     You can choose echo mode by passing the echo_mode parameter
     """
 
-    async def add_guild(self, data: Union[dict, list[dict]]) -> Union[Guilds, list[Guilds], None]:
+    async def add_guild(
+        self, data: Union[dict, list[dict]]
+    ) -> Union[Guilds, list[Guilds], None]:
         """
         Adds a guild to the database
 
@@ -392,7 +430,9 @@ class GuildsDBase(DataBase):
                     guild = Guilds(
                         guild_id=data["guild_id"],
                         guild_name=data["guild_name"],
-                        count_members=0 if data.get("count_members") is None else data["count_members"],
+                        count_members=0
+                        if data.get("count_members") is None
+                        else data["count_members"],
                     )
 
                     session.add(guild)
@@ -502,7 +542,11 @@ class GuildsDBase(DataBase):
             for data in data:
                 if type(data) is list:
                     for guild_id in data:
-                        guild = select(Guilds).options(selectinload(Guilds.users)).filter_by(guild_id=guild_id)
+                        guild = (
+                            select(Guilds)
+                            .options(selectinload(Guilds.users))
+                            .filter_by(guild_id=guild_id)
+                        )
 
                         guild = session.scalars(guild).first()
                         if not guild:
@@ -513,7 +557,11 @@ class GuildsDBase(DataBase):
 
                 else:
                     if "guild_id" in data.keys():
-                        guild = select(Guilds).options(selectinload(Guilds.users)).filter_by(guild_id=data["guild_id"])
+                        guild = (
+                            select(Guilds)
+                            .options(selectinload(Guilds.users))
+                            .filter_by(guild_id=data["guild_id"])
+                        )
 
                         guild = session.scalars(guild).first()
                         if not guild:
@@ -524,7 +572,9 @@ class GuildsDBase(DataBase):
 
                     elif "guild_name" in data.keys():
                         guild = (
-                            select(Guilds).options(selectinload(Guilds.users)).filter_by(guild_name=data["guild_name"])
+                            select(Guilds)
+                            .options(selectinload(Guilds.users))
+                            .filter_by(guild_name=data["guild_name"])
                         )
 
                         guild = session.scalars(guild).first()
@@ -542,7 +592,9 @@ class GuildsDBase(DataBase):
 
         return
 
-    async def get_guild(self, data: Union[dict, list[dict]]) -> Union[Guilds, list[Guilds], None]:
+    async def get_guild(
+        self, data: Union[dict, list[dict]]
+    ) -> Union[Guilds, list[Guilds], None]:
         """
         Calls staticmethod get_guild_static
 
@@ -569,7 +621,9 @@ class GuildsDBase(DataBase):
 
             return guild
 
-    async def get_guild_with_users(self, data: Union[dict, list[dict]]) -> Union[Guilds, list[Guilds], None]:
+    async def get_guild_with_users(
+        self, data: Union[dict, list[dict]]
+    ) -> Union[Guilds, list[Guilds], None]:
         """
         Calls staticmethod get_guild_static_with_users
 
@@ -595,7 +649,9 @@ class GuildsDBase(DataBase):
 
             return guild
 
-    async def update_guild(self, data: Union[dict, list[dict]]) -> Union[Guilds, list[Guilds], None]:
+    async def update_guild(
+        self, data: Union[dict, list[dict]]
+    ) -> Union[Guilds, list[Guilds], None]:
         """
         Updates guild from database. Use get_guild_static for getting user.
 
@@ -626,17 +682,25 @@ class GuildsDBase(DataBase):
                             if data.get("guild_sets"):
                                 enc = JsonEncoder()
                                 data["guild_sets"] = (
-                                    None if data.get("guild_sets") is None else enc.code_to_json(data["guild_sets"])
+                                    None
+                                    if data.get("guild_sets") is None
+                                    else enc.code_to_json(data["guild_sets"])
                                 )
 
                             guild.guild_name = (
-                                guild.guild_name if data.get("guild_name") is None else data["guild_name"]
+                                guild.guild_name
+                                if data.get("guild_name") is None
+                                else data["guild_name"]
                             )
                             guild.count_members = (
-                                guild.count_members if data.get("count_members") is None else data["count_members"]
+                                guild.count_members
+                                if data.get("count_members") is None
+                                else data["count_members"]
                             )
                             guild.guild_sets = (
-                                guild.guild_sets if data.get("guild_sets") is None else data["guild_sets"]
+                                guild.guild_sets
+                                if data.get("guild_sets") is None
+                                else data["guild_sets"]
                             )
 
                             guilds_list.append(guild)
@@ -663,7 +727,11 @@ class GuildsDBase(DataBase):
         user_list = []
         with self.Session() as session:
             try:
-                guilds = select(Guilds).options(selectinload(Guilds.users)).filter_by(guild_id=guild_id)
+                guilds = (
+                    select(Guilds)
+                    .options(selectinload(Guilds.users))
+                    .filter_by(guild_id=guild_id)
+                )
 
                 res = session.scalars(guilds).first()
                 if not res:
@@ -710,7 +778,11 @@ class GuildsDBase(DataBase):
         user_list = []
         with self.Session() as session:
             try:
-                guilds = select(Guilds).options(selectinload(Guilds.users)).filter_by(guild_id=guild_id)
+                guilds = (
+                    select(Guilds)
+                    .options(selectinload(Guilds.users))
+                    .filter_by(guild_id=guild_id)
+                )
 
                 res = session.scalars(guilds).first()
                 if not res:
@@ -740,7 +812,9 @@ class GuildsDBase(DataBase):
                 return sorted_res
 
             except:
-                print("Something went wrong when get users top in guild by count of messages")
+                print(
+                    "Something went wrong when get users top in guild by count of messages"
+                )
                 print(traceback.format_exc())
 
         return
@@ -783,8 +857,17 @@ class RelationshipsDBase(DataBase):
         with self.Session() as session:
             try:
                 for data in data:
-                    received_users = self.users_db.get_user_static_with_guilds(session, data["users"])
-                    received_guilds = self.guilds_db.get_guild_static_with_users(session, data["guilds"])
+                    received_users = self.users_db.get_user_static_with_guilds(
+                        session, data["users"]
+                    )
+                    received_guilds = self.guilds_db.get_guild_static_with_users(
+                        session, data["guilds"]
+                    )
+
+                    if type(received_users) is not list:
+                        received_users = [received_users]
+                    if type(received_guilds) is not list:
+                        received_guilds = [received_guilds]
 
                     for guild in received_guilds:
                         for user in received_users:
@@ -796,7 +879,9 @@ class RelationshipsDBase(DataBase):
                 return True
 
             except Exception:
-                print("Something went wrong when add relationships between users and guilds")
+                print(
+                    "Something went wrong when add relationships between users and guilds"
+                )
                 print(traceback.format_exc())
 
         return
@@ -818,8 +903,12 @@ class RelationshipsDBase(DataBase):
         with self.Session() as session:
             try:
                 for data in data:
-                    received_users = self.users_db.get_user_static_with_guilds(session, data["users"])
-                    received_guilds = self.guilds_db.get_guild_static_with_users(session, data["guilds"])
+                    received_users = self.users_db.get_user_static_with_guilds(
+                        session, data["users"]
+                    )
+                    received_guilds = self.guilds_db.get_guild_static_with_users(
+                        session, data["guilds"]
+                    )
 
                     # guild[0].users.remove(user[0])
 
@@ -834,7 +923,9 @@ class RelationshipsDBase(DataBase):
                 return True
 
             except Exception:
-                print("Something went wrong when delete relationships between users and guilds")
+                print(
+                    "Something went wrong when delete relationships between users and guilds"
+                )
                 print(traceback.format_exc())
 
         return

@@ -11,22 +11,24 @@ bot = commands.Bot(
     intents=disnake.Intents.all(),
     chunk_guilds_at_startup=False,
 )
-bot.load_extension("cogs.cog_autoupdate")
-bot.load_extension("cogs.cog_counters")
-bot.load_extension("cogs.cog_events")
-bot.load_extension("cogs.cog_games")
-bot.load_extension("cogs.cog_orders")
-bot.load_extension("cogs.cog_requests")
-bot.load_extension("cogs.cog_scores")
-bot.load_extension("cogs.cog_special")
-bot.load_extension("cogs.cog_experience")
+# bot.load_extension("cogs.cog_autoupdate")
+# bot.load_extension("cogs.cog_counters")
+# bot.load_extension("cogs.cog_events")
+# bot.load_extension("cogs.cog_games")
+# bot.load_extension("cogs.cog_orders")
+# bot.load_extension("cogs.cog_requests")
+# bot.load_extension("cogs.cog_scores")
+# bot.load_extension("cogs.cog_special")
+# bot.load_extension("cogs.cog_experience")
+# bot.load_extension("cogs.cog_setguilds")
 
-bot.load_extension("cogs.cog_setguilds")
+bot.load_extension("cogs.guilds_functions")
 
 
 @bot.event
 async def on_member_join(member: disnake.Member):
     """Greeting newbies when they come"""
+
     settings = await guild_sets_check(member.guild.id, "GENERAL_SETTINGS", "WELCOME")
     if settings is None:
         return
@@ -56,7 +58,7 @@ async def on_member_join(member: disnake.Member):
 
 
 @bot.event
-async def on_member_remove(member):
+async def on_member_remove(member: disnake.Member):
     """Farewell to members when they leave"""
     settings = await guild_sets_check(member.guild.id, "GENERAL_SETTINGS", "FAREWELL")
     if settings is None:
@@ -75,7 +77,7 @@ async def on_member_remove(member):
 
 
 @bot.event
-async def on_message(message):
+async def on_message(message: disnake.Message):
     """On every sent message functions"""
     guild = await guild_sets_check(message.guild.id)
     if guild is None:
@@ -113,40 +115,36 @@ async def on_guild_join(guild: disnake.Guild):
 async def on_ready():
     """Bot writes in console when it starts"""
     print(f"Bot {bot.user} is ready to work!")
-    guild = await GDB.get_guild({"guild_id": 785312593614209055})
-    guild1 = await GDB.get_guild({"guild_id": 1189637072030531695})
-    if guild is None:
-        await GDB.add_guild(
-            {
-                "guild_id": 785312593614209055,
-                "guild_name": "Homey Temple",
-                "guild_sets": dicts,
-            }
-        )
-    else:
-        await GDB.update_guild(
-            {
-                "guild_id": 785312593614209055,
-                "guild_name": "Homey Temple",
-                "guild_sets": dicts,
-            }
-        )
-    if guild1 is None:
-        await GDB.add_guild(
-            {
-                "guild_id": 1189637072030531695,
-                "guild_name": "Raff 3.0 test server",
-                "guild_sets": dicts1,
-            }
-        )
-    else:
-        await GDB.update_guild(
-            {
-                "guild_id": 1189637072030531695,
-                "guild_name": "Raff 3.0 test server",
-                "guild_sets": dicts1,
-            }
-        )
+    # guild = await GDB.add_guild(
+    #     {
+    #         "guild_id": 785312593614209055,
+    #         "guild_name": "Homey Temple",
+    #         "guild_sets": dicts,
+    #     }
+    # )
+    # guild1 = await GDB.add_guild(
+    #     {
+    #         "guild_id": 1189637072030531695,
+    #         "guild_name": "Raff 3.0 test server",
+    #         "guild_sets": dicts1,
+    #     }
+    # )
+    # if guild:
+    #     await GDB.update_guild(
+    #         {
+    #             "guild_id": 785312593614209055,
+    #             "guild_name": "Homey Temple",
+    #             "guild_sets": dicts,
+    #         }
+    #     )
+    # if guild1:
+    #     await GDB.update_guild(
+    #         {
+    #             "guild_id": 1189637072030531695,
+    #             "guild_name": "Raff 3.0 test server",
+    #             "guild_sets": dicts1,
+    #         }
+    #     )
 
 
 bot.run(cfg.TOKEN)

@@ -112,12 +112,6 @@ class ScoresOperations(commands.Cog):
             await DB.add_user(
                 {"ds_id": участник.id, "username": участник.name, "scores": количество}
             )
-            await RDB.add_relationship(
-                {
-                    "users": [{"ds_id": участник.id}],
-                    "guilds": [{"guild_id": interaction.guild.id}],
-                }
-            )
         else:
             await DB.update_user(
                 {
@@ -126,15 +120,6 @@ class ScoresOperations(commands.Cog):
                     "scores": user.scores + количество,
                 }
             )
-            user = await DB.get_user_with_guilds({"ds_id": user.ds_id})
-            guild = await GDB.get_guild({"guild_id": interaction.guild.id})
-            if guild not in user.guilds:
-                await RDB.add_relationship(
-                    {
-                        "users": [{"ds_id": участник.id}],
-                        "guilds": [{"guild_id": interaction.guild.id}],
-                    }
-                )
 
         user = await DB.get_user({"ds_id": участник.id})
         await interaction.response.send_message(f"Теперь у {участник} {user.scores} оч.")
@@ -273,12 +258,6 @@ class ScoresOperations(commands.Cog):
                 await DB.add_user(
                     {"ds_id": member_id, "username": member.name, "scores": количество}
                 )
-                await RDB.add_relationship(
-                    {
-                        "users": [{"ds_id": member_id}],
-                        "guilds": [{"guild_id": guild.id}],
-                    }
-                )
                 members_list_values.append(количество)
             else:
                 await DB.update_user(
@@ -288,15 +267,6 @@ class ScoresOperations(commands.Cog):
                         "scores": user.scores + количество,
                     }
                 )
-                user = await DB.get_user_with_guilds({"ds_id": user.ds_id})
-                guild = await GDB.get_guild({"guild_id": interaction.guild.id})
-                if guild not in user.guilds:
-                    await RDB.add_relationship(
-                        {
-                            "users": [{"ds_id": user.ds_id}],
-                            "guilds": [{"guild_id": interaction.guild.id}],
-                        }
-                    )
                 members_list_values.append(user.scores + количество)
 
         members_dict = dict(zip(members_list, members_list_values))
@@ -350,15 +320,6 @@ class ScoresOperations(commands.Cog):
             await DB.update_user(
                 {"ds_id": участник.id, "username": участник.name, "scores": количество}
             )
-            user = await DB.get_user_with_guilds({"ds_id": user.ds_id})
-            guild = await GDB.get_guild({"guild_id": interaction.guild.id})
-            if guild not in user.guilds:
-                await RDB.add_relationship(
-                    {
-                        "users": [{"ds_id": user.ds_id}],
-                        "guilds": [{"guild_id": interaction.guild.id}],
-                    }
-                )
 
         await interaction.response.send_message(f"У {участник} теперь {количество}")
 

@@ -3,7 +3,7 @@ from disnake.ext import commands
 from random import randint
 import math
 
-from cogs.guilds_functions import guild_sets_check, DB, RDB, GDB
+from cogs.guilds_functions import guild_sets_check, DB
 from DB.models import Users
 
 
@@ -50,12 +50,6 @@ async def count_experience(message: disnake.Message, settings: dict):
                     "experience": ex,
                 }
             )
-            await RDB.add_relationship(
-                {
-                    "users": [{"ds_id": message.author.id}],
-                    "guilds": [{"guild_id": message.guild.id}],
-                }
-            )
         else:
             await DB.update_user(
                 {
@@ -64,15 +58,6 @@ async def count_experience(message: disnake.Message, settings: dict):
                     "experience": user.experience + ex,
                 }
             )
-            user = await DB.get_user_with_guilds({"ds_id": user.ds_id})
-            guild = await GDB.get_guild({"guild_id": message.guild.id})
-            if guild not in user.guilds:
-                await RDB.add_relationship(
-                    {
-                        "users": [{"ds_id": user.ds_id}],
-                        "guilds": [{"guild_id": message.guild.id}],
-                    }
-                )
 
     lvl2 = await convert_ex_to_lvl(
         await DB.get_user({"ds_id": message.author.id}), settings["FACTOR"]
@@ -124,12 +109,6 @@ class ExperienceCommands(commands.Cog):
                         "experience": количество,
                     }
                 )
-                await RDB.add_relationship(
-                    {
-                        "users": [{"ds_id": member_id}],
-                        "guilds": [{"guild_id": interaction.guild.id}],
-                    }
-                )
                 members_list_values.append(количество)
             else:
                 await DB.update_user(
@@ -139,15 +118,6 @@ class ExperienceCommands(commands.Cog):
                         "experience": user.experience + количество,
                     }
                 )
-                user = await DB.get_user_with_guilds({"ds_id": user.ds_id})
-                guild = await GDB.get_guild({"guild_id": interaction.guild.id})
-                if guild not in user.guilds:
-                    await RDB.add_relationship(
-                        {
-                            "users": [{"ds_id": user.ds_id}],
-                            "guilds": [{"guild_id": interaction.guild.id}],
-                        }
-                    )
                 members_list_values.append(user.experience + количество)
 
         members_dict = dict(zip(members_list, members_list_values))

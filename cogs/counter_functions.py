@@ -58,12 +58,6 @@ async def count_every_message(message: disnake.Message) -> None:
             await DB.add_user(
                 {"ds_id": author_id, "username": message.author.name, "messages": 1}
             )
-            await RDB.add_relationship(
-                {
-                    "users": [{"ds_id": author_id}],
-                    "guilds": [{"guild_id": message.guild.id}],
-                }
-            )
         else:
             await DB.update_user(
                 {
@@ -72,15 +66,6 @@ async def count_every_message(message: disnake.Message) -> None:
                     "messages": user.messages + 1,
                 }
             )
-            user = await DB.get_user_with_guilds({"ds_id": user.ds_id})
-            guild = await GDB.get_guild({"guild_id": message.guild.id})
-            if guild not in user.guilds:
-                await RDB.add_relationship(
-                    {
-                        "users": [{"ds_id": user.ds_id}],
-                        "guilds": [{"guild_id": message.guild.id}],
-                    }
-                )
 
 
 async def count_users_boosts(author_id: int) -> None:
