@@ -11,16 +11,16 @@ bot = commands.Bot(
     intents=disnake.Intents.all(),
     chunk_guilds_at_startup=False,
 )
-# bot.load_extension("cogs.cog_autoupdate")
-# bot.load_extension("cogs.cog_counters")
-# bot.load_extension("cogs.cog_events")
-# bot.load_extension("cogs.cog_games")
-# bot.load_extension("cogs.cog_orders")
-# bot.load_extension("cogs.cog_requests")
-# bot.load_extension("cogs.cog_scores")
-# bot.load_extension("cogs.cog_special")
-# bot.load_extension("cogs.cog_experience")
-# bot.load_extension("cogs.cog_setguilds")
+bot.load_extension("cogs.cog_autoupdate")
+bot.load_extension("cogs.cog_counters")
+bot.load_extension("cogs.cog_events")
+bot.load_extension("cogs.cog_games")
+bot.load_extension("cogs.cog_orders")
+bot.load_extension("cogs.cog_requests")
+bot.load_extension("cogs.cog_scores")
+bot.load_extension("cogs.cog_special")
+bot.load_extension("cogs.cog_experience")
+bot.load_extension("cogs.cog_setguilds")
 
 bot.load_extension("cogs.guilds_functions")
 
@@ -28,7 +28,6 @@ bot.load_extension("cogs.guilds_functions")
 @bot.event
 async def on_member_join(member: disnake.Member):
     """Greeting newbies when they come"""
-
     settings = await guild_sets_check(member.guild.id, "GENERAL_SETTINGS", "WELCOME")
     if settings is None:
         return

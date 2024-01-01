@@ -24,7 +24,7 @@ class Base(DeclarativeBase):
         return f"<{self.__class__.__name__} {', '.join(cols)}>"
 
 
-class GuildUser(Base):
+class Guild_User(Base):
     """Sheet for connect between Users and Guilds models"""
 
     __tablename__ = "guild_user"
