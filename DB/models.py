@@ -99,10 +99,10 @@ class Guilds(Base):
 
 if __name__ == "__main__":
     engine = create_engine("sqlite:///DataBase.db", echo=True)
-    # Guild_User.__table__.drop(engine)
-    # Users.__table__.drop(engine)
-    # Guilds.__table__.drop(engine)
-    Base.metadata.drop_all(engine)
+    Guild_User.__table__.drop(engine)
+    Users.__table__.drop(engine)
+    Guilds.__table__.drop(engine)
+    # Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
 
     # res = JsonEncoder.code_to_json(GUILD_CONFIG)

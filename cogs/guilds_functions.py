@@ -88,26 +88,30 @@ class AutoRelationshipsAdding(commands.Cog):
 
     @tasks.loop(minutes=10)
     async def auto_relations_adding(self):
-        db_users = set()
-        users = await DB.get_top_users_by_scores()
-        for user in users:
-            db_users.add(user.ds_id)
+        users = await DB.get_all_users_with_guilds()
+        if users is None:
+            return
 
-        rdb_users = set()
         for guild in self.bot.guilds:
-            guild_with_users = await GDB.get_guild_with_users({"guild_id": guild.id})
-            if guild_with_users is None:
-                continue
+            rdb_guild = await GDB.get_guild_with_users({"guild_id": guild.id})
+            for user in users:
+                if guild.get_member(user.ds_id):
+                    await RDB.add_relationship(
+                        {
+                            "users": [{"ds_id": user.ds_id}],
+                            "guilds": [{"guild_id": guild.id}],
+                        }
+                    )
 
-            for user in guild_with_users.users:
-                rdb_users.add(user.ds_id)
-
-        users_to_add = db_users - rdb_users
-        for user_id in users_to_add:
-            user = await self.bot.fetch_user(user_id)
-            guilds = [{"guild_id": guild.id} for guild in user.mutual_guilds]
-
-            await RDB.add_relationship({"users": {"ds_id": user_id}, "guilds": guilds})
+            for user in rdb_guild.users:
+                if guild.get_member(user.ds_id) is None:
+                    await RDB.delete_relationship(
+                        {
+                            "users": [{"ds_id": user.ds_id}],
+                            "guilds": [{"guild_id": guild.id}],
+                        }
+                    )
+                    continue
 
     @auto_relations_adding.before_loop
     async def before(self):
