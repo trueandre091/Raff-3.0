@@ -64,6 +64,23 @@ async def test_get_some_users_with_guilds(users_echo=False):
         print(user.guilds)
 
 
+async def test_get_all_users(users_echo=False):
+    db = UserDBase(users_echo)
+
+    res = await db.get_all_users()
+
+    print(res)
+
+
+async def test_get_all_users_with_guilds(users_echo=False):
+    db = UserDBase(users_echo)
+
+    res = await db.get_all_users_with_guilds()
+
+    for user in res:
+        print(user.guilds)
+
+
 async def test_update_user(users_echo=False):
     db = UserDBase(users_echo)
 
@@ -141,6 +158,23 @@ async def test_get_some_guilds(guilds_echo=False):
     data = [{"guild_id": 710525764470308975}, {"guild_id": 785312593614209055}]
 
     await db.get_guild(data)
+
+
+async def test_get_all_guilds(guilds_echo):
+    db = GuildsDBase(guilds_echo)
+
+    res = await db.get_all_guilds()
+
+    print(res)
+
+
+async def test_get_all_guilds_with_users(guilds_echo):
+    db = GuildsDBase(guilds_echo)
+
+    res = await db.get_all_guilds_with_users()
+
+    for guild in res:
+        print(guild.users)
 
 
 async def test_update_guild(guilds_echo=False):
@@ -242,6 +276,9 @@ async def main():
     # await test_get_user_with_guilds(users_echo)
     # await test_get_some_users_with_guilds(users_echo)
 
+    # await test_get_all_users(users_echo)
+    # await test_get_all_users_with_guilds(users_echo)
+
     # await test_update_user(users_echo)
     # await test_update_some_users(users_echo)
 
@@ -257,6 +294,9 @@ async def main():
 
     # await test_get_guild(guilds_echo)
     # await test_get_some_guilds(guilds_echo)
+
+    # await test_get_all_guilds(guilds_echo)
+    # await test_get_all_guilds_with_users(guilds_echo)
 
     # await test_update_guild(guilds_echo)
     # await test_update_some_guilds(guilds_echo)
