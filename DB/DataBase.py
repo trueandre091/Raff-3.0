@@ -812,21 +812,10 @@ class GuildsDBase(DataBase):
                 res = res.users
 
                 for user in res:
-                    if len(user_list) != 20:
-                        user_list.append(user)
-                        # user_data = {
-                        #     "username": user.username,
-                        #     "ds_id": user.ds_id,
-                        #     "scores": user.scores,
-                        #     "experience": user.experience,
-                        #     "messages": user.messages,
-                        # }
-                        # user_list.append(user_data)
-                    else:
-                        break
+                    user_list.append(user)
 
-                # sorted_res = sorted(user_list, key=lambda x: x["scores"], reverse=True)
                 sorted_res = sorted(user_list, key=lambda x: x.scores, reverse=True)
+                sorted_res = sorted_res[:20]
 
                 print(sorted_res)
                 return sorted_res
@@ -863,21 +852,10 @@ class GuildsDBase(DataBase):
                 res = res.users
 
                 for user in res:
-                    if len(user_list) != 20:
-                        user_list.append(user)
-                        # user_data = {
-                        #     "username": user.username,
-                        #     "ds_id": user.ds_id,
-                        #     "scores": user.scores,
-                        #     "experience": user.experience,
-                        #     "messages": user.messages,
-                        # }
-                        # user_list.append(user_data)
-                    else:
-                        break
+                    user_list.append(user)
 
-                # sorted_res = sorted(user_list, key=lambda x: x["messages"], reverse=True)
                 sorted_res = sorted(user_list, key=lambda x: x.messages, reverse=True)
+                sorted_res = sorted_res[:20]
 
                 print(sorted_res)
                 return sorted_res
@@ -969,7 +947,10 @@ class RelationshipsDBase(DataBase):
         Returns True if operation was successful and None if there was an error
         """
 
-        # is_dict = True if type(data) is dict else False
+        is_dict = True if type(data) is dict else False
+
+        if is_dict:
+            data = [data]
 
         with self.Session() as session:
             try:
