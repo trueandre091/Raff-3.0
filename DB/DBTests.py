@@ -199,7 +199,19 @@ async def test_update_some_guilds(guilds_echo=False):
 async def test_guild_get_top_users_by_scores(guilds_echo=False):
     db = GuildsDBase(guilds_echo)
 
-    await db.get_top_users_by_scores(785312593614209055)
+    res = await db.get_top_users_by_scores(785312593614209055)
+
+    for user in res:
+        print(user, user.scores)
+
+
+async def test_guild_get_top_users_by_messages(guilds_echo=False):
+    db = GuildsDBase(guilds_echo)
+
+    res = await db.get_top_users_by_messages(785312593614209055)
+
+    for user in res:
+        print(user, user.messages)
 
     ####################################   RELATIONSHIPS TESTS   ############################################
 
@@ -302,6 +314,7 @@ async def main():
     # await test_update_some_guilds(guilds_echo)
 
     # await test_guild_get_top_users_by_scores(guilds_echo)
+    # await test_guild_get_top_users_by_messages(guilds_echo)
 
     ###################################################
 
