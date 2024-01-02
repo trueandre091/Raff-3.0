@@ -750,13 +750,9 @@ class GuildsDBase(DataBase):
                 for data in data:
                     for guild in guilds:
                         if data["guild_id"] == guild.guild_id:
-                            if data.get("guild_sets"):
+                            if data.get("guild_sets", None) is dict:
                                 enc = JsonEncoder()
-                                data["guild_sets"] = (
-                                    None
-                                    if data.get("guild_sets") is None
-                                    else enc.code_to_json(data["guild_sets"])
-                                )
+                                data["guild_sets"] = enc.code_to_json(data["guild_sets"])
 
                             guild.guild_name = (
                                 guild.guild_name
@@ -941,8 +937,9 @@ class RelationshipsDBase(DataBase):
 
         Gets a complex data structure:
 
-        data = [{"ds_id": int,
-                 "guild_id": int}]
+        data = [{"users": list[{ds_id: int}],
+                "guilds": list[{guild_id: int}]}
+                ]
 
         Returns True if operation was successful and None if there was an error
         """

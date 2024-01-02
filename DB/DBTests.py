@@ -133,7 +133,7 @@ async def test_get_guild(guilds_echo=False):
     db = GuildsDBase(guilds_echo)
     enc = JsonEncoder
 
-    data = {"guild_id": 710525764470308975}
+    data = {"guild_id": 1189637072030531695}
 
     res = await db.get_guild(data)
     print(type(res.guild_sets))
