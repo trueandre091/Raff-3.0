@@ -64,6 +64,23 @@ async def test_get_some_users_with_guilds(users_echo=False):
         print(user.guilds)
 
 
+async def test_get_all_users(users_echo=False):
+    db = UserDBase(users_echo)
+
+    res = await db.get_all_users()
+
+    print(res)
+
+
+async def test_get_all_users_with_guilds(users_echo=False):
+    db = UserDBase(users_echo)
+
+    res = await db.get_all_users_with_guilds()
+
+    for user in res:
+        print(user, user.guilds, sep="-------")
+
+
 async def test_update_user(users_echo=False):
     db = UserDBase(users_echo)
 
@@ -143,6 +160,23 @@ async def test_get_some_guilds(guilds_echo=False):
     await db.get_guild(data)
 
 
+async def test_get_all_guilds(guilds_echo):
+    db = GuildsDBase(guilds_echo)
+
+    res = await db.get_all_guilds()
+
+    print(res)
+
+
+async def test_get_all_guilds_with_users(guilds_echo):
+    db = GuildsDBase(guilds_echo)
+
+    res = await db.get_all_guilds_with_users()
+
+    for guild in res:
+        print(guild, guild.users, sep="-------")
+
+
 async def test_update_guild(guilds_echo=False):
     db = GuildsDBase(guilds_echo)
 
@@ -165,7 +199,19 @@ async def test_update_some_guilds(guilds_echo=False):
 async def test_guild_get_top_users_by_scores(guilds_echo=False):
     db = GuildsDBase(guilds_echo)
 
-    await db.get_top_users_by_scores(785312593614209055)
+    res = await db.get_top_users_by_scores(785312593614209055)
+
+    for user in res:
+        print(user, user.scores)
+
+
+async def test_guild_get_top_users_by_messages(guilds_echo=False):
+    db = GuildsDBase(guilds_echo)
+
+    res = await db.get_top_users_by_messages(785312593614209055)
+
+    for user in res:
+        print(user, user.messages)
 
     ####################################   RELATIONSHIPS TESTS   ############################################
 
@@ -242,6 +288,9 @@ async def main():
     # await test_get_user_with_guilds(users_echo)
     # await test_get_some_users_with_guilds(users_echo)
 
+    # await test_get_all_users(users_echo)
+    # await test_get_all_users_with_guilds(users_echo)
+
     # await test_update_user(users_echo)
     # await test_update_some_users(users_echo)
 
@@ -258,10 +307,14 @@ async def main():
     # await test_get_guild(guilds_echo)
     # await test_get_some_guilds(guilds_echo)
 
+    # await test_get_all_guilds(guilds_echo)
+    # await test_get_all_guilds_with_users(guilds_echo)
+
     # await test_update_guild(guilds_echo)
     # await test_update_some_guilds(guilds_echo)
 
     # await test_guild_get_top_users_by_scores(guilds_echo)
+    # await test_guild_get_top_users_by_messages(guilds_echo)
 
     ###################################################
 
