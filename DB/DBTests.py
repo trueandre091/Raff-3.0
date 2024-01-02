@@ -78,7 +78,7 @@ async def test_get_all_users_with_guilds(users_echo=False):
     res = await db.get_all_users_with_guilds()
 
     for user in res:
-        print(user.guilds)
+        print(user, user.guilds, sep="-------")
 
 
 async def test_update_user(users_echo=False):
@@ -174,7 +174,7 @@ async def test_get_all_guilds_with_users(guilds_echo):
     res = await db.get_all_guilds_with_users()
 
     for guild in res:
-        print(guild.users)
+        print(guild, guild.users, sep="-------")
 
 
 async def test_update_guild(guilds_echo=False):

@@ -1,6 +1,6 @@
 """Database Management"""
 
-from typing import Union, Sequence
+from typing import Union, Sequence, Optional
 import traceback
 
 from sqlalchemy import select
@@ -19,7 +19,8 @@ class DataBase:
     def __init__(self, echo_mode: bool = False):
         try:
             self.echo = echo_mode
-            self.engine = create_engine("sqlite:///DB/DataBase.db", echo=self.echo)
+            # self.engine = create_engine("sqlite:///DB/DataBase.db", echo=self.echo)
+            self.engine = create_engine("sqlite:///DataBase.db", echo=self.echo)
             self.Session = sessionmaker(self.engine)
         except Exception:
             print(traceback.format_exc())
@@ -285,6 +286,41 @@ class UserDBase(DataBase):
                 print(user)
 
             return user
+
+    async def get_all_users(self) -> Optional[list[Users]]:
+        """
+        Gets all users from database
+        """
+        with self.Session() as session:
+            try:
+                users = session.scalars(select(Users)).all()
+                if not users:
+                    print("Can't find users in database")
+                    return
+
+                return users
+
+            except Exception:
+                print("Something went wrong when get all users")
+                print(traceback.format_exc())
+
+    async def get_all_users_with_guilds(self) -> Optional[list[Users]]:
+        """
+        Gets all users with guilds from database
+        """
+        with self.Session() as session:
+            try:
+                query = select(Users).options(selectinload(Users.guilds))
+                users = session.scalars(query).all()
+                if not users:
+                    print("Can't find all users with guilds in database")
+                    return
+
+                return users
+
+            except Exception:
+                print("Something went wrong when get all users with guilds")
+                print(traceback.format_exc())
 
     async def update_user(
         self, data: Union[dict, list[dict]]
@@ -649,6 +685,41 @@ class GuildsDBase(DataBase):
 
             return guild
 
+    async def get_all_guilds(self) -> Optional[list[Guilds]]:
+        """
+        Gets all guilds from database
+        """
+        with self.Session() as session:
+            try:
+                guilds = session.scalars(select(Guilds)).all()
+                if not guilds:
+                    print("Can't find all guilds in database")
+                    return
+
+                return guilds
+
+            except Exception:
+                print("Something went wrong when get all guilds")
+                print(traceback.format_exc())
+
+    async def get_all_guilds_with_users(self) -> Optional[list[Guilds]]:
+        """
+        Gets all guilds from database with users
+        """
+        with self.Session() as session:
+            try:
+                query = select(Guilds).options(selectinload(Guilds.users))
+                guilds = session.scalars(query).all()
+                if not guilds:
+                    print("Can't find all guilds with users in database")
+                    return
+
+                return guilds
+
+            except Exception:
+                print("Something went wrong when get all guilds with users")
+                print(traceback.format_exc())
+
     async def update_guild(
         self, data: Union[dict, list[dict]]
     ) -> Union[Guilds, list[Guilds], None]:
@@ -842,8 +913,8 @@ class RelationshipsDBase(DataBase):
 
         Gets a complex data structure:
 
-        data = [{"users": list[ds_id: int],
-                "guilds": list[guild_id: int]}
+        data = [{"users": list[{ds_id: int}],
+                "guilds": list[{guild_id: int}]}
                 ]
 
         Returns True if operation was successful and None if there was an error
