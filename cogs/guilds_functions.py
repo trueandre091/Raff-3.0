@@ -102,7 +102,7 @@ class AutoRelationshipsAdding(commands.Cog):
             for user in guild_with_users.users:
                 rdb_users.add(user.ds_id)
 
-        users_to_add = set(db_users) - set(rdb_users)
+        users_to_add = db_users - rdb_users
         for user_id in users_to_add:
             user = await self.bot.fetch_user(user_id)
             guilds = [{"guild_id": guild.id} for guild in user.mutual_guilds]
