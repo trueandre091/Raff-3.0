@@ -22,12 +22,18 @@ async def count_experience(message: disnake.Message, settings: dict):
 
     settings = settings["COGS_SETTINGS"]["EXPERIENCE"]
 
-    lvl1 = await convert_ex_to_lvl(await DB.get_user({"ds_id": message.author.id}), settings["FACTOR"])
+    lvl1 = await convert_ex_to_lvl(
+        await DB.get_user({"ds_id": message.author.id}), settings["FACTOR"]
+    )
 
     flag = True
     skip_first_flag = False
     async for msg in message.channel.history(limit=50):
-        if message.created_at.minute == msg.created_at.minute and msg.author == message.author and skip_first_flag:
+        if (
+            message.created_at.minute == msg.created_at.minute
+            and msg.author == message.author
+            and skip_first_flag
+        ):
             flag = False
             break
         skip_first_flag = True
@@ -53,7 +59,9 @@ async def count_experience(message: disnake.Message, settings: dict):
                 }
             )
 
-    lvl2 = await convert_ex_to_lvl(await DB.get_user({"ds_id": message.author.id}), settings["FACTOR"])
+    lvl2 = await convert_ex_to_lvl(
+        await DB.get_user({"ds_id": message.author.id}), settings["FACTOR"]
+    )
 
     if lvl1 != lvl2:
         await message.reply(
@@ -76,9 +84,13 @@ class ExperienceCommands(commands.Cog):
         количество: int,
     ):
         """Adding to several members a certain amount of scores"""
-        guild = await guild_sets_check(interaction.guild.id, "GENERAL_SETTINGS", "EXPERIENCE")
+        guild = await guild_sets_check(
+            interaction.guild.id, "GENERAL_SETTINGS", "EXPERIENCE"
+        )
         if guild is None:
-            await interaction.response.send_message("Данная функция не включена на сервере", ephemeral=True)
+            await interaction.response.send_message(
+                "Данная функция не включена на сервере", ephemeral=True
+            )
             return
 
         guild = self.bot.get_guild(interaction.guild.id)
@@ -135,9 +147,13 @@ class ExperienceCommands(commands.Cog):
         количество: int,
     ):
         """Adding to several members a certain amount of scores"""
-        guild = await guild_sets_check(interaction.guild.id, "GENERAL_SETTINGS", "EXPERIENCE")
+        guild = await guild_sets_check(
+            interaction.guild.id, "GENERAL_SETTINGS", "EXPERIENCE"
+        )
         if guild is None:
-            await interaction.response.send_message("Данная функция не включена на сервере", ephemeral=True)
+            await interaction.response.send_message(
+                "Данная функция не включена на сервере", ephemeral=True
+            )
             return
 
         members_list = участники.split()

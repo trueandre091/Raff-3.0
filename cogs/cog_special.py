@@ -4,11 +4,13 @@ import time
 
 import config as cfg
 from DB.DataBase import UserDBase
+
 DB = UserDBase()
 
 
 class OnSpecialEvents(commands.Cog):
     """On special events"""
+
     list_of_members = {}
 
     def __init__(self, bot: commands.Bot):
@@ -31,7 +33,12 @@ class OnSpecialEvents(commands.Cog):
                     await after.remove_roles(guild.get_role(role_id))
 
     @commands.Cog.listener()
-    async def on_voice_state_update(self, member: disnake.Member, before: disnake.VoiceState, after: disnake.VoiceState):
+    async def on_voice_state_update(
+        self,
+        member: disnake.Member,
+        before: disnake.VoiceState,
+        after: disnake.VoiceState,
+    ):
         if member.bot:
             return
 
@@ -51,7 +58,11 @@ class OnSpecialEvents(commands.Cog):
                     user = await DB.get_user({"ds_id": member.id})
                     if user is None:
                         await DB.add_user(
-                            {"ds_id": member.id, "username": member.name, "scores": settings["SCORES"]}
+                            {
+                                "ds_id": member.id,
+                                "username": member.name,
+                                "scores": settings["SCORES"],
+                            }
                         )
                     else:
                         await DB.update_user(
