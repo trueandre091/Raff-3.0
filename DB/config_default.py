@@ -39,7 +39,9 @@ GUILD_CONFIG = {
     "ADDING_REACTIONS_THREADS_SETTINGS": {
         # None: {"REACTIONS": [], "THREAD": False},
     },
-    "MODERATION_SETTINGS": {"GIF": {"MESSAGES_FOR_GIF": 10}},
+    "MODERATION_SETTINGS": {
+        "CHANNEL": None,
+        "GIF": {"MESSAGES_FOR_GIF": 10}},
     "BOOSTS_COUNTING_SETTINGS": {
         "BOOST_BOTS": {
             "DSMonitoring": 575776004233232386,

@@ -7,6 +7,7 @@ import datetime
 from DB.DataBase import GuildsDBase
 from DB.JSONEnc import JsonEncoder
 import random
+from DB.config_default import GUILD_CONFIG
 
 
 async def stud_interaction(interaction: disnake.ApplicationCommandInteraction):
@@ -21,6 +22,10 @@ async def stud_interaction(interaction: disnake.ApplicationCommandInteraction):
         "Завариваю кофе...",
         "Подготавливаю...",
         "Придумываю шутку...",
+        "Разумеется",
+        "Да, мой господин",
+        "Есть сэр!",
+        "Так точно!"
     ]
     await interaction.response.send_message(
         random.choice(phrases), delete_after=0.01, ephemeral=True
@@ -76,11 +81,26 @@ class GuildSettings:
             view=SetBlackJackView(self),
         )
 
-    # async def create_roulette_view(self):
-    #     await self.interaction.edit_original_response(
-    #         embed=disnake.Embed.from_dict(()),
-    #         view=GuildSetsGamesView(self, self.settings),
-    #     )
+    async def create_roulette_view(self):
+        await self.interaction.edit_original_response(
+            embed=disnake.Embed.from_dict((create_roulette_embed())),
+            view=SetRouletteView(self),
+        )
+
+    async def create_nearest_events_view(self):
+        await self.interaction.edit_original_response(
+            embed=disnake.Embed.from_dict((create_nearest_event_embed())),
+            view=GuildSetNearestEventsView(self),
+        )
+
+    async def create_moderation_view(self):
+        await self.interaction.edit_original_response(
+            embed=disnake.Embed.from_dict((create_moderation_embed())),
+            view=GuildSetModerationView(self),
+        )
+
+    async def create_auto_reactions_threads_view(self):
+        await GuildSetReactionsThreadsView(self).send_view()
 
 
 class GuildSetsHomeScreenView(View):
@@ -170,15 +190,15 @@ class GuildSetsHomeScreenView(View):
 
         elif value == "nearest_events":
             await stud_interaction(interaction)
-            await GuildSettings.create_welcome_view(self.parent)
+            await GuildSettings.create_nearest_events_view(self.parent)
 
         elif value == "moderation":
             await stud_interaction(interaction)
-            await GuildSettings.create_welcome_view(self.parent)
+            await GuildSettings.create_moderation_view(self.parent)
 
         elif value == "adding_reactions_threads":
             await stud_interaction(interaction)
-            await GuildSettings.create_welcome_view(self.parent)
+            await GuildSettings.create_auto_reactions_threads_view(self.parent)
 
     @button(label="Сохранить", style=disnake.ButtonStyle.green)
     async def save_callback(self, button: Button, interaction: disnake.Interaction):
@@ -434,7 +454,8 @@ class GuildSetsGamesView(View):
             await GuildSettings.create_blackjack_view(self.parent)
 
         elif value == "roulette":
-            roulette = SetRouletteView()
+            await stud_interaction(interaction)
+            await GuildSettings.create_roulette_view(self.parent)
 
     @button(label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger)
     async def to_back_callback(self, btn: Button, interaction: disnake.Interaction):
@@ -481,8 +502,222 @@ class SetBlackJackView(View):
 
 
 class SetRouletteView(View):
-    def __init__(self):
+    def __init__(self, parent):
         super().__init__()
+        self.parent = parent
+        self.settings = parent.settings
+
+    @channel_select(
+        channel_types=[disnake.ChannelType.text, disnake.ChannelType.news],
+        placeholder="В каком канале будем играть?",
+        min_values=0,
+    )
+    async def select_callback(
+        self, selectMenu: Select, interaction: disnake.ApplicationCommandInteraction
+    ):
+        pass
+
+    @button(label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger)
+    async def to_back_callback(self, btn: Button, interaction: disnake.Interaction):
+        await stud_interaction(interaction)
+        await GuildSettings.create_games_view(self.parent)
+
+    @button(label="Вкл", style=disnake.ButtonStyle.green)
+    async def enable_callback(self, btn: Button, interaction: disnake.Interaction):
+        pass
+
+    @button(label="Выкл", style=disnake.ButtonStyle.danger)
+    async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
+        pass
+
+
+class GuildSetNearestEventsView(View):
+    def __init__(self, parent):
+        super().__init__()
+        self.parent = parent
+        self.settings = parent.settings
+
+    @channel_select(
+        channel_types=[disnake.ChannelType.text, disnake.ChannelType.news],
+        placeholder="Где будем рассказывать о событиях?",
+        min_values=0,
+    )
+    async def select_callback(
+        self, selectMenu: Select, interaction: disnake.ApplicationCommandInteraction
+    ):
+        pass
+
+    @button(label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger)
+    async def to_back_callback(self, btn: Button, interaction: disnake.Interaction):
+        await stud_interaction(interaction)
+        await GuildSettings.create_home_view(self.parent)
+
+    @button(label="Настроить")
+    async def open_farewell_set_callback(
+        self, btn: Button, interaction: disnake.Interaction
+    ):
+        await interaction.response.send_modal(NearestEventModal(self.settings))
+
+    @button(label="Вкл", style=disnake.ButtonStyle.green)
+    async def enable_callback(self, btn: Button, interaction: disnake.Interaction):
+        pass
+
+    @button(label="Выкл", style=disnake.ButtonStyle.danger)
+    async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
+        pass
+
+
+class NearestEventModal(Modal):
+    def __init__(self, settings):
+        self.settings = settings
+        components = [
+            TextInput(
+                style=disnake.TextInputStyle.paragraph,
+                label="Категории",
+                value=", ".join(
+                    self.settings["COGS_SETTINGS"]["NEAREST_EVENTS"]["CATEGORIES"]
+                ),
+                custom_id="message",
+                max_length=512,
+            )
+        ]
+        super().__init__(title="Ближайшие ивенты", components=components)
+
+
+class GuildSetModerationView(View):
+    def __init__(self, parent):
+        super().__init__()
+        self.parent = parent
+        self.settings = parent.settings
+
+    @channel_select(
+        channel_types=[disnake.ChannelType.text, disnake.ChannelType.news],
+        placeholder="В каких каналах будем следить за участниками?",
+        min_values=0,
+    )
+    async def select_callback(
+        self, selectMenu: Select, interaction: disnake.ApplicationCommandInteraction
+    ):
+        pass
+
+    @button(label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger)
+    async def to_back_callback(self, btn: Button, interaction: disnake.Interaction):
+        await stud_interaction(interaction)
+        await GuildSettings.create_home_view(self.parent)
+
+    @button(label="Настроить")
+    async def open_farewell_set_callback(
+        self, btn: Button, interaction: disnake.Interaction
+    ):
+        await interaction.response.send_modal(ModerationModal(self.settings))
+
+    @button(label="Вкл", style=disnake.ButtonStyle.green)
+    async def enable_callback(self, btn: Button, interaction: disnake.Interaction):
+        pass
+
+    @button(label="Выкл", style=disnake.ButtonStyle.danger)
+    async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
+        pass
+
+
+class ModerationModal(Modal):
+    def __init__(self, settings):
+        self.settings = settings
+        components = [
+            TextInput(
+                label="Количество сообщений между гифками",
+                value=self.settings["MODERATION_SETTINGS"]["GIF"]["MESSAGES_FOR_GIF"],
+                custom_id="message",
+                max_length=4,
+            )
+        ]
+        super().__init__(title="Настройки модерации", components=components)
+
+
+class GuildSetReactionsThreadsView:
+    def __init__(self, parent):
+        self.parent = parent
+        self.settings = parent.settings
+        self.count_options = len(self.settings["ADDING_REACTIONS_THREADS_SETTINGS"])
+        self.view_manager = View()
+
+        self.home_screen_btn = Button(
+            label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger
+        )
+
+        self.add_option_btn = Button(label="+", style=disnake.ButtonStyle.green)
+
+        self.view_manager.add_item(self.home_screen_btn)
+        self.view_manager.add_item(self.add_option_btn)
+
+        for i in range(1, self.count_options + 1):
+            btn = Button(label=str(i))
+            btn.callback = self.option_callback
+            self.view_manager.add_item(btn)
+
+        self.home_screen_btn.callback = self.home_screen_callback
+        self.add_option_btn.callback = self.add_option_callback
+
+    async def home_screen_callback(self, interaction: disnake.Interaction):
+        await stud_interaction(interaction)
+        await GuildSettings.create_home_view(self.parent)
+
+    async def add_option_callback(self, interaction: disnake.Interaction):
+        await stud_interaction(interaction)
+        await self.parent.interaction.edit_original_response(
+            embed=disnake.Embed.from_dict(create_option_embed()),
+            view=OptionThreadView(self.parent)
+        )
+
+    async def send_view(self):
+        await self.parent.interaction.edit_original_response(
+            embed=disnake.Embed.from_dict(create_reactions_threads_embed()),
+            view=self.view_manager,
+        )
+
+    async def option_callback(self):
+        pass
+
+
+class OptionThreadView(View):
+    def __init__(self, parent, option=None):
+        super().__init__()
+        self.parent = parent
+        self.option = option
+
+    @channel_select(
+        channel_types=[disnake.ChannelType.text, disnake.ChannelType.news],
+        placeholder="В каких каналах будем следить за участниками?",
+        min_values=0,
+    )
+    async def select_callback(
+        self, selectMenu: Select, interaction: disnake.ApplicationCommandInteraction
+    ):
+        pass
+
+    @button(label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger)
+    async def to_back_callback(self, btn: Button, interaction: disnake.Interaction):
+        await stud_interaction(interaction)
+        await GuildSettings.create_auto_reactions_threads_view(self.parent)
+
+    @button(label="Настроить")
+    async def open_farewell_set_callback(
+        self, btn: Button, interaction: disnake.Interaction
+    ):
+        await interaction.response.send_modal(OptionThreadModal(self.option))
+
+
+class OptionThreadModal(Modal):
+    def __init__(self, option):
+        self.option = option
+        components = [
+            TextInput(
+                label="Код реакции",
+                value="" if self.option is None else self.option["REACTIONS"],
+                custom_id="reacts"
+            )
+        ]
+        super().__init__(title="Настройка реакций", components=components)
 
 
 def create_hello_embed():
@@ -608,7 +843,7 @@ def create_games_embed():
             },
             {
                 "name": "Настрой их отдельно",
-                "value": "Выбери игру, которю хочешь настроить",
+                "value": "Выбери игру, которую хочешь настроить",
             },
         ],
     }
@@ -652,6 +887,94 @@ def create_roulette_embed():
             },
             {
                 "name": "Настрой рулетку",
+                "value": "Выбери канал, в котором будет разрешено играть",
+            },
+        ],
+    }
+
+    return embed
+
+
+def create_nearest_event_embed():
+    embed = {
+        "title": "Ближайшие события",
+        "description": "Настрой отображение событий",
+        "color": 0x2B2D31,
+        "timestamp": datetime.datetime.now().isoformat(),
+        "author": None,
+        "fields": [
+            {
+                "name": "Базовые настройки",
+                "value": "Нажми 'Вкл', если хочешь использовать систему очков и опыта на своём сервере",
+            },
+            {
+                "name": "Настрой категории для событий",
+                "value": "Выбери канал, в котором будет разрешено играть",
+            },
+        ],
+    }
+
+    return embed
+
+
+def create_moderation_embed():
+    embed = {
+        "title": "Модерация",
+        "description": "Настрой модерацию",
+        "color": 0x2B2D31,
+        "timestamp": datetime.datetime.now().isoformat(),
+        "author": None,
+        "fields": [
+            {
+                "name": "Базовые настройки",
+                "value": "Нажми 'Вкл', если хочешь использовать систему очков и опыта на своём сервере",
+            },
+            {
+                "name": "Настрой категории для событий",
+                "value": "Выбери канал, в котором будет разрешено играть",
+            },
+        ],
+    }
+
+    return embed
+
+
+def create_reactions_threads_embed():
+    embed = {
+        "title": "Автореакции и автоветки",
+        "description": "Настрой вот это вот",
+        "color": 0x2B2D31,
+        "timestamp": datetime.datetime.now().isoformat(),
+        "author": None,
+        "fields": [
+            {
+                "name": "Базовые настройки",
+                "value": "Нажми 'Вкл', если хочешь использовать систему очков и опыта на своём сервере",
+            },
+            {
+                "name": "Настрой категории для событий",
+                "value": "Выбери канал, в котором будет разрешено играть",
+            },
+        ],
+    }
+
+    return embed
+
+
+def create_option_embed():
+    embed = {
+        "title": "Пездец чё происходит",
+        "description": "Настрой вот это вот",
+        "color": 0x2B2D31,
+        "timestamp": datetime.datetime.now().isoformat(),
+        "author": None,
+        "fields": [
+            {
+                "name": "Базовые настройки",
+                "value": "Нажми 'Вкл', если хочешь использовать систему очков и опыта на своём сервере",
+            },
+            {
+                "name": "Настрой категории для событий",
                 "value": "Выбери канал, в котором будет разрешено играть",
             },
         ],
@@ -709,6 +1032,25 @@ class GuildsManage(commands.Cog):
     # @commands.Cog.listener()
     # async def on_interaction(self, interaction: disnake.MessageInteraction):
     #     inter = interaction
+
+    @commands.slash_command(name="update_default_sets")
+    @commands.is_owner()
+    async def update_default_sets(
+        self, interaction: disnake.ApplicationCommandInteraction
+    ):
+        gdb = GuildsDBase()
+        enc = JsonEncoder()
+        res = await gdb.update_guild(
+            {
+                "guild_id": interaction.guild.id,
+                "guild_sets": enc.code_to_json(GUILD_CONFIG),
+            }
+        )
+
+        if res:
+            await interaction.response.send_message(
+                f"Successfully update guild {interaction.guild.name}"
+            )
 
 
 def setup(bot: commands.Bot):
