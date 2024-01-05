@@ -4,6 +4,18 @@ from cogs.on_message_functions import *
 from cogs.guilds_functions import guild_sets_check, GDB, dicts, dicts1
 from cogs.cog_experience import count_experience
 from DB.DataBase import GuildsDBase
+from loguru import logger
+
+# logger.remove()
+logger.add(
+    "logs/logs.log",
+    format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} | {message}",
+    level="INFO",
+    rotation="1 week",
+    compression="zip",
+
+)
+
 
 bot = commands.Bot(
     command_prefix="none",
@@ -113,7 +125,8 @@ async def on_guild_join(guild: disnake.Guild):
 @bot.event
 async def on_ready():
     """Bot writes in console when it starts"""
-    print(f"Bot {bot.user} is ready to work!")
+    # print(f"Bot {bot.user} is ready to work!")
+    logger.info(f"Bot {bot.user} is ready to work!")
     # guild = await GDB.add_guild(
     #     {
     #         "guild_id": 785312593614209055,

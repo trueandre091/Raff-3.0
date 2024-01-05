@@ -1,0 +1,51 @@
+2024-01-05 19:31:36.065 | ERROR    | DB.DataBase:__init__:27 | Error creating engine or session
+2024-01-05 19:31:36.070 | ERROR    | DB.DataBase:__init__:27 | Error creating engine or session
+2024-01-05 19:31:36.070 | ERROR    | DB.DataBase:__init__:27 | Error creating engine or session
+2024-01-05 19:31:36.070 | ERROR    | DB.DataBase:__init__:27 | Error creating engine or session
+2024-01-05 19:31:36.071 | ERROR    | DB.DataBase:__init__:27 | Error creating engine or session
+2024-01-05 19:31:36.071 | ERROR    | DB.DataBase:__init__:27 | Error creating engine or session
+2024-01-05 19:34:18.716 | INFO     | __main__:on_ready:131 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 19:34:38.026 | INFO     | __main__:on_ready:129 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 19:35:47.929 | INFO     | __main__:on_ready:129 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 20:07:49.827 | INFO     | __main__:on_ready:129 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 20:07:49.863 | ERROR    | DB.DataBase:add_relationship:903 | Something went wrong when add relationships between users and guilds
+Traceback (most recent call last):
+  File "E:\Raff-3.0\DB\DataBase.py", line 896, in add_relationship
+    logger.debug(guild, user)
+  File "E:\Raff-3.0\venv\Lib\site-packages\loguru\_logger.py", line 2040, in debug
+    __self._log("DEBUG", False, __self._options, __message, args, kwargs)
+  File "E:\Raff-3.0\venv\Lib\site-packages\loguru\_logger.py", line 2021, in _log
+    log_record["message"] = message.format(*args, **kwargs)
+                            ^^^^^^^^^^^^^^
+AttributeError: 'Guilds' object has no attribute 'format'
+
+2024-01-05 20:07:49.867 | ERROR    | DB.DataBase:add_relationship:903 | Something went wrong when add relationships between users and guilds
+Traceback (most recent call last):
+  File "E:\Raff-3.0\DB\DataBase.py", line 896, in add_relationship
+    logger.debug(guild, user)
+  File "E:\Raff-3.0\venv\Lib\site-packages\loguru\_logger.py", line 2040, in debug
+    __self._log("DEBUG", False, __self._options, __message, args, kwargs)
+  File "E:\Raff-3.0\venv\Lib\site-packages\loguru\_logger.py", line 2021, in _log
+    log_record["message"] = message.format(*args, **kwargs)
+                            ^^^^^^^^^^^^^^
+AttributeError: 'Guilds' object has no attribute 'format'
+
+2024-01-05 20:08:44.723 | INFO     | __main__:on_ready:129 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 20:08:44.755 | ERROR    | DB.DataBase:add_relationship:903 | Something went wrong when add relationships between users and guilds
+Traceback (most recent call last):
+  File "E:\Raff-3.0\DB\DataBase.py", line 896, in add_relationship
+    logger.debug(guild + user)
+                 ~~~~~~^~~~~~
+TypeError: unsupported operand type(s) for +: 'Guilds' and 'Users'
+
+2024-01-05 20:08:44.758 | ERROR    | DB.DataBase:add_relationship:903 | Something went wrong when add relationships between users and guilds
+Traceback (most recent call last):
+  File "E:\Raff-3.0\DB\DataBase.py", line 896, in add_relationship
+    logger.debug(guild + user)
+                 ~~~~~~^~~~~~
+TypeError: unsupported operand type(s) for +: 'Guilds' and 'Users'
+
+2024-01-05 20:09:29.667 | INFO     | __main__:on_ready:129 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 20:09:55.110 | INFO     | __main__:on_ready:129 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 20:10:54.672 | INFO     | __main__:on_ready:129 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 20:12:04.020 | INFO     | __main__:on_ready:129 | Bot Raff test bot#6807 is ready to work!

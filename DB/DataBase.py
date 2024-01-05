@@ -1,4 +1,5 @@
 """Database Management"""
+from loguru import logger
 
 from typing import Union, Sequence, Optional
 import traceback
@@ -22,9 +23,10 @@ class DataBase:
             self.engine = create_engine("sqlite:///DB/DataBase.db", echo=self.echo)
             # self.engine = create_engine("sqlite:///DataBase.db", echo=self.echo)
             self.Session = sessionmaker(self.engine)
+            logger.debug("Engine was successfully created")
         except Exception:
-            print(traceback.format_exc())
-            raise "Error creating an engine or connecting to database"
+            logger.critical("Error creating engine or session")
+            return
 
     ####################################   USERS   ############################################
 
@@ -73,29 +75,25 @@ class UserDBase(DataBase):
                     session.commit()
 
                     user_list.append(user)
-                    print(user)
+                    logger.debug(user)
 
                 except IntegrityError:
                     session.rollback()
                     user = await self.get_user(data)
                     if user:
-                        print(f"{user} already in database")
+                        logger.debug(f"{user} already in database")
                         user_list.append(user)
                     else:
-                        print("Something went wrong when get user for add function")
-                        print(traceback.format_exc())
+                        logger.error("Something went wrong when get user for add function\n" + traceback.format_exc())
 
                         return
 
                 except Exception:
-                    print("Something went wrong when adding user")
-                    print(traceback.format_exc())
+                    logger.error("Something went wrong when adding user\n" + traceback.format_exc())
                     return
 
         if len(user_list) != 0:
             return user_list[0] if is_dict else user_list
-        else:
-            return
 
     @staticmethod
     def get_user_static(session, data):
@@ -128,7 +126,7 @@ class UserDBase(DataBase):
                     user = select(Users).filter_by(ds_id=data["ds_id"])
                     user = session.scalars(user).first()
                     if not user:
-                        print("Can't find user by discord id in database")
+                        logger.error("Can't find user by discord id in database")
                         return
 
                     user_list.append(user)
@@ -137,7 +135,7 @@ class UserDBase(DataBase):
                     user = select(Users).filter_by(username=data["username"])
                     user = session.scalars(user).first()
                     if not user:
-                        print("Can't find user by username in database")
+                        logger.error("Can't find user by username in database")
                         return
 
                     user_list.append(user)
@@ -145,8 +143,7 @@ class UserDBase(DataBase):
                 return user_list[0] if is_dict else user_list
 
         except Exception:
-            print("Something went wrong when get user")
-            print(traceback.format_exc())
+            logger.error("Something went wrong when get user\n" + traceback.format_exc())
 
         return
 
@@ -186,9 +183,7 @@ class UserDBase(DataBase):
 
                         user = session.scalars(user).first()
                         if not user:
-                            print(
-                                "Something went wrong when get user with guilds for relationship"
-                            )
+                            logger.error("Something went wrong when get user with guilds for relationship")
                             return
 
                         user_list.append(user)
@@ -202,7 +197,7 @@ class UserDBase(DataBase):
                         )
                         user = session.scalars(user).first()
                         if not user:
-                            print("Can't find user by discord id in database")
+                            logger.error("Can't find user by discord id in database")
                             return
 
                         user_list.append(user)
@@ -215,7 +210,7 @@ class UserDBase(DataBase):
                         )
                         user = session.scalars(user).first()
                         if not user:
-                            print("Can't find user by username in database")
+                            logger.error("Can't find user by username in database")
                             return
 
                         user_list.append(user)
@@ -223,8 +218,7 @@ class UserDBase(DataBase):
             return user_list[0] if is_dict else user_list
 
         except Exception:
-            print("Something went wrong when get user with guilds")
-            print(traceback.format_exc())
+            logger.error("Something went wrong when get user with guilds\n" + traceback.format_exc())
 
         return
 
@@ -254,7 +248,7 @@ class UserDBase(DataBase):
         with self.Session() as session:
             user = self.get_user_static(session, data)
             if user:
-                print(user)
+                logger.debug(user)
 
             return user
 
@@ -283,7 +277,7 @@ class UserDBase(DataBase):
         with self.Session() as session:
             user = self.get_user_static_with_guilds(session, data)
             if user:
-                print(user)
+                logger.debug(user)
 
             return user
 
@@ -295,14 +289,13 @@ class UserDBase(DataBase):
             try:
                 users = session.scalars(select(Users)).all()
                 if not users:
-                    print("Can't find users in database")
+                    logger.error("Can't find users in database")
                     return
 
                 return users
 
             except Exception:
-                print("Something went wrong when get all users")
-                print(traceback.format_exc())
+                logger.error("Something went wrong when get all users\n" + traceback.format_exc())
 
     async def get_all_users_with_guilds(self) -> Optional[list[Users]]:
         """
@@ -313,14 +306,13 @@ class UserDBase(DataBase):
                 query = select(Users).options(selectinload(Users.guilds))
                 users = session.scalars(query).all()
                 if not users:
-                    print("Can't find all users with guilds in database")
+                    logger.error("Can't find all users with guilds in database")
                     return
 
                 return users
 
             except Exception:
-                print("Something went wrong when get all users with guilds")
-                print(traceback.format_exc())
+                logger.error("Something went wrong when get all users with guilds\n" + traceback.format_exc())
 
     async def update_user(
         self, data: Union[dict, list[dict]]
@@ -374,12 +366,11 @@ class UserDBase(DataBase):
 
                 session.commit()
 
-                print(users)
+                logger.debug(users)
                 return users
 
             except Exception:
-                print("Something went wrong when update user")
-                print(traceback.format_exc())
+                logger.error("Something went wrong when update user\n" + traceback.format_exc())
 
     async def get_top_users_by_scores(self) -> Union[Sequence[Users], None]:
         """
@@ -392,15 +383,14 @@ class UserDBase(DataBase):
             try:
                 users = select(Users).order_by(Users.scores.desc()).limit(20)
                 res = session.scalars(users).all()
-                if res is None:
-                    print("Can't get top users by scores")
+                if not res:
+                    logger.error("Can't get top users by scores")
                     return
 
                 return res
 
             except Exception:
-                print("Something went wrong when get top for users by scores")
-                print(traceback.format_exc())
+                logger.error("Something went wrong when get top for users by scores\n" + traceback.format_exc())
 
         return
 
@@ -415,15 +405,14 @@ class UserDBase(DataBase):
             try:
                 users = select(Users).order_by(Users.messages.desc()).limit(20)
                 res = session.scalars(users).all()
-                if res is None:
-                    print("Can't get top users by scores")
+                if not res:
+                    logger.error("Can't get top users by messages")
                     return
 
                 return res
 
             except Exception:
-                print("Something went wrong when get top for users by scores")
-                print(traceback.format_exc())
+                logger.error("Something went wrong when get top for users by scores\n" + traceback.format_exc())
 
         return
 
@@ -475,28 +464,24 @@ class GuildsDBase(DataBase):
                     session.commit()
 
                     guilds_list.append(guild)
-                    print(guild)
+                    logger.debug(guild)
 
                 except IntegrityError:
                     session.rollback()
                     guild = await self.get_guild(data)
                     if guild:
-                        print(f"{guild} already in database")
+                        logger.debug(f"{guild} already in database")
                         guilds_list.append(guild)
                     else:
-                        print("Something went wrong when get guild fo add function")
-                        print(traceback.format_exc())
+                        logger.error("Something went wrong when get guild fo add function\n" + traceback.format_exc())
 
                         return
 
                 except Exception:
-                    print("Something went wrong then adding guild")
-                    print(traceback.format_exc())
+                    logger.error("Something went wrong then adding guild\n" + traceback.format_exc())
 
         if len(guilds_list) != 0:
             return guilds_list[0] if is_dict else guilds_list
-        else:
-            return
 
     @staticmethod
     def get_guild_static(session, data):
@@ -529,7 +514,7 @@ class GuildsDBase(DataBase):
 
                     guild = session.scalars(guild).first()
                     if not guild:
-                        print("Can't find guild by discord id in database")
+                        logger.error("Can't find guild by discord id in database")
                         return
 
                     guild_list.append(guild)
@@ -538,7 +523,7 @@ class GuildsDBase(DataBase):
                     guild = select(Guilds).filter_by(guild_name=data["guild_name"])
                     guild = session.scalars(guild).first()
                     if not guild:
-                        print("Can't find guild by guild name in database")
+                        logger.error("Can't find guild by guild name in database")
                         return
 
                     guild_list.append(guild)
@@ -546,8 +531,7 @@ class GuildsDBase(DataBase):
             return guild_list[0] if is_dict else guild_list
 
         except Exception:
-            print("Something went wrong when get guild")
-            print(traceback.format_exc())
+            logger.error("Something went wrong when get guild\n" + traceback.format_exc())
 
         return
 
@@ -586,7 +570,7 @@ class GuildsDBase(DataBase):
 
                         guild = session.scalars(guild).first()
                         if not guild:
-                            print("Something went wrong when get guild for relationship")
+                            logger.error("Something went wrong when get guild for relationship")
                             return
 
                         guild_list.append(guild)
@@ -601,7 +585,7 @@ class GuildsDBase(DataBase):
 
                         guild = session.scalars(guild).first()
                         if not guild:
-                            print("Can't find guild with users by discord id in database")
+                            logger.error("Can't find guild with users by discord id in database")
                             return
 
                         guild_list.append(guild)
@@ -615,7 +599,7 @@ class GuildsDBase(DataBase):
 
                         guild = session.scalars(guild).first()
                         if not guild:
-                            print("Can't find guild with users by guild name in database")
+                            logger.error("Can't find guild with users by guild name in database")
                             return
 
                         guild_list.append(guild)
@@ -623,8 +607,7 @@ class GuildsDBase(DataBase):
             return guild_list[0] if is_dict else guild_list
 
         except Exception:
-            print("Something went wrong when get guild")
-            print(traceback.format_exc())
+            logger.error("Something went wrong when get guild\n" + traceback.format_exc())
 
         return
 
@@ -653,7 +636,7 @@ class GuildsDBase(DataBase):
         with self.Session() as session:
             guild = self.get_guild_static(session, data)
             if guild:
-                print(guild)
+                logger.debug(guild)
 
             return guild
 
@@ -681,7 +664,7 @@ class GuildsDBase(DataBase):
         with self.Session() as session:
             guild = self.get_guild_static_with_users(session, data)
             if guild:
-                print(guild)
+                logger.debug(guild)
 
             return guild
 
@@ -693,14 +676,13 @@ class GuildsDBase(DataBase):
             try:
                 guilds = session.scalars(select(Guilds)).all()
                 if not guilds:
-                    print("Can't find all guilds in database")
+                    logger.error("Can't find all guilds in database")
                     return
 
                 return guilds
 
             except Exception:
-                print("Something went wrong when get all guilds")
-                print(traceback.format_exc())
+                logger.error("Something went wrong when get all guilds\n" + traceback.format_exc())
 
     async def get_all_guilds_with_users(self) -> Optional[list[Guilds]]:
         """
@@ -711,14 +693,13 @@ class GuildsDBase(DataBase):
                 query = select(Guilds).options(selectinload(Guilds.users))
                 guilds = session.scalars(query).all()
                 if not guilds:
-                    print("Can't find all guilds with users in database")
+                    logger.error("Can't find all guilds with users in database")
                     return
 
                 return guilds
 
             except Exception:
-                print("Something went wrong when get all guilds with users")
-                print(traceback.format_exc())
+                logger.error("Something went wrong when get all guilds with users\n" + traceback.format_exc())
 
     async def update_guild(
         self, data: Union[dict, list[dict]]
@@ -777,8 +758,7 @@ class GuildsDBase(DataBase):
                 return guilds_list[0] if is_dict else guilds_list
 
             except Exception:
-                print("Something went wrong when update user")
-                print(traceback.format_exc())
+                logger.error("Something went wrong when update user\n" + traceback.format_exc())
 
         return
 
@@ -802,7 +782,7 @@ class GuildsDBase(DataBase):
 
                 res = session.scalars(guilds).first()
                 if not res:
-                    print("Can't get users in guild by scores")
+                    logger.error("Can't get users in guild by scores")
                     return
 
                 res = res.users
@@ -813,12 +793,11 @@ class GuildsDBase(DataBase):
                 sorted_res = sorted(user_list, key=lambda x: x.scores, reverse=True)
                 sorted_res = sorted_res[:20]
 
-                print(sorted_res)
+                logger.debug(sorted_res)
                 return sorted_res
 
             except:
-                print("Something went wrong when get users top in guild by scores")
-                print(traceback.format_exc())
+                logger.error("Something went wrong when get users top in guild by scores\n" + traceback.format_exc())
 
         return
 
@@ -842,7 +821,7 @@ class GuildsDBase(DataBase):
 
                 res = session.scalars(guilds).first()
                 if not res:
-                    print("Can't get users in guild by count of messages")
+                    logger.error("Can't get users in guild by count of messages")
                     return
 
                 res = res.users
@@ -853,14 +832,11 @@ class GuildsDBase(DataBase):
                 sorted_res = sorted(user_list, key=lambda x: x.messages, reverse=True)
                 sorted_res = sorted_res[:20]
 
-                print(sorted_res)
+                logger.debug(sorted_res)
                 return sorted_res
 
             except:
-                print(
-                    "Something went wrong when get users top in guild by count of messages"
-                )
-                print(traceback.format_exc())
+                logger.error("Something went wrong when get users top in guild by count of messages\n" + traceback.format_exc())
 
         return
 
@@ -917,17 +893,14 @@ class RelationshipsDBase(DataBase):
                     for guild in received_guilds:
                         for user in received_users:
                             guild.users.append(user)
-                            print(guild, user)
+                            logger.debug(str(guild) + " " + str(user))
 
                     session.commit()
 
                 return True
 
             except Exception:
-                print(
-                    "Something went wrong when add relationships between users and guilds"
-                )
-                print(traceback.format_exc())
+                logger.error("Something went wrong when add relationships between users and guilds\n" + traceback.format_exc())
 
         return
 
@@ -959,22 +932,17 @@ class RelationshipsDBase(DataBase):
                         session, data["guilds"]
                     )
 
-                    # guild[0].users.remove(user[0])
-
                     for guild in received_guilds:
                         for user in received_users:
                             if user in guild.users:
                                 guild.users.remove(user)
-                                print(guild, user)
+                                logger.debug(guild, user)
 
                     session.commit()
 
                 return True
 
             except Exception:
-                print(
-                    "Something went wrong when delete relationships between users and guilds"
-                )
-                print(traceback.format_exc())
+                logger.error("Something went wrong when delete relationships between users and guilds\n" + traceback.format_exc())
 
         return
