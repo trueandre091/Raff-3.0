@@ -52,10 +52,7 @@ class AutoUpdateMessagesTop(commands.Cog):
             if channel is None:
                 continue
 
-            try:
-                top = await GDB.get_top_users_by_messages(guild.id)
-            except:
-                continue
+            top = await GDB.get_top_users_by_messages(guild.id)
             if top is None:
                 continue
 
@@ -64,15 +61,14 @@ class AutoUpdateMessagesTop(commands.Cog):
                 "description": "",
                 "fields": [],
                 "color": 0x2B2D31,
-                "footer": {},
+                "footer": {"text": guild.name},
             }
             try:
-                embed_dict["footer"] = {"text": guild.name, "icon_url": guild.icon.url}
-            except:
-                embed_dict["footer"] = {
-                    "text": guild.name,
-                    "icon_url": "https://im.wampi.ru/2023/11/02/Bez_nazvania1_20211210115049.png",
-                }
+                embed_dict["footer"]["icon_url"] = guild.icon.url
+            except AttributeError:
+                embed_dict["footer"][
+                    "icon_url"
+                ] = "https://im.wampi.ru/2023/11/02/Bez_nazvania1_20211210115049.png"
 
             place = 1
             for user in top:
@@ -93,7 +89,7 @@ class AutoUpdateMessagesTop(commands.Cog):
                 try:
                     if (
                         "Таблица лидеров по сообщениям за неделю"
-                        in msg.embeds[0].to_dict()["title"]
+                        in msg.embeds[-1].to_dict()["title"]
                     ):
                         await msg.edit(embed=disnake.Embed.from_dict(embed_dict))
                         flag = False
@@ -136,15 +132,11 @@ class AutoUpdateScoresTop(commands.Cog):
                 "footer": {},
             }
             try:
-                embed_dict["footer"] = {
-                    "text": channel.guild.name,
-                    "icon_url": channel.guild.icon.url,
-                }
-            except:
-                embed_dict["footer"] = {
-                    "text": channel.guild.name,
-                    "icon_url": "https://im.wampi.ru/2023/11/02/Bez_nazvania1_20211210115049.png",
-                }
+                embed_dict["footer"]["icon_url"] = channel.guild.icon.url
+            except AttributeError:
+                embed_dict["footer"][
+                    "icon_url"
+                ] = "https://im.wampi.ru/2023/11/02/Bez_nazvania1_20211210115049.png"
 
             embed_dict = await top_create_embed(self.bot, settings, embed_dict)
 
