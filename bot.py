@@ -6,14 +6,14 @@ from cogs.cog_experience import count_experience
 from DB.DataBase import GuildsDBase
 from loguru import logger
 
-# logger.remove()
 logger.add(
     "logs/logs.log",
-    format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} | {message}",
+    format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} | {message}\n{exception}",
     level="INFO",
     rotation="1 week",
     compression="zip",
-
+    backtrace=True,
+    diagnose=True
 )
 
 

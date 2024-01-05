@@ -49,3 +49,680 @@ TypeError: unsupported operand type(s) for +: 'Guilds' and 'Users'
 2024-01-05 20:09:55.110 | INFO     | __main__:on_ready:129 | Bot Raff test bot#6807 is ready to work!
 2024-01-05 20:10:54.672 | INFO     | __main__:on_ready:129 | Bot Raff test bot#6807 is ready to work!
 2024-01-05 20:12:04.020 | INFO     | __main__:on_ready:129 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 20:17:20.869 | INFO     | __main__:on_ready:128 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 20:33:00.108 | INFO     | __main__:on_ready:128 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 20:33:00.117 | ERROR    | DB.DataBase:get_guild_static:546 | Can't find guild by discord id in database
+2024-01-05 20:33:00.117 | ERROR    | DB.DataBase:get_guild_static:546 | Can't find guild by discord id in database
+2024-01-05 20:33:00.121 | ERROR    | DB.DataBase:get_all_users_with_guilds:321 | Can't find all users with guilds in database
+2024-01-05 20:33:00.122 | ERROR    | DB.DataBase:get_guild_static:546 | Can't find guild by discord id in database
+2024-01-05 20:33:45.123 | ERROR    | DB.DataBase:get_guild_static:546 | Can't find guild by discord id in database
+2024-01-05 20:33:50.977 | ERROR    | DB.DataBase:get_guild_static:546 | Can't find guild by discord id in database
+2024-01-05 20:34:00.113 | ERROR    | DB.DataBase:get_guild_static:546 | Can't find guild by discord id in database
+2024-01-05 20:34:19.064 | ERROR    | DB.DataBase:get_user_static:134 | Can't find user by discord id in database
+2024-01-05 20:34:46.702 | ERROR    | DB.DataBase:get_user_static:134 | Can't find user by discord id in database
+2024-01-05 20:36:48.879 | INFO     | __main__:on_ready:128 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 20:51:55.735 | INFO     | __main__:on_ready:128 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 20:55:06.883 | INFO     | __main__:on_ready:128 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 20:55:46.149 | INFO     | __main__:on_ready:128 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 20:57:50.778 | INFO     | __main__:on_ready:128 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 20:59:50.785 | INFO     | __main__:on_ready:128 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 20:59:57.414 | INFO     | __main__:on_ready:128 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 21:00:44.931 | INFO     | __main__:on_ready:128 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 21:02:34.511 | INFO     | __main__:on_ready:128 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 21:02:49.240 | INFO     | __main__:on_ready:128 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 21:05:13.733 | INFO     | __main__:on_ready:128 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 21:09:36.308 | INFO     | __main__:on_ready:128 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 21:11:11.739 | INFO     | __main__:on_ready:128 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 21:12:41.674 | INFO     | __main__:on_ready:128 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 21:13:24.499 | INFO     | __main__:on_ready:128 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 21:16:51.871 | INFO     | __main__:on_ready:128 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 21:32:52.224 | INFO     | __main__:on_ready:128 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 21:33:10.865 | CRITICAL | DB.DataBase:__init__:28 | Error creating engine or session
+2024-01-05 21:33:10.870 | CRITICAL | DB.DataBase:__init__:28 | Error creating engine or session
+2024-01-05 21:33:10.870 | CRITICAL | DB.DataBase:__init__:28 | Error creating engine or session
+2024-01-05 21:33:10.870 | CRITICAL | DB.DataBase:__init__:28 | Error creating engine or session
+2024-01-05 21:33:10.871 | CRITICAL | DB.DataBase:__init__:28 | Error creating engine or session
+2024-01-05 21:33:10.871 | CRITICAL | DB.DataBase:__init__:28 | Error creating engine or session
+2024-01-05 21:33:14.264 | INFO     | __main__:on_ready:128 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 21:33:48.504 | CRITICAL | DB.DataBase:__init__:28 | Error creating engine or session
+2024-01-05 21:33:48.509 | CRITICAL | DB.DataBase:__init__:28 | Error creating engine or session
+2024-01-05 21:33:48.509 | CRITICAL | DB.DataBase:__init__:28 | Error creating engine or session
+2024-01-05 21:33:48.509 | CRITICAL | DB.DataBase:__init__:28 | Error creating engine or session
+2024-01-05 21:33:48.509 | CRITICAL | DB.DataBase:__init__:28 | Error creating engine or session
+2024-01-05 21:33:48.510 | CRITICAL | DB.DataBase:__init__:28 | Error creating engine or session
+2024-01-05 21:33:51.731 | INFO     | __main__:on_ready:128 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 21:35:15.619 | CRITICAL | DB.DataBase:__init__:28 | Error creating engine or session
+2024-01-05 21:35:15.625 | CRITICAL | DB.DataBase:__init__:28 | Error creating engine or session
+2024-01-05 21:35:15.625 | CRITICAL | DB.DataBase:__init__:28 | Error creating engine or session
+2024-01-05 21:35:15.625 | CRITICAL | DB.DataBase:__init__:28 | Error creating engine or session
+2024-01-05 21:35:15.625 | CRITICAL | DB.DataBase:__init__:28 | Error creating engine or session
+2024-01-05 21:35:15.626 | CRITICAL | DB.DataBase:__init__:28 | Error creating engine or session
+2024-01-05 21:35:18.864 | INFO     | __main__:on_ready:128 | Bot Raff test bot#6807 is ready to work!
+2024-01-05 21:35:57.785 | ERROR    | DB.DataBase:__init__:28 | Error creating engine or session
+
+2024-01-05 21:35:57.790 | ERROR    | DB.DataBase:__init__:28 | Error creating engine or session
+
+2024-01-05 21:35:57.790 | ERROR    | DB.DataBase:__init__:28 | Error creating engine or session
+
+2024-01-05 21:35:57.790 | ERROR    | DB.DataBase:__init__:28 | Error creating engine or session
+
+2024-01-05 21:35:57.791 | ERROR    | DB.DataBase:__init__:28 | Error creating engine or session
+
+2024-01-05 21:35:57.791 | ERROR    | DB.DataBase:__init__:28 | Error creating engine or session
+
+2024-01-05 21:36:00.999 | INFO     | __main__:on_ready:128 | Bot Raff test bot#6807 is ready to work!
+
+2024-01-05 21:36:57.380 | ERROR    | DB.DataBase:__init__:28 | Error creating engine or session
+
+2024-01-05 21:36:57.385 | ERROR    | DB.DataBase:__init__:28 | Error creating engine or session
+
+2024-01-05 21:36:57.385 | ERROR    | DB.DataBase:__init__:28 | Error creating engine or session
+
+2024-01-05 21:36:57.385 | ERROR    | DB.DataBase:__init__:28 | Error creating engine or session
+
+2024-01-05 21:36:57.386 | ERROR    | DB.DataBase:__init__:28 | Error creating engine or session
+
+2024-01-05 21:36:57.386 | ERROR    | DB.DataBase:__init__:28 | Error creating engine or session
+
+2024-01-05 21:37:00.709 | INFO     | __main__:on_ready:129 | Bot Raff test bot#6807 is ready to work!
+
+2024-01-05 21:37:35.493 | ERROR    | __main__:on_ready:129 | Bot Raff test bot#6807 is ready to work!
+
+2024-01-05 21:39:32.784 | INFO     | __main__:on_ready:129 | Bot Raff test bot#6807 is ready to work!
+
+2024-01-05 21:39:32.785 | ERROR    | DB.DataBase:get_guild_static:563 | Something went wrong when get guild
+Traceback (most recent call last):
+  File "E:\Raff-3.0\DB\DataBase.py", line 541, in get_guild_static
+    if "guild_id" in data.keys:
+       ^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: argument of type 'builtin_function_or_method' is not iterable
+
+
+2024-01-05 21:39:32.787 | ERROR    | DB.DataBase:get_guild_static:563 | Something went wrong when get guild
+Traceback (most recent call last):
+  File "E:\Raff-3.0\DB\DataBase.py", line 541, in get_guild_static
+    if "guild_id" in data.keys:
+       ^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: argument of type 'builtin_function_or_method' is not iterable
+
+
+2024-01-05 21:39:32.815 | ERROR    | DB.DataBase:get_guild_static:563 | Something went wrong when get guild
+Traceback (most recent call last):
+  File "E:\Raff-3.0\DB\DataBase.py", line 541, in get_guild_static
+    if "guild_id" in data.keys:
+       ^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: argument of type 'builtin_function_or_method' is not iterable
+
+
+2024-01-05 21:39:35.429 | ERROR    | DB.DataBase:get_guild_static:563 | Something went wrong when get guild
+Traceback (most recent call last):
+  File "E:\Raff-3.0\DB\DataBase.py", line 541, in get_guild_static
+    if "guild_id" in data.keys:
+       ^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: argument of type 'builtin_function_or_method' is not iterable
+
+
+2024-01-05 21:40:04.133 | ERROR    | DB.DataBase:get_guild_static:563 | Something went wrong when get guild
+Traceback (most recent call last):
+  File "E:\Raff-3.0\DB\DataBase.py", line 541, in get_guild_static
+    if "guild_id" in data.keys:
+       ^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: argument of type 'builtin_function_or_method' is not iterable
+
+
+2024-01-05 21:40:17.788 | ERROR    | DB.DataBase:get_guild_static:563 | Something went wrong when get guild
+Traceback (most recent call last):
+  File "E:\Raff-3.0\DB\DataBase.py", line 541, in get_guild_static
+    if "guild_id" in data.keys:
+       ^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: argument of type 'builtin_function_or_method' is not iterable
+
+
+2024-01-05 21:40:24.599 | INFO     | __main__:on_ready:129 | Bot Raff test bot#6807 is ready to work!
+
+2024-01-05 21:43:15.169 | ERROR    | DB.DataBase:__init__:28 | Error creating engine or session
+Traceback (most recent call last):
+
+  File "E:\Raff-3.0\bot.py", line 33, in <module>
+    bot.load_extension("cogs.cog_special")
+    │   └ <function CommonBotBase.load_extension at 0x0000014FC756C720>
+    └ <disnake.ext.commands.bot.Bot object at 0x0000014FC91F4ED0>
+
+  File "E:\Raff-3.0\venv\Lib\site-packages\disnake\ext\commands\common_bot_base.py", line 523, in load_extension
+    self._load_from_module_spec(spec, name)
+    │    │                      │     └ 'cogs.cog_special'
+    │    │                      └ ModuleSpec(name='cogs.cog_special', loader=<_frozen_importlib_external.SourceFileLoader object at 0x0000014FC9237C90>, origin...
+    │    └ <function CommonBotBase._load_from_module_spec at 0x0000014FC756C5E0>
+    └ <disnake.ext.commands.bot.Bot object at 0x0000014FC91F4ED0>
+  File "E:\Raff-3.0\venv\Lib\site-packages\disnake\ext\commands\common_bot_base.py", line 452, in _load_from_module_spec
+    spec.loader.exec_module(lib)  # type: ignore
+    │    │      │           └ <module 'cogs.cog_special' from 'E:\\Raff-3.0\\cogs\\cog_special.py'>
+    │    │      └ <function _LoaderBasics.exec_module at 0x0000014FC3BD1D00>
+    │    └ <_frozen_importlib_external.SourceFileLoader object at 0x0000014FC9237C90>
+    └ ModuleSpec(name='cogs.cog_special', loader=<_frozen_importlib_external.SourceFileLoader object at 0x0000014FC9237C90>, origin...
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+
+  File "E:\Raff-3.0\cogs\cog_special.py", line 8, in <module>
+    DB = UserDBase()
+         └ <class 'DB.DataBase.UserDBase'>
+
+> File "E:\Raff-3.0\DB\DataBase.py", line 25, in __init__
+    self.Session = sessionmaker(self.engine)
+    │              │            └ <DB.DataBase.UserDBase object at 0x0000014FC9237950>
+    │              └ <class 'sqlalchemy.orm.session.sessionmaker'>
+    └ <DB.DataBase.UserDBase object at 0x0000014FC9237950>
+
+AttributeError: 'UserDBase' object has no attribute 'engine'
+
+Traceback (most recent call last):
+
+  File "E:\Raff-3.0\bot.py", line 33, in <module>
+    bot.load_extension("cogs.cog_special")
+    │   └ <function CommonBotBase.load_extension at 0x0000014FC756C720>
+    └ <disnake.ext.commands.bot.Bot object at 0x0000014FC91F4ED0>
+
+  File "E:\Raff-3.0\venv\Lib\site-packages\disnake\ext\commands\common_bot_base.py", line 523, in load_extension
+    self._load_from_module_spec(spec, name)
+    │    │                      │     └ 'cogs.cog_special'
+    │    │                      └ ModuleSpec(name='cogs.cog_special', loader=<_frozen_importlib_external.SourceFileLoader object at 0x0000014FC9237C90>, origin...
+    │    └ <function CommonBotBase._load_from_module_spec at 0x0000014FC756C5E0>
+    └ <disnake.ext.commands.bot.Bot object at 0x0000014FC91F4ED0>
+  File "E:\Raff-3.0\venv\Lib\site-packages\disnake\ext\commands\common_bot_base.py", line 452, in _load_from_module_spec
+    spec.loader.exec_module(lib)  # type: ignore
+    │    │      │           └ <module 'cogs.cog_special' from 'E:\\Raff-3.0\\cogs\\cog_special.py'>
+    │    │      └ <function _LoaderBasics.exec_module at 0x0000014FC3BD1D00>
+    │    └ <_frozen_importlib_external.SourceFileLoader object at 0x0000014FC9237C90>
+    └ ModuleSpec(name='cogs.cog_special', loader=<_frozen_importlib_external.SourceFileLoader object at 0x0000014FC9237C90>, origin...
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+
+  File "E:\Raff-3.0\cogs\cog_special.py", line 8, in <module>
+    DB = UserDBase()
+         └ <class 'DB.DataBase.UserDBase'>
+
+> File "E:\Raff-3.0\DB\DataBase.py", line 25, in __init__
+    self.Session = sessionmaker(self.engine)
+    │              │            └ <DB.DataBase.UserDBase object at 0x0000014FC9237950>
+    │              └ <class 'sqlalchemy.orm.session.sessionmaker'>
+    └ <DB.DataBase.UserDBase object at 0x0000014FC9237950>
+
+AttributeError: 'UserDBase' object has no attribute 'engine'
+2024-01-05 21:43:15.178 | ERROR    | DB.DataBase:__init__:28 | Error creating engine or session
+Traceback (most recent call last):
+
+  File "E:\Raff-3.0\bot.py", line 37, in <module>
+    bot.load_extension("cogs.guilds_functions")
+    │   └ <function CommonBotBase.load_extension at 0x0000014FC756C720>
+    └ <disnake.ext.commands.bot.Bot object at 0x0000014FC91F4ED0>
+
+  File "E:\Raff-3.0\venv\Lib\site-packages\disnake\ext\commands\common_bot_base.py", line 523, in load_extension
+    self._load_from_module_spec(spec, name)
+    │    │                      │     └ 'cogs.guilds_functions'
+    │    │                      └ ModuleSpec(name='cogs.guilds_functions', loader=<_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>, o...
+    │    └ <function CommonBotBase._load_from_module_spec at 0x0000014FC756C5E0>
+    └ <disnake.ext.commands.bot.Bot object at 0x0000014FC91F4ED0>
+  File "E:\Raff-3.0\venv\Lib\site-packages\disnake\ext\commands\common_bot_base.py", line 452, in _load_from_module_spec
+    spec.loader.exec_module(lib)  # type: ignore
+    │    │      │           └ <module 'cogs.guilds_functions' from 'E:\\Raff-3.0\\cogs\\guilds_functions.py'>
+    │    │      └ <function _LoaderBasics.exec_module at 0x0000014FC3BD1D00>
+    │    └ <_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>
+    └ ModuleSpec(name='cogs.guilds_functions', loader=<_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>, o...
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+
+  File "E:\Raff-3.0\cogs\guilds_functions.py", line 6, in <module>
+    DB = UserDBase()
+         └ <class 'DB.DataBase.UserDBase'>
+
+> File "E:\Raff-3.0\DB\DataBase.py", line 25, in __init__
+    self.Session = sessionmaker(self.engine)
+    │              │            └ <DB.DataBase.UserDBase object at 0x0000014FC928CA50>
+    │              └ <class 'sqlalchemy.orm.session.sessionmaker'>
+    └ <DB.DataBase.UserDBase object at 0x0000014FC928CA50>
+
+AttributeError: 'UserDBase' object has no attribute 'engine'
+
+Traceback (most recent call last):
+
+  File "E:\Raff-3.0\bot.py", line 37, in <module>
+    bot.load_extension("cogs.guilds_functions")
+    │   └ <function CommonBotBase.load_extension at 0x0000014FC756C720>
+    └ <disnake.ext.commands.bot.Bot object at 0x0000014FC91F4ED0>
+
+  File "E:\Raff-3.0\venv\Lib\site-packages\disnake\ext\commands\common_bot_base.py", line 523, in load_extension
+    self._load_from_module_spec(spec, name)
+    │    │                      │     └ 'cogs.guilds_functions'
+    │    │                      └ ModuleSpec(name='cogs.guilds_functions', loader=<_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>, o...
+    │    └ <function CommonBotBase._load_from_module_spec at 0x0000014FC756C5E0>
+    └ <disnake.ext.commands.bot.Bot object at 0x0000014FC91F4ED0>
+  File "E:\Raff-3.0\venv\Lib\site-packages\disnake\ext\commands\common_bot_base.py", line 452, in _load_from_module_spec
+    spec.loader.exec_module(lib)  # type: ignore
+    │    │      │           └ <module 'cogs.guilds_functions' from 'E:\\Raff-3.0\\cogs\\guilds_functions.py'>
+    │    │      └ <function _LoaderBasics.exec_module at 0x0000014FC3BD1D00>
+    │    └ <_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>
+    └ ModuleSpec(name='cogs.guilds_functions', loader=<_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>, o...
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+
+  File "E:\Raff-3.0\cogs\guilds_functions.py", line 6, in <module>
+    DB = UserDBase()
+         └ <class 'DB.DataBase.UserDBase'>
+
+> File "E:\Raff-3.0\DB\DataBase.py", line 25, in __init__
+    self.Session = sessionmaker(self.engine)
+    │              │            └ <DB.DataBase.UserDBase object at 0x0000014FC928CA50>
+    │              └ <class 'sqlalchemy.orm.session.sessionmaker'>
+    └ <DB.DataBase.UserDBase object at 0x0000014FC928CA50>
+
+AttributeError: 'UserDBase' object has no attribute 'engine'
+2024-01-05 21:43:15.180 | ERROR    | DB.DataBase:__init__:28 | Error creating engine or session
+Traceback (most recent call last):
+
+  File "E:\Raff-3.0\bot.py", line 37, in <module>
+    bot.load_extension("cogs.guilds_functions")
+    │   └ <function CommonBotBase.load_extension at 0x0000014FC756C720>
+    └ <disnake.ext.commands.bot.Bot object at 0x0000014FC91F4ED0>
+
+  File "E:\Raff-3.0\venv\Lib\site-packages\disnake\ext\commands\common_bot_base.py", line 523, in load_extension
+    self._load_from_module_spec(spec, name)
+    │    │                      │     └ 'cogs.guilds_functions'
+    │    │                      └ ModuleSpec(name='cogs.guilds_functions', loader=<_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>, o...
+    │    └ <function CommonBotBase._load_from_module_spec at 0x0000014FC756C5E0>
+    └ <disnake.ext.commands.bot.Bot object at 0x0000014FC91F4ED0>
+  File "E:\Raff-3.0\venv\Lib\site-packages\disnake\ext\commands\common_bot_base.py", line 452, in _load_from_module_spec
+    spec.loader.exec_module(lib)  # type: ignore
+    │    │      │           └ <module 'cogs.guilds_functions' from 'E:\\Raff-3.0\\cogs\\guilds_functions.py'>
+    │    │      └ <function _LoaderBasics.exec_module at 0x0000014FC3BD1D00>
+    │    └ <_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>
+    └ ModuleSpec(name='cogs.guilds_functions', loader=<_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>, o...
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+
+  File "E:\Raff-3.0\cogs\guilds_functions.py", line 7, in <module>
+    GDB = GuildsDBase()
+          └ <class 'DB.DataBase.GuildsDBase'>
+
+> File "E:\Raff-3.0\DB\DataBase.py", line 25, in __init__
+    self.Session = sessionmaker(self.engine)
+    │              │            └ <DB.DataBase.GuildsDBase object at 0x0000014FC927BA50>
+    │              └ <class 'sqlalchemy.orm.session.sessionmaker'>
+    └ <DB.DataBase.GuildsDBase object at 0x0000014FC927BA50>
+
+AttributeError: 'GuildsDBase' object has no attribute 'engine'
+
+Traceback (most recent call last):
+
+  File "E:\Raff-3.0\bot.py", line 37, in <module>
+    bot.load_extension("cogs.guilds_functions")
+    │   └ <function CommonBotBase.load_extension at 0x0000014FC756C720>
+    └ <disnake.ext.commands.bot.Bot object at 0x0000014FC91F4ED0>
+
+  File "E:\Raff-3.0\venv\Lib\site-packages\disnake\ext\commands\common_bot_base.py", line 523, in load_extension
+    self._load_from_module_spec(spec, name)
+    │    │                      │     └ 'cogs.guilds_functions'
+    │    │                      └ ModuleSpec(name='cogs.guilds_functions', loader=<_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>, o...
+    │    └ <function CommonBotBase._load_from_module_spec at 0x0000014FC756C5E0>
+    └ <disnake.ext.commands.bot.Bot object at 0x0000014FC91F4ED0>
+  File "E:\Raff-3.0\venv\Lib\site-packages\disnake\ext\commands\common_bot_base.py", line 452, in _load_from_module_spec
+    spec.loader.exec_module(lib)  # type: ignore
+    │    │      │           └ <module 'cogs.guilds_functions' from 'E:\\Raff-3.0\\cogs\\guilds_functions.py'>
+    │    │      └ <function _LoaderBasics.exec_module at 0x0000014FC3BD1D00>
+    │    └ <_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>
+    └ ModuleSpec(name='cogs.guilds_functions', loader=<_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>, o...
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+
+  File "E:\Raff-3.0\cogs\guilds_functions.py", line 7, in <module>
+    GDB = GuildsDBase()
+          └ <class 'DB.DataBase.GuildsDBase'>
+
+> File "E:\Raff-3.0\DB\DataBase.py", line 25, in __init__
+    self.Session = sessionmaker(self.engine)
+    │              │            └ <DB.DataBase.GuildsDBase object at 0x0000014FC927BA50>
+    │              └ <class 'sqlalchemy.orm.session.sessionmaker'>
+    └ <DB.DataBase.GuildsDBase object at 0x0000014FC927BA50>
+
+AttributeError: 'GuildsDBase' object has no attribute 'engine'
+2024-01-05 21:43:15.185 | ERROR    | DB.DataBase:__init__:28 | Error creating engine or session
+Traceback (most recent call last):
+
+  File "E:\Raff-3.0\bot.py", line 37, in <module>
+    bot.load_extension("cogs.guilds_functions")
+    │   └ <function CommonBotBase.load_extension at 0x0000014FC756C720>
+    └ <disnake.ext.commands.bot.Bot object at 0x0000014FC91F4ED0>
+
+  File "E:\Raff-3.0\venv\Lib\site-packages\disnake\ext\commands\common_bot_base.py", line 523, in load_extension
+    self._load_from_module_spec(spec, name)
+    │    │                      │     └ 'cogs.guilds_functions'
+    │    │                      └ ModuleSpec(name='cogs.guilds_functions', loader=<_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>, o...
+    │    └ <function CommonBotBase._load_from_module_spec at 0x0000014FC756C5E0>
+    └ <disnake.ext.commands.bot.Bot object at 0x0000014FC91F4ED0>
+  File "E:\Raff-3.0\venv\Lib\site-packages\disnake\ext\commands\common_bot_base.py", line 452, in _load_from_module_spec
+    spec.loader.exec_module(lib)  # type: ignore
+    │    │      │           └ <module 'cogs.guilds_functions' from 'E:\\Raff-3.0\\cogs\\guilds_functions.py'>
+    │    │      └ <function _LoaderBasics.exec_module at 0x0000014FC3BD1D00>
+    │    └ <_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>
+    └ ModuleSpec(name='cogs.guilds_functions', loader=<_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>, o...
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+
+  File "E:\Raff-3.0\cogs\guilds_functions.py", line 8, in <module>
+    RDB = RelationshipsDBase()
+          └ <class 'DB.DataBase.RelationshipsDBase'>
+
+  File "E:\Raff-3.0\DB\DataBase.py", line 904, in __init__
+    super().__init__(echo_mode)
+                     └ False
+
+> File "E:\Raff-3.0\DB\DataBase.py", line 25, in __init__
+    self.Session = sessionmaker(self.engine)
+    │              │            └ <DB.DataBase.RelationshipsDBase object at 0x0000014FC928DC90>
+    │              └ <class 'sqlalchemy.orm.session.sessionmaker'>
+    └ <DB.DataBase.RelationshipsDBase object at 0x0000014FC928DC90>
+
+AttributeError: 'RelationshipsDBase' object has no attribute 'engine'
+
+Traceback (most recent call last):
+
+  File "E:\Raff-3.0\bot.py", line 37, in <module>
+    bot.load_extension("cogs.guilds_functions")
+    │   └ <function CommonBotBase.load_extension at 0x0000014FC756C720>
+    └ <disnake.ext.commands.bot.Bot object at 0x0000014FC91F4ED0>
+
+  File "E:\Raff-3.0\venv\Lib\site-packages\disnake\ext\commands\common_bot_base.py", line 523, in load_extension
+    self._load_from_module_spec(spec, name)
+    │    │                      │     └ 'cogs.guilds_functions'
+    │    │                      └ ModuleSpec(name='cogs.guilds_functions', loader=<_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>, o...
+    │    └ <function CommonBotBase._load_from_module_spec at 0x0000014FC756C5E0>
+    └ <disnake.ext.commands.bot.Bot object at 0x0000014FC91F4ED0>
+  File "E:\Raff-3.0\venv\Lib\site-packages\disnake\ext\commands\common_bot_base.py", line 452, in _load_from_module_spec
+    spec.loader.exec_module(lib)  # type: ignore
+    │    │      │           └ <module 'cogs.guilds_functions' from 'E:\\Raff-3.0\\cogs\\guilds_functions.py'>
+    │    │      └ <function _LoaderBasics.exec_module at 0x0000014FC3BD1D00>
+    │    └ <_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>
+    └ ModuleSpec(name='cogs.guilds_functions', loader=<_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>, o...
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+
+  File "E:\Raff-3.0\cogs\guilds_functions.py", line 8, in <module>
+    RDB = RelationshipsDBase()
+          └ <class 'DB.DataBase.RelationshipsDBase'>
+
+  File "E:\Raff-3.0\DB\DataBase.py", line 904, in __init__
+    super().__init__(echo_mode)
+                     └ False
+
+> File "E:\Raff-3.0\DB\DataBase.py", line 25, in __init__
+    self.Session = sessionmaker(self.engine)
+    │              │            └ <DB.DataBase.RelationshipsDBase object at 0x0000014FC928DC90>
+    │              └ <class 'sqlalchemy.orm.session.sessionmaker'>
+    └ <DB.DataBase.RelationshipsDBase object at 0x0000014FC928DC90>
+
+AttributeError: 'RelationshipsDBase' object has no attribute 'engine'
+2024-01-05 21:43:15.186 | ERROR    | DB.DataBase:__init__:28 | Error creating engine or session
+Traceback (most recent call last):
+
+  File "E:\Raff-3.0\bot.py", line 37, in <module>
+    bot.load_extension("cogs.guilds_functions")
+    │   └ <function CommonBotBase.load_extension at 0x0000014FC756C720>
+    └ <disnake.ext.commands.bot.Bot object at 0x0000014FC91F4ED0>
+
+  File "E:\Raff-3.0\venv\Lib\site-packages\disnake\ext\commands\common_bot_base.py", line 523, in load_extension
+    self._load_from_module_spec(spec, name)
+    │    │                      │     └ 'cogs.guilds_functions'
+    │    │                      └ ModuleSpec(name='cogs.guilds_functions', loader=<_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>, o...
+    │    └ <function CommonBotBase._load_from_module_spec at 0x0000014FC756C5E0>
+    └ <disnake.ext.commands.bot.Bot object at 0x0000014FC91F4ED0>
+  File "E:\Raff-3.0\venv\Lib\site-packages\disnake\ext\commands\common_bot_base.py", line 452, in _load_from_module_spec
+    spec.loader.exec_module(lib)  # type: ignore
+    │    │      │           └ <module 'cogs.guilds_functions' from 'E:\\Raff-3.0\\cogs\\guilds_functions.py'>
+    │    │      └ <function _LoaderBasics.exec_module at 0x0000014FC3BD1D00>
+    │    └ <_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>
+    └ ModuleSpec(name='cogs.guilds_functions', loader=<_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>, o...
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+
+  File "E:\Raff-3.0\cogs\guilds_functions.py", line 8, in <module>
+    RDB = RelationshipsDBase()
+          └ <class 'DB.DataBase.RelationshipsDBase'>
+
+  File "E:\Raff-3.0\DB\DataBase.py", line 905, in __init__
+    self.guilds_db = GuildsDBase(echo_mode)
+    │                │           └ False
+    │                └ <class 'DB.DataBase.GuildsDBase'>
+    └ <DB.DataBase.RelationshipsDBase object at 0x0000014FC928DC90>
+
+> File "E:\Raff-3.0\DB\DataBase.py", line 25, in __init__
+    self.Session = sessionmaker(self.engine)
+    │              │            └ <DB.DataBase.GuildsDBase object at 0x0000014FC9245BD0>
+    │              └ <class 'sqlalchemy.orm.session.sessionmaker'>
+    └ <DB.DataBase.GuildsDBase object at 0x0000014FC9245BD0>
+
+AttributeError: 'GuildsDBase' object has no attribute 'engine'
+
+Traceback (most recent call last):
+
+  File "E:\Raff-3.0\bot.py", line 37, in <module>
+    bot.load_extension("cogs.guilds_functions")
+    │   └ <function CommonBotBase.load_extension at 0x0000014FC756C720>
+    └ <disnake.ext.commands.bot.Bot object at 0x0000014FC91F4ED0>
+
+  File "E:\Raff-3.0\venv\Lib\site-packages\disnake\ext\commands\common_bot_base.py", line 523, in load_extension
+    self._load_from_module_spec(spec, name)
+    │    │                      │     └ 'cogs.guilds_functions'
+    │    │                      └ ModuleSpec(name='cogs.guilds_functions', loader=<_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>, o...
+    │    └ <function CommonBotBase._load_from_module_spec at 0x0000014FC756C5E0>
+    └ <disnake.ext.commands.bot.Bot object at 0x0000014FC91F4ED0>
+  File "E:\Raff-3.0\venv\Lib\site-packages\disnake\ext\commands\common_bot_base.py", line 452, in _load_from_module_spec
+    spec.loader.exec_module(lib)  # type: ignore
+    │    │      │           └ <module 'cogs.guilds_functions' from 'E:\\Raff-3.0\\cogs\\guilds_functions.py'>
+    │    │      └ <function _LoaderBasics.exec_module at 0x0000014FC3BD1D00>
+    │    └ <_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>
+    └ ModuleSpec(name='cogs.guilds_functions', loader=<_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>, o...
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+
+  File "E:\Raff-3.0\cogs\guilds_functions.py", line 8, in <module>
+    RDB = RelationshipsDBase()
+          └ <class 'DB.DataBase.RelationshipsDBase'>
+
+  File "E:\Raff-3.0\DB\DataBase.py", line 905, in __init__
+    self.guilds_db = GuildsDBase(echo_mode)
+    │                │           └ False
+    │                └ <class 'DB.DataBase.GuildsDBase'>
+    └ <DB.DataBase.RelationshipsDBase object at 0x0000014FC928DC90>
+
+> File "E:\Raff-3.0\DB\DataBase.py", line 25, in __init__
+    self.Session = sessionmaker(self.engine)
+    │              │            └ <DB.DataBase.GuildsDBase object at 0x0000014FC9245BD0>
+    │              └ <class 'sqlalchemy.orm.session.sessionmaker'>
+    └ <DB.DataBase.GuildsDBase object at 0x0000014FC9245BD0>
+
+AttributeError: 'GuildsDBase' object has no attribute 'engine'
+2024-01-05 21:43:15.189 | ERROR    | DB.DataBase:__init__:28 | Error creating engine or session
+Traceback (most recent call last):
+
+  File "E:\Raff-3.0\bot.py", line 37, in <module>
+    bot.load_extension("cogs.guilds_functions")
+    │   └ <function CommonBotBase.load_extension at 0x0000014FC756C720>
+    └ <disnake.ext.commands.bot.Bot object at 0x0000014FC91F4ED0>
+
+  File "E:\Raff-3.0\venv\Lib\site-packages\disnake\ext\commands\common_bot_base.py", line 523, in load_extension
+    self._load_from_module_spec(spec, name)
+    │    │                      │     └ 'cogs.guilds_functions'
+    │    │                      └ ModuleSpec(name='cogs.guilds_functions', loader=<_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>, o...
+    │    └ <function CommonBotBase._load_from_module_spec at 0x0000014FC756C5E0>
+    └ <disnake.ext.commands.bot.Bot object at 0x0000014FC91F4ED0>
+  File "E:\Raff-3.0\venv\Lib\site-packages\disnake\ext\commands\common_bot_base.py", line 452, in _load_from_module_spec
+    spec.loader.exec_module(lib)  # type: ignore
+    │    │      │           └ <module 'cogs.guilds_functions' from 'E:\\Raff-3.0\\cogs\\guilds_functions.py'>
+    │    │      └ <function _LoaderBasics.exec_module at 0x0000014FC3BD1D00>
+    │    └ <_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>
+    └ ModuleSpec(name='cogs.guilds_functions', loader=<_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>, o...
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+
+  File "E:\Raff-3.0\cogs\guilds_functions.py", line 8, in <module>
+    RDB = RelationshipsDBase()
+          └ <class 'DB.DataBase.RelationshipsDBase'>
+
+  File "E:\Raff-3.0\DB\DataBase.py", line 906, in __init__
+    self.users_db = UserDBase(echo_mode)
+    │               │         └ False
+    │               └ <class 'DB.DataBase.UserDBase'>
+    └ <DB.DataBase.RelationshipsDBase object at 0x0000014FC928DC90>
+
+> File "E:\Raff-3.0\DB\DataBase.py", line 25, in __init__
+    self.Session = sessionmaker(self.engine)
+    │              │            └ <DB.DataBase.UserDBase object at 0x0000014FC927B910>
+    │              └ <class 'sqlalchemy.orm.session.sessionmaker'>
+    └ <DB.DataBase.UserDBase object at 0x0000014FC927B910>
+
+AttributeError: 'UserDBase' object has no attribute 'engine'
+
+Traceback (most recent call last):
+
+  File "E:\Raff-3.0\bot.py", line 37, in <module>
+    bot.load_extension("cogs.guilds_functions")
+    │   └ <function CommonBotBase.load_extension at 0x0000014FC756C720>
+    └ <disnake.ext.commands.bot.Bot object at 0x0000014FC91F4ED0>
+
+  File "E:\Raff-3.0\venv\Lib\site-packages\disnake\ext\commands\common_bot_base.py", line 523, in load_extension
+    self._load_from_module_spec(spec, name)
+    │    │                      │     └ 'cogs.guilds_functions'
+    │    │                      └ ModuleSpec(name='cogs.guilds_functions', loader=<_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>, o...
+    │    └ <function CommonBotBase._load_from_module_spec at 0x0000014FC756C5E0>
+    └ <disnake.ext.commands.bot.Bot object at 0x0000014FC91F4ED0>
+  File "E:\Raff-3.0\venv\Lib\site-packages\disnake\ext\commands\common_bot_base.py", line 452, in _load_from_module_spec
+    spec.loader.exec_module(lib)  # type: ignore
+    │    │      │           └ <module 'cogs.guilds_functions' from 'E:\\Raff-3.0\\cogs\\guilds_functions.py'>
+    │    │      └ <function _LoaderBasics.exec_module at 0x0000014FC3BD1D00>
+    │    └ <_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>
+    └ ModuleSpec(name='cogs.guilds_functions', loader=<_frozen_importlib_external.SourceFileLoader object at 0x0000014FC6449150>, o...
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+
+  File "E:\Raff-3.0\cogs\guilds_functions.py", line 8, in <module>
+    RDB = RelationshipsDBase()
+          └ <class 'DB.DataBase.RelationshipsDBase'>
+
+  File "E:\Raff-3.0\DB\DataBase.py", line 906, in __init__
+    self.users_db = UserDBase(echo_mode)
+    │               │         └ False
+    │               └ <class 'DB.DataBase.UserDBase'>
+    └ <DB.DataBase.RelationshipsDBase object at 0x0000014FC928DC90>
+
+> File "E:\Raff-3.0\DB\DataBase.py", line 25, in __init__
+    self.Session = sessionmaker(self.engine)
+    │              │            └ <DB.DataBase.UserDBase object at 0x0000014FC927B910>
+    │              └ <class 'sqlalchemy.orm.session.sessionmaker'>
+    └ <DB.DataBase.UserDBase object at 0x0000014FC927B910>
+
+AttributeError: 'UserDBase' object has no attribute 'engine'
+2024-01-05 21:43:18.513 | INFO     | __main__:on_ready:129 | Bot Raff test bot#6807 is ready to work!
+
+2024-01-05 21:50:18.899 | INFO     | __main__:on_ready:129 | Bot Raff test bot#6807 is ready to work!
+
+2024-01-05 21:50:39.004 | INFO     | __main__:on_ready:129 | Bot Raff test bot#6807 is ready to work!
+
+2024-01-05 21:50:39.028 | ERROR    | DB.DataBase:get_all_users_with_guilds:325 | Something went wrong when get all users with guilds
+Traceback (most recent call last):
+
+  File "E:\Raff-3.0\bot.py", line 162, in <module>
+    bot.run(cfg.TOKEN)
+    │   │   │   └ 'MTE4OTYzOTkwMDQ2MzY0ODgzOQ.Gg5F9S.5kOAPZGI9loIDsLKiL99mg3TbhF_Wnf2QkHEqE'
+    │   │   └ <module 'config' from 'E:\\Raff-3.0\\config.py'>
+    │   └ <function Client.run at 0x000001260A19FCE0>
+    └ <disnake.ext.commands.bot.Bot object at 0x000001260BF39290>
+
+  File "E:\Raff-3.0\venv\Lib\site-packages\disnake\client.py", line 1116, in run
+    loop.run_forever()
+    │    └ <function ProactorEventLoop.run_forever at 0x0000012608BEEF20>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Users\Nikita\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py", line 321, in run_forever
+    super().run_forever()
+  File "C:\Users\Nikita\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 607, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x0000012608B18EA0>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Users\Nikita\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 1919, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x0000012608AA1080>
+    └ <Handle Task.task_wakeup(<Future finished result=True>)>
+  File "C:\Users\Nikita\AppData\Local\Programs\Python\Python311\Lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle Task.task_wakeup(<Future finished result=True>)>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle Task.task_wakeup(<Future finished result=True>)>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle Task.task_wakeup(<Future finished result=True>)>
+  File "E:\Raff-3.0\venv\Lib\site-packages\disnake\ext\tasks\__init__.py", line 162, in _loop
+    await self.coro(*args, **kwargs)
+          │    │     │       └ {}
+          │    │     └ (<cogs.guilds_functions.AutoRelationshipsAdding object at 0x000001260BFCED10>,)
+          │    └ <function AutoRelationshipsAdding.auto_relations_adding at 0x000001260BFD2B60>
+          └ <disnake.ext.tasks.Loop object at 0x000001260BFDFC50>
+
+  File "E:\Raff-3.0\cogs\guilds_functions.py", line 91, in auto_relations_adding
+    users = await DB.get_all_users_with_guilds()
+                  │  └ <function UserDBase.get_all_users_with_guilds at 0x000001260BEBBA60>
+                  └ <DB.DataBase.UserDBase object at 0x000001260BFCED50>
+
+> File "E:\Raff-3.0\DB\DataBase.py", line 318, in get_all_users_with_guilds
+    if not user:
+
+NameError: name 'user' is not defined
+
+Traceback (most recent call last):
+
+  File "E:\Raff-3.0\bot.py", line 162, in <module>
+    bot.run(cfg.TOKEN)
+    │   │   │   └ 'MTE4OTYzOTkwMDQ2MzY0ODgzOQ.Gg5F9S.5kOAPZGI9loIDsLKiL99mg3TbhF_Wnf2QkHEqE'
+    │   │   └ <module 'config' from 'E:\\Raff-3.0\\config.py'>
+    │   └ <function Client.run at 0x000001260A19FCE0>
+    └ <disnake.ext.commands.bot.Bot object at 0x000001260BF39290>
+
+  File "E:\Raff-3.0\venv\Lib\site-packages\disnake\client.py", line 1116, in run
+    loop.run_forever()
+    │    └ <function ProactorEventLoop.run_forever at 0x0000012608BEEF20>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Users\Nikita\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py", line 321, in run_forever
+    super().run_forever()
+  File "C:\Users\Nikita\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 607, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x0000012608B18EA0>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Users\Nikita\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 1919, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x0000012608AA1080>
+    └ <Handle Task.task_wakeup(<Future finished result=True>)>
+  File "C:\Users\Nikita\AppData\Local\Programs\Python\Python311\Lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle Task.task_wakeup(<Future finished result=True>)>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle Task.task_wakeup(<Future finished result=True>)>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle Task.task_wakeup(<Future finished result=True>)>
+  File "E:\Raff-3.0\venv\Lib\site-packages\disnake\ext\tasks\__init__.py", line 162, in _loop
+    await self.coro(*args, **kwargs)
+          │    │     │       └ {}
+          │    │     └ (<cogs.guilds_functions.AutoRelationshipsAdding object at 0x000001260BFCED10>,)
+          │    └ <function AutoRelationshipsAdding.auto_relations_adding at 0x000001260BFD2B60>
+          └ <disnake.ext.tasks.Loop object at 0x000001260BFDFC50>
+
+  File "E:\Raff-3.0\cogs\guilds_functions.py", line 91, in auto_relations_adding
+    users = await DB.get_all_users_with_guilds()
+                  │  └ <function UserDBase.get_all_users_with_guilds at 0x000001260BEBBA60>
+                  └ <DB.DataBase.UserDBase object at 0x000001260BFCED50>
+
+> File "E:\Raff-3.0\DB\DataBase.py", line 318, in get_all_users_with_guilds
+    if not user:
+
+NameError: name 'user' is not defined
+2024-01-05 21:51:16.153 | INFO     | __main__:on_ready:129 | Bot Raff test bot#6807 is ready to work!
+
+2024-01-05 21:52:24.272 | INFO     | __main__:on_ready:129 | Bot Raff test bot#6807 is ready to work!
+
