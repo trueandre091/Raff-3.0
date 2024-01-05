@@ -2,6 +2,7 @@
 from loguru import logger
 
 from typing import Union, Sequence, Optional
+import traceback
 
 from sqlalchemy import select
 from sqlalchemy import create_engine
@@ -23,8 +24,8 @@ class DataBase:
             # self.engine = create_engine("sqlite:///DataBase.db", echo=self.echo)
             self.Session = sessionmaker(self.engine)
             logger.debug("Engine was successfully created")
-        except Exception as e:
-            logger.exception("Error creating engine or session", e)
+        except Exception:
+            logger.critical("Error creating engine or session")
             return
 
     ####################################   USERS   ############################################
@@ -83,16 +84,16 @@ class UserDBase(DataBase):
                         logger.debug(f"{user} already in database")
                         user_list.append(user)
                     else:
-                        logger.exception(
+                        logger.error(
                             "Something went wrong when get user for add function\n"
-                            , IntegrityError
+                            + traceback.format_exc()
                         )
 
                         return
 
-                except Exception as e:
-                    logger.exception(
-                        "Something went wrong when adding user", e
+                except Exception:
+                    logger.error(
+                        "Something went wrong when adding user\n" + traceback.format_exc()
                     )
                     return
 
@@ -146,8 +147,8 @@ class UserDBase(DataBase):
 
                 return user_list[0] if is_dict else user_list
 
-        except Exception as e:
-            logger.exception("Something went wrong when get user", e)
+        except Exception:
+            logger.error("Something went wrong when get user\n" + traceback.format_exc())
 
         return
 
@@ -223,9 +224,10 @@ class UserDBase(DataBase):
 
             return user_list[0] if is_dict else user_list
 
-        except Exception as e:
-            logger.exception(
-                "Something went wrong when get user with guilds", e
+        except Exception:
+            logger.error(
+                "Something went wrong when get user with guilds\n"
+                + traceback.format_exc()
             )
 
         return
@@ -302,9 +304,9 @@ class UserDBase(DataBase):
 
                 return users
 
-            except Exception as e:
-                logger.exception(
-                    "Something went wrong when get all users", e
+            except Exception:
+                logger.error(
+                    "Something went wrong when get all users\n" + traceback.format_exc()
                 )
 
     async def get_all_users_with_guilds(self) -> Optional[list[Users]]:
@@ -321,9 +323,10 @@ class UserDBase(DataBase):
 
                 return users
 
-            except Exception as e:
-                logger.exception(
-                    "Something went wrong when get all users with guilds", e
+            except Exception:
+                logger.error(
+                    "Something went wrong when get all users with guilds\n"
+                    + traceback.format_exc()
                 )
 
     async def update_user(
@@ -381,9 +384,9 @@ class UserDBase(DataBase):
                 logger.debug(users)
                 return users
 
-            except Exception as e:
-                logger.exception(
-                    "Something went wrong when update user", e
+            except Exception:
+                logger.error(
+                    "Something went wrong when update user\n" + traceback.format_exc()
                 )
 
     async def get_top_users_by_scores(self) -> Union[Sequence[Users], None]:
@@ -403,10 +406,10 @@ class UserDBase(DataBase):
 
                 return res
 
-            except Exception as e:
+            except Exception:
                 logger.error(
                     "Something went wrong when get top for users by scores\n"
-                    , e
+                    + traceback.format_exc()
                 )
 
         return
@@ -428,10 +431,10 @@ class UserDBase(DataBase):
 
                 return res
 
-            except Exception as e:
+            except Exception:
                 logger.error(
                     "Something went wrong when get top for users by scores\n"
-                    , e
+                    + traceback.format_exc()
                 )
 
         return
@@ -495,15 +498,15 @@ class GuildsDBase(DataBase):
                     else:
                         logger.error(
                             "Something went wrong when get guild fo add function\n"
-                            , IntegrityError
+                            + traceback.format_exc()
                         )
 
                         return
 
-                except Exception as e:
+                except Exception:
                     logger.error(
                         "Something went wrong then adding guild\n"
-                        , e
+                        + traceback.format_exc()
                     )
 
         if len(guilds_list) != 0:
@@ -556,8 +559,8 @@ class GuildsDBase(DataBase):
 
             return guild_list[0] if is_dict else guild_list
 
-        except Exception as e:
-            logger.error("Something went wrong when get guild\n" , e)
+        except Exception:
+            logger.error("Something went wrong when get guild\n" + traceback.format_exc())
 
         return
 
@@ -638,8 +641,8 @@ class GuildsDBase(DataBase):
 
             return guild_list[0] if is_dict else guild_list
 
-        except Exception as e:
-            logger.error("Something went wrong when get guild\n" , e)
+        except Exception:
+            logger.error("Something went wrong when get guild\n" + traceback.format_exc())
 
         return
 
@@ -713,9 +716,9 @@ class GuildsDBase(DataBase):
 
                 return guilds
 
-            except Exception as e:
+            except Exception:
                 logger.error(
-                    "Something went wrong when get all guilds\n" , e
+                    "Something went wrong when get all guilds\n" + traceback.format_exc()
                 )
 
     async def get_all_guilds_with_users(self) -> Optional[list[Guilds]]:
@@ -732,10 +735,10 @@ class GuildsDBase(DataBase):
 
                 return guilds
 
-            except Exception as e:
+            except Exception:
                 logger.error(
                     "Something went wrong when get all guilds with users\n"
-                    , e
+                    + traceback.format_exc()
                 )
 
     async def update_guild(
@@ -794,9 +797,9 @@ class GuildsDBase(DataBase):
 
                 return guilds_list[0] if is_dict else guilds_list
 
-            except Exception as e:
+            except Exception:
                 logger.error(
-                    "Something went wrong when update guild\n" , e
+                    "Something went wrong when update user\n" + traceback.format_exc()
                 )
 
         return
@@ -835,10 +838,10 @@ class GuildsDBase(DataBase):
                 logger.debug(sorted_res)
                 return sorted_res
 
-            except Exception as e:
+            except:
                 logger.error(
                     "Something went wrong when get users top in guild by scores\n"
-                    , e
+                    + traceback.format_exc()
                 )
 
         return
@@ -877,10 +880,10 @@ class GuildsDBase(DataBase):
                 logger.debug(sorted_res)
                 return sorted_res
 
-            except Exception as e:
+            except:
                 logger.error(
                     "Something went wrong when get users top in guild by count of messages\n"
-                    , e
+                    + traceback.format_exc()
                 )
 
         return
@@ -944,10 +947,10 @@ class RelationshipsDBase(DataBase):
 
                 return True
 
-            except Exception as e:
+            except Exception:
                 logger.error(
                     "Something went wrong when add relationships between users and guilds\n"
-                    , e
+                    + traceback.format_exc()
                 )
 
         return
@@ -990,10 +993,10 @@ class RelationshipsDBase(DataBase):
 
                 return True
 
-            except Exception as e:
+            except Exception:
                 logger.error(
                     "Something went wrong when delete relationships between users and guilds\n"
-                    , e
+                    + traceback.format_exc()
                 )
 
         return
