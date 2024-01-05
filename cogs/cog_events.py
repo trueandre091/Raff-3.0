@@ -1,6 +1,8 @@
+import datetime as dt
+import calendar
 from os import getcwd
 import disnake
-from disnake.ext import commands
+from disnake.ext import commands, tasks
 
 from cogs.guilds_functions import guild_sets_check
 
@@ -106,5 +108,57 @@ class AutoSendingMessage(commands.Cog):
         )
 
 
+def get_next_event(startdate: dt.datetime, weekday, time):
+    """
+    @startdate: given date, in format '2013-05-25'
+    @weekday: week day as an integer, between 0 (Monday) to 6 (Sunday)
+    """
+    today = startdate
+    day = today + dt.timedelta((weekday - today.weekday()) % 7)
+    date = day.date()
+    time = dt.time(hour=19, minute=0, second=0)
+    return dt.datetime.combine(date, time)
+
+
+class SettingEvents(commands.Cog):
+    """Auto setting weekly events (just for Homey Temple)"""
+
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+        self.events_setting.start()
+
+    @tasks.loop(hours=12)
+    async def events_setting(self):
+        today = dt.datetime.now(dt.timezone(dt.timedelta(hours=3)))
+        if int(today.weekday()) == 0 and 0 <= int(today.strftime("%H")) <= 12:
+            guild = self.bot.get_guild(785312593614209055)
+            scheduled_events = [
+                {
+                    "name": "Еженедельный ивент 📩 (Сб)",
+                    "channel": self.bot.get_channel(858737175439736873),
+                    "scheduled_start_time": get_next_event(today, 5, 19),
+                    "description": "Еженедельный ивент на сервере! Приглашаем всех желающих весело провести время с участниками сервера ❤\nJackbox Party: Смертельная вечеринка, НашШпионаж, Смехлыст и др., Мафия, Salo.fun и многое другое по решению участников ивента! Всех ждём! 🤗",
+                },
+                {
+                    "name": "Еженедельный ивент 📩 (Вс)",
+                    "channel": self.bot.get_channel(858737175439736873),
+                    "scheduled_start_time": get_next_event(today, 6, 19),
+                    "description": "Еженедельный ивент на сервере! Приглашаем всех желающих весело провести время с участниками сервера ❤\nJackbox Party: Смертельная вечеринка, НашШпионаж, Смехлыст и др., Мафия, Salo.fun и многое другое по решению участников ивента! Всех ждём! 🤗",
+                },
+            ]
+            for event in scheduled_events:
+                await guild.create_scheduled_event(
+                    name=event["name"],
+                    channel=event["channel"],
+                    scheduled_start_time=event["scheduled_start_time"],
+                    description=event["description"],
+                )
+
+    @events_setting.before_loop
+    async def before(self):
+        await self.bot.wait_until_ready()
+
+
 def setup(bot: commands.Bot):
     bot.add_cog(AutoSendingMessage(bot))
+    bot.add_cog(SettingEvents(bot))
