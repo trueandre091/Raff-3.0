@@ -18,6 +18,8 @@ GUILD_CONFIG = {
         "SCORES": False,
         "COUNTING_BOOSTS": False,
         "ADDING_REACTIONS_THREADS": False,
+        "AUTO_ADDING_ROLES": False,
+        "AUTO_ADDING_SCORES_FOR_TIME_IN_VOICE_CHANNEL": False,
     },
     "WELCOME_SETTINGS": {
         "CHANNEL": None,
@@ -39,9 +41,7 @@ GUILD_CONFIG = {
     "ADDING_REACTIONS_THREADS_SETTINGS": {
         # None: {"REACTIONS": [], "THREAD": False},
     },
-    "MODERATION_SETTINGS": {
-        "CHANNEL": None,
-        "GIF": {"MESSAGES_FOR_GIF": 10}},
+    "MODERATION_SETTINGS": {"CHANNEL": None, "GIF": {"MESSAGES_FOR_GIF": 10}},
     "BOOSTS_COUNTING_SETTINGS": {
         "BOOST_BOTS": {
             "DSMonitoring": 575776004233232386,
@@ -92,5 +92,16 @@ GUILD_CONFIG = {
             "ADMIN_CHANNEL": None,
         },
         "EXPERIENCE": {"FACTOR": 5},
+    },
+    "COUNTERS": {
+        "LOSE_SCORES": 0,
+        "MESSAGES_PREVIOUS_BESTS": [],
+        "BOOSTS": {},
+        "ORDERS": 0,
+        "ADDED_SCORES": 0,
+        "REMOVED_SCORES": 0,
+        "MAX_NUMBER_AT_EVENT": 0,
+        "NUMBER_OF_EVENTS": 0,
+        "TOTAL_SCORES": 0,
     },
 }

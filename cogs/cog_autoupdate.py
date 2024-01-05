@@ -31,7 +31,6 @@ class AutoUpdateMessagesTop(commands.Cog):
             )
 
             for guild in guilds:
-                print(1)
                 for user in guild.users:
                     await DB.update_user({"ds_id": user.ds_id, "count_messages": 0})
 

@@ -13,7 +13,6 @@ logger.add(
     level="INFO",
     rotation="1 week",
     compression="zip",
-
 )
 
 
@@ -125,38 +124,37 @@ async def on_guild_join(guild: disnake.Guild):
 @bot.event
 async def on_ready():
     """Bot writes in console when it starts"""
-    # print(f"Bot {bot.user} is ready to work!")
-    logger.info(f"Bot {bot.user} is ready to work!")
-    # guild = await GDB.add_guild(
-    #     {
-    #         "guild_id": 785312593614209055,
-    #         "guild_name": "Homey Temple",
-    #         "guild_sets": dicts,
-    #     }
-    # )
-    # guild1 = await GDB.add_guild(
-    #     {
-    #         "guild_id": 1189637072030531695,
-    #         "guild_name": "Raff 3.0 test server",
-    #         "guild_sets": dicts1,
-    #     }
-    # )
-    # if guild:
-    #     await GDB.update_guild(
-    #         {
-    #             "guild_id": 785312593614209055,
-    #             "guild_name": "Homey Temple",
-    #             "guild_sets": dicts,
-    #         }
-    #     )
-    # if guild1:
-    #     await GDB.update_guild(
-    #         {
-    #             "guild_id": 1189637072030531695,
-    #             "guild_name": "Raff 3.0 test server",
-    #             "guild_sets": dicts1,
-    #         }
-    #     )
+    print(f"Bot {bot.user} is ready to work!")
+    guild = await GDB.add_guild(
+        {
+            "guild_id": 785312593614209055,
+            "guild_name": "Homey Temple",
+            "guild_sets": dicts,
+        }
+    )
+    guild1 = await GDB.add_guild(
+        {
+            "guild_id": 1189637072030531695,
+            "guild_name": "Raff 3.0 test server",
+            "guild_sets": dicts1,
+        }
+    )
+    if guild:
+        await GDB.update_guild(
+            {
+                "guild_id": 785312593614209055,
+                "guild_name": "Homey Temple",
+                "guild_sets": dicts,
+            }
+        )
+    if guild1:
+        await GDB.update_guild(
+            {
+                "guild_id": 1189637072030531695,
+                "guild_name": "Raff 3.0 test server",
+                "guild_sets": dicts1,
+            }
+        )
 
 
 bot.run(cfg.TOKEN)
