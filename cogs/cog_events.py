@@ -37,9 +37,10 @@ async def creating_message_with_nearest_events(
 
 
 async def delete_previous_message(channel) -> None:
-    async for message in channel.history(limit=1):
-        await message.delete()
-    await asyncio.sleep(2)
+    async for msg in channel.history(limit=50):
+        if "БЛИЖАЙШИЕ ИВЕНТЫ" in msg.content:
+            await msg.delete()
+            break
 
 
 class AutoSendingMessage(commands.Cog):

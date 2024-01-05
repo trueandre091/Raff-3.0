@@ -225,7 +225,10 @@ dicts = {
             "SCORES": {},
             "CHANNEL": 994881716307116073,
         },
-        "EVENTS": {"CHANNEL": 1160687361269694505, "CATEGORIES": ["Еженедельный"]},
+        "NEAREST_EVENTS": {
+            "CHANNEL": 1160687361269694505,
+            "CATEGORIES": ["Еженедельный"],
+        },
         "ORDERS": {"CHANNEL": 829075875013591101, "BARMEN_ROLE": 829082636705595433},
         "REQUESTS": {
             "BUTTONS_MESSAGE": {
@@ -336,7 +339,10 @@ dicts1 = {
             "SCORES": {},
             "CHANNEL": 1189981495658565632,
         },
-        "EVENTS": {"CHANNEL": 1189981495658565632, "CATEGORIES": ["Еженедельный"]},
+        "NEAREST_EVENTS": {
+            "CHANNEL": 1189981495658565632,
+            "CATEGORIES": ["Еженедельный"],
+        },
         "ORDERS": {"CHANNEL": 1189981407880163359, "BARMEN_ROLE": 1190015311253090385},
         "REQUESTS": {
             "BUTTONS_MESSAGE": {

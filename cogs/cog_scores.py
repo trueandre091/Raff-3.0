@@ -21,7 +21,6 @@ async def top_create_embed(bot: commands.Bot, settings: dict, embed_dict: dict):
     top = await GDB.get_top_users_by_scores(guild.id)
     if top is None:
         top = []
-    print(top)
 
     first_lvl_members, third_lvl_members, fifth_lvl_members = [], [], []
     amount1 = settings["AMOUNT_TO_FIRST_LVL"]
@@ -417,10 +416,12 @@ class SpecialScoresCommands(commands.Cog):
             "color": 0x2B2D31,
             "footer": {
                 "text": interaction.guild.name,
-                "icon_url": interaction.guild.icon.url,
             },
         }
-        print("ЕБААААААААТЬ")
+        try:
+            embed_dict["footer"]["icon_url"] = interaction.guild.icon.url
+        except AttributeError:
+            embed_dict["footer"]["icon_url"] = "https://i.postimg.cc/CMsM38p8/1.png"
         embed_dict = await top_create_embed(self.bot, settings, embed_dict)
 
         await interaction.edit_original_response(
