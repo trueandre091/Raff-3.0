@@ -70,6 +70,8 @@ async def count_experience(message: disnake.Message, settings: dict):
 
 
 class ExperienceCommands(commands.Cog):
+    """Commands to set nums of users' experience"""
+
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
@@ -83,17 +85,17 @@ class ExperienceCommands(commands.Cog):
         участники: str,
         количество: int,
     ):
-        """Adding to several members a certain amount of scores"""
-        guild = await guild_sets_check(
+        """Adding to several members a certain amount of experience"""
+        settings = await guild_sets_check(
             interaction.guild.id, "GENERAL_SETTINGS", "EXPERIENCE"
         )
-        if guild is None:
+        if settings is None:
             await interaction.response.send_message(
                 "Данная функция не включена на сервере", ephemeral=True
             )
             return
 
-        guild = self.bot.get_guild(interaction.guild.id)
+        guild = interaction.guild
         members_list = участники.split()
         members_list_values = []
 
@@ -201,5 +203,73 @@ class ExperienceCommands(commands.Cog):
         await interaction.response.send_message(embed=embed)
 
 
+class MessagesCommands(commands.Cog):
+    """Command to set nums of users' messages"""
+
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+
+    @commands.slash_command(
+        description="Прибавить опыт любому кол-ву участников (упомянуть через пробел)",
+        default_member_permissions=disnake.Permissions(administrator=True),
+    )
+    async def set_msg(
+        self,
+        interaction: disnake.ApplicationCommandInteraction,
+        участники: str,
+        количество: int,
+    ):
+        """Setting to several members a certain amount of messages"""
+        settings = await guild_sets_check(
+            interaction.guild.id, "GENERAL_SETTINGS", "AUTOUPDATE_MESSAGES", "MESSAGES"
+        )
+        if settings is None:
+            await interaction.response.send_message(
+                "Данная функция не включена на сервере", ephemeral=True
+            )
+            return
+
+        guild = interaction.guild
+        members_list = участники.split()
+        members_list_values = []
+
+        for member in members_list:
+            member_id = int(member.strip("<@>"))
+            member = guild.get_member(member_id)
+            user = await DB.add_user(
+                {
+                    "ds_id": member.id,
+                    "username": member.name,
+                    "messages": количество,
+                }
+            )
+            if user:
+                await DB.update_user(
+                    {
+                        "ds_id": user.ds_id,
+                        "username": user.username,
+                        "messages": количество,
+                    }
+                )
+            members_list_values.append(количество)
+
+        members_dict = dict(zip(members_list, members_list_values))
+        embed = disnake.Embed(
+            title=f"{количество} сообщений было установлено указанным участникам",
+            description="Настоящее количество сообщений у каждого:",
+            color=0x2B2D31,
+        )
+        for member, value in members_dict.items():
+            member_id = int(member.strip("<@>"))
+            user = await DB.get_user({"ds_id": member_id})
+            embed.add_field(
+                name=interaction.guild.get_member(member_id),
+                value=f"```{user.messages} опыта```",
+            )
+
+        await interaction.response.send_message(embed=embed)
+
+
 def setup(bot: commands.Bot):
     bot.add_cog(ExperienceCommands(bot))
+    bot.add_cog(MessagesCommands(bot))

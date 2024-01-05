@@ -20,6 +20,9 @@ class Commands(commands.Cog):
             interaction.guild.id, "GENERAL_SETTINGS", "ORDERS"
         )
         if not settings:
+            await interaction.response.send_message(
+                "Данная функция не включена на сервере", ephemeral=True
+            )
             return
 
         settings = settings["COGS_SETTINGS"]["ORDERS"]

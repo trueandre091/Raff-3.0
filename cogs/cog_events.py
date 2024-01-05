@@ -1,9 +1,8 @@
 from os import getcwd
 import disnake
 from disnake.ext import commands
-import asyncio
 
-from cogs.guilds_functions import guild_sets_check, DB, GDB, encoder
+from cogs.guilds_functions import guild_sets_check
 
 FOLDER = getcwd()
 

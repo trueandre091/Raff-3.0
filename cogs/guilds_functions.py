@@ -1,4 +1,3 @@
-import disnake
 from disnake.ext import commands, tasks
 from DB.JSONEnc import JsonEncoder
 from DB.DataBase import GuildsDBase, UserDBase, RelationshipsDBase
