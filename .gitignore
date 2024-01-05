@@ -3,4 +3,4 @@
 /__pycache__
 *.pyc
 DB/DataBase.db
-/logs
+/logs/
