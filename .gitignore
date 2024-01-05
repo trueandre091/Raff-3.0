@@ -4,3 +4,5 @@
 *.pyc
 DB/DataBase.db
 /logs/
+*.db
+*.log
