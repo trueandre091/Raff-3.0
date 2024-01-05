@@ -2,8 +2,8 @@ import disnake
 from disnake.ext import commands
 import time
 
-import config as cfg
 from DB.DataBase import UserDBase
+from cogs.guilds_functions import guild_sets_check
 
 DB = UserDBase()
 
@@ -15,22 +15,37 @@ class OnSpecialEvents(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.settings = cfg.COGS_SETTINGS["SPECIAL"]
 
     @commands.Cog.listener()
     async def on_member_update(self, before: disnake.Member, after: disnake.Member):
-        guild = self.bot.get_guild(cfg.GUILD_ID)
-        for settings in self.settings["ROLES"].values():
+        settings = await guild_sets_check(
+            after.guild.id, "GENERAL_SETTINGS", "AUTO_ADDING_ROLES"
+        )
+        if settings is None:
+            return
+        guild = self.bot.get_guild(settings["GUILD_ID"])
+        settings = settings["COGS_SETTINGS"]["SPECIAL"]["ROLES"]
+
+        for settings in settings.values():
             roles_have = []
             for role_id in settings["ROLES_HAVE"]:
-                roles_have.append(guild.get_role(role_id))
+                role = guild.get_role(role_id)
+                if role is None:
+                    continue
+                roles_have.append(role)
 
             if any(map(lambda v: v in after.roles, roles_have)):
                 for role_id in settings["ROLES_GET"]:
-                    await after.add_roles(guild.get_role(role_id))
+                    role = guild.get_role(role_id)
+                    if role is None:
+                        continue
+                    await after.add_roles(role)
             else:
                 for role_id in settings["ROLES_GET"]:
-                    await after.remove_roles(guild.get_role(role_id))
+                    role = guild.get_role(role_id)
+                    if role is None:
+                        continue
+                    await after.remove_roles(role)
 
     @commands.Cog.listener()
     async def on_voice_state_update(
@@ -39,10 +54,15 @@ class OnSpecialEvents(commands.Cog):
         before: disnake.VoiceState,
         after: disnake.VoiceState,
     ):
-        if member.bot:
+        settings = await guild_sets_check(
+            member.guild.id,
+            "GENERAL_SETTINGS",
+            "AUTO_ADDING_SCORES_FOR_TIME_IN_VOICE_CHANNEL",
+        )
+        if not settings:
             return
+        settings = settings["COGS_SETTINGS"]["SPECIAL"]["EVENTS"]
 
-        settings = self.settings["EVENTS"]
         if before.channel is None and after.channel.id:
             if after.channel.id in settings["CHANNELS"]:
                 t1 = time.time()
