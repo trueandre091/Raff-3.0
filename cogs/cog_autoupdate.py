@@ -129,7 +129,7 @@ class AutoUpdateScoresTop(commands.Cog):
                 continue
 
             embed_dict = {
-                "title": "Таблица лидеров по очкам: 📊",
+                "title": "Таблица лидеров по очкам за месяц: 📊",
                 "description": "",
                 "fields": [],
                 "color": 0x2B2D31,
@@ -151,7 +151,10 @@ class AutoUpdateScoresTop(commands.Cog):
             flag = True
             async for msg in channel.history(limit=50):
                 try:
-                    if "Таблица лидеров по очкам" in msg.embeds[0].to_dict()["title"]:
+                    if (
+                        "Таблица лидеров по очкам за месяц"
+                        in msg.embeds[0].to_dict()["title"]
+                    ):
                         await msg.edit(embed=disnake.Embed.from_dict(embed_dict))
                         flag = False
                         break
