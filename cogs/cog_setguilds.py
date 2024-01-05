@@ -1,3 +1,4 @@
+from loguru import logger
 import disnake
 from disnake.ext import commands
 from disnake.ui import View, button, select, Button, Modal, TextInput
@@ -36,11 +37,47 @@ async def stud_interaction(interaction: disnake.ApplicationCommandInteraction):
     )
 
 
+async def update_sets(self, interaction):
+    self.settings[self.route] = self.w_settings
+    res = await self.gdb.update_guild(
+        {"guild_id": self.parent.interaction.guild.id, "guild_sets": self.settings}
+    )
+    if res:
+        await interaction.response.send_message(
+            "Настройки обновлены", delete_after=1, ephemeral=True
+        )
+    else:
+        await interaction.response.send_message(
+            "Не удалось обновить настройки", delete_after=1, ephemeral=True
+        )
+
+
+async def toggle_set(self, interaction: disnake.Interaction, switch_to: bool):
+    self.settings["GENERAL_SETTINGS"][self.toggle] = switch_to
+    res = await self.gdb.update_guild(
+        {"guild_id": interaction.guild.id, "guild_sets": self.settings}
+    )
+    if res:
+        if switch_to:
+            await interaction.response.send_message(
+                "Функция включена", delete_after=1, ephemeral=True
+            )
+        else:
+            await interaction.response.send_message(
+                "Функция выключена", delete_after=1, ephemeral=True
+            )
+    else:
+        await interaction.response.send_message(
+            "Не удалось обновить настройки", delete_after=1, ephemeral=True
+        )
+
+
 class GuildSettings:
     def __init__(self, interaction: disnake.Interaction, settings):
-        self.interaction = interaction
-        self.gdb = GuildsDBase()
-        self.settings = settings
+        self.interaction: disnake.Interaction = interaction
+        self.settings: dict = settings
+        self.gdb: GuildsDBase = GuildsDBase()
+        self.enc: JsonEncoder = JsonEncoder()
 
     async def create_home_view(self):
         await self.interaction.edit_original_response(
@@ -111,6 +148,8 @@ class GuildSetsHomeScreenView(View):
     def __init__(self, parent):
         super().__init__(timeout=3600)
         self.parent = parent
+        self.settings: dict = parent.settings
+        self.gdb: GuildsDBase = parent.gdb
 
     @select(
         custom_id="home_screen",
@@ -210,39 +249,56 @@ class GuildSetsHomeScreenView(View):
             await stud_interaction(interaction)
             await GuildSettings.create_auto_reactions_threads_view(self.parent)
 
-    @button(label="Сохранить", style=disnake.ButtonStyle.green)
-    async def save_callback(self, button: Button, interaction: disnake.Interaction):
-        if not await is_admin(interaction.author):
-            await interaction.response.send_message(
-                "You are not an admin😲", ephemeral=True
-            )
-            return
-
     @button(label="Сбросить", style=disnake.ButtonStyle.danger)
-    async def reset_callback(self, button: Button, interaction: disnake.Interaction):
+    async def reset_callback(self, btn: Button, interaction: disnake.Interaction):
         if not await is_admin(interaction.author):
             await interaction.response.send_message(
                 "You are not an admin😲", ephemeral=True
             )
             return
+        self.settings = self.parent.enc.get_default_cfg()
+        res = await self.gdb.update_guild(
+            {"guild_id": interaction.guild.id, "guild_sets": self.parent.settings}
+        )
+        if res:
+            await interaction.response.send_message(
+                "Настройки сброшены успешно!", delete_after=1, ephemeral=True
+            )
+        else:
+            await interaction.response.send_message(
+                "Не удалось выполнить команду :(", delete_after=1, ephemeral=True
+            )
 
 
 class GuildSetsGreetView(View):
     def __init__(self, parent):
         super().__init__()
         self.parent = parent
+        self.settings: dict = parent.settings
+        self.w_settings: dict = parent.settings["WELCOME_SETTINGS"]
+        self.route: str = "WELCOME_SETTINGS"
+        self.toggle: str = "WELCOME"
+        self.gdb: GuildsDBase = parent.gdb
+        self.enc: JsonEncoder = parent.enc
 
     @channel_select(
         channel_types=[disnake.ChannelType.text, disnake.ChannelType.news],
         placeholder="В каком канале приветствовать?",
         min_values=0,
+        max_values=1,
     )
     async def callback(self, selectMenu: Select, interaction: disnake.Interaction):
         if not await is_admin(interaction.author):
             await interaction.response.send_message(
                 "You are not an admin😲", ephemeral=True
             )
+            logger.debug(f"User {interaction.author.name} is not an admin")
             return
+
+        self.w_settings["CHANNEL"] = selectMenu.values[0].id
+        await update_sets(self, interaction)
+
+        logger.debug(f"Channel for greetings  for guild {interaction.guild.name} was updated")
 
     @button(label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger)
     async def to_back_callback(self, btn: Button, interaction: disnake.Interaction):
@@ -274,6 +330,10 @@ class GuildSetsGreetView(View):
             )
             return
 
+        await toggle_set(self, interaction, True)
+
+        logger.debug(f"Set WELCOME for guild {interaction.guild.name} was switched to True")
+
     @button(label="Выкл", style=disnake.ButtonStyle.danger)
     async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
         if not await is_admin(interaction.author):
@@ -281,6 +341,10 @@ class GuildSetsGreetView(View):
                 "You are not an admin😲", ephemeral=True
             )
             return
+
+        await toggle_set(self, interaction, switch_to=False)
+
+        logger.debug(f"Set WELCOME for guild {interaction.guild.name} was switched to False")
 
 
 class GreetModal(Modal):
@@ -1239,11 +1303,9 @@ class GuildsManage(commands.Cog):
             "guild_name": interaction.guild.name,
             "count_members": interaction.guild.member_count,
         }
-        guild_sets = await db.add_guild(data)
-        if guild_sets:
-            set_view = GuildSettings(
-                interaction, enc.code_from_json(guild_sets.guild_sets)
-            )
+        guild = await db.add_guild(data)
+        if guild:
+            set_view = GuildSettings(interaction, enc.code_from_json(guild.guild_sets))
             await interaction.send(".")
             await set_view.create_home_view()
 

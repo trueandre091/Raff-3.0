@@ -799,7 +799,7 @@ class GuildsDBase(DataBase):
 
             except Exception:
                 logger.error(
-                    "Something went wrong when update user\n" + traceback.format_exc()
+                    "Something went wrong when update guild\n" + traceback.format_exc()
                 )
 
         return
