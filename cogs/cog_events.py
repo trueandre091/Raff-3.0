@@ -1,5 +1,4 @@
 import datetime as dt
-import calendar
 from os import getcwd
 import disnake
 from disnake.ext import commands, tasks

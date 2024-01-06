@@ -3,7 +3,7 @@ import disnake
 from disnake.ext import commands
 from random import randint, shuffle
 
-from cogs.guilds_functions import guild_sets_check, GDB, encoder, DB
+from cogs.guilds_functions import guild_sets_check, DB
 from cogs.counter_functions import count_lose_scores
 
 
@@ -14,10 +14,15 @@ def return_corr_embed(interaction):
         "color": 0x2B2D31,
         "author": {"name": "BlackJack ♠️"},
         "footer": {
-            "text": f"{interaction.guild.name}",
-            "icon_url": f"{interaction.guild.icon.url}",
+            "text": interaction.guild.name,
         },
     }
+    try:
+        embed_dict["footer"]["icon_url"] = interaction.guild.icon.url
+    except AttributeError:
+        embed_dict["footer"][
+            "icon_url"
+        ] = "https://im.wampi.ru/2023/11/02/Bez_nazvania1_20211210115049.png"
     return embed_dict
 
 
@@ -414,10 +419,15 @@ class Roulette(commands.Cog):
                         "icon_url": "https://i.postimg.cc/3JrRXKCz/the-roulette-wheel.jpg",
                     },
                     "footer": {
-                        "text": f"{interaction.guild.name}",
-                        "icon_url": f"{interaction.guild.icon.url}",
+                        "text": interaction.guild.name,
                     },
                 }
+                try:
+                    embed_dict["footer"]["icon_url"] = interaction.guild.icon.url
+                except AttributeError:
+                    embed_dict["footer"][
+                        "icon_url"
+                    ] = "https://im.wampi.ru/2023/11/02/Bez_nazvania1_20211210115049.png"
 
                 if flag == 1:
                     await count_lose_scores(ставка)
