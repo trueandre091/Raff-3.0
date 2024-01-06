@@ -272,7 +272,7 @@ dicts1 = {
         "AUTOUPDATE_MESSAGES": {"MESSAGES": True, "SCORES": True},
         "NEAREST_EVENTS": True,
         "EXPERIENCE": True,
-        "GAMES": {"BLACKJACK": True, "ROULETTE": True},
+        "GAMES": {"ALL_GAMES": True, "BLACKJACK": True, "ROULETTE": True},
         "ORDERS": True,
         "REQUESTS": False,
         "SCORES": True,
@@ -303,7 +303,7 @@ dicts1 = {
         "MESSAGE": "{member.mention} / {member.name} / {member.nick} ушёл.",
     },
     "ADDING_REACTIONS_THREADS_SETTINGS": {},
-    "MODERATION_SETTINGS": {"GIF": {"MESSAGES_FOR_GIF": 15}},
+    "MODERATION_SETTINGS": {"CHANNEL": [None], "GIF": {"MESSAGES_FOR_GIF": 15}},
     "BOOSTS_COUNTING_SETTINGS": {
         "BOOST_BOTS": {
             "DSMonitoring": 575776004233232386,
@@ -341,7 +341,7 @@ dicts1 = {
             "AMOUNT_TO_THIRD_LVL": 12,
             "AMOUNT_TO_FIFTH_LVL": 20,
         },
-        "GAMES": {"ROULETTE": {"CHANCE": 60}, "BLACKJACK": True},
+        "GAMES": {"ROULETTE": {"CHANCE": 60}, "BLACKJACK": True, "CHANNEL": [None]},
         "AUTOUPDATE": {
             "MESSAGES": {"PLACE_LIMIT": 10, "PREVIOUS_BESTS_LIMIT": 3},
             "SCORES": {},
