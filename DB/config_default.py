@@ -68,7 +68,7 @@ GUILD_CONFIG = {
             "AMOUNT_TO_THIRD_LVL": 12,
             "AMOUNT_TO_FIFTH_LVL": 16,
         },
-        "GAMES": {"ROULETTE": {"CHANCE": 60}, "BLACKJACK": True},
+        "GAMES": {"CHANNEL": [None], "ROULETTE": {"CHANCE": 60}},
         "AUTOUPDATE": {
             "MESSAGES": {"PLACE_LIMIT": 10},
             "SCORES": {"PLACE_LIMIT": 20},

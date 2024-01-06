@@ -232,7 +232,7 @@ async def test_get_sets(guilds_echo):
 
     if res:
         sets = enc.code_from_json(res.guild_sets)
-        logger.debug(sets["WELCOME_SETTINGS"]["EMBED"]["TITLE"])
+        logger.debug(sets)
 
     ####################################   RELATIONSHIPS TESTS   ############################################
 
