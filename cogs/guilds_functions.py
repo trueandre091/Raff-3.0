@@ -203,14 +203,19 @@ dicts = {
                 }
             },
             "EVENTS": {
-                "TIME": 1860,
+                "TIME": 600,
                 "CHANNELS": [
                     858737175439736873,
                     1186721973242429480,
                     1046504818249846845,
                     1010586706677866626,
                 ],
-                "SCORES": 1,
+                "LOGS_CHANNEL": 981593893567070298,
+                "ROLES": [
+                    {"ROLES_ID": [1028040256903188530, 1056169408487247952], "SCORES": 2},
+                    {"ROLES_ID": [1056169387872227370, 1071772832599650324], "SCORES": 3},
+                    {"ROLES_ID": "everyone", "SCORES": 1},
+                ],
             },
         },
         "SCORES": {
@@ -269,7 +274,7 @@ dicts1 = {
         "EXPERIENCE": True,
         "GAMES": {"BLACKJACK": True, "ROULETTE": True},
         "ORDERS": True,
-        "REQUESTS": True,
+        "REQUESTS": False,
         "SCORES": True,
         "COUNTING_BOOSTS": True,
         "ADDING_REACTIONS_THREADS": True,
@@ -324,7 +329,11 @@ dicts1 = {
             "EVENTS": {
                 "TIME": 1860,
                 "CHANNELS": [1189637072487723081],
-                "SCORES": 1,
+                "LOGS_CHANNEL": None,
+                "ROLES": [
+                    {"ROLES_ID": [None], "SCORES": None},
+                    {"ROLES_ID": "everyone", "SCORES": 1},
+                ],
             },
         },
         "SCORES": {

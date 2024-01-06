@@ -42,8 +42,12 @@ async def bj_designed_embed_start(
     await interaction.edit_original_response(embed=disnake.Embed.from_dict(embed_dict))
     await asyncio.sleep(2)
 
-    embed_dict["title"] = "Вижу, ты поставил свои честно заработанные очки"
-    embed_dict["description"] = f"Аж {bet} оч... пойдёт"
+    if bet:
+        embed_dict["title"] = "Вижу, ты поставил свои честно заработанные очки"
+        embed_dict["description"] = f"Целых {bet} оч... 😮"
+    else:
+        embed_dict["title"] = "Ты ничего не поставил на игру"
+        embed_dict["description"] = f"Поэтому на выигрыш можешь не рассчитывать"
 
     await interaction.edit_original_response(embed=disnake.Embed.from_dict(embed_dict))
     await asyncio.sleep(2)
@@ -87,7 +91,11 @@ async def bj_designed_embed_if_lose(embed_dict: dict, interaction, bet):
     )
     await asyncio.sleep(2)
 
-    embed_dict["description"] += f"\n\n**Ты проиграл** и потерял {bet} оч."
+    if bet:
+        embed_dict["description"] += f"\n\n**Ты проиграл** и потерял {bet} оч."
+    else:
+        embed_dict["description"] += "**Ты проиграл(**"
+    embed_dict["image"] = {"url": "https://tenor.com/vDKzyOi26zj.gif"}
     await interaction.message.edit(embed=disnake.Embed.from_dict(embed_dict))
 
 
@@ -98,7 +106,10 @@ async def bj_designed_embed_if_21(embed_dict: dict, interaction, bet):
     )
     await asyncio.sleep(2)
 
-    embed_dict["description"] += f"\n\n**21-о! Ты выиграл {bet * 2} оч.!**"
+    if bet:
+        embed_dict["description"] += f"\n\n**21-о! Ты выиграл {bet * 2} оч.!**"
+    else:
+        embed_dict["description"] += f"\n\n**21-о! Ты выиграл!**"
     await interaction.message.edit(embed=disnake.Embed.from_dict(embed_dict))
     await asyncio.sleep(2)
 
@@ -120,9 +131,9 @@ def return_scores(current, score):
         "8": 8,
         "9": 9,
         "10": 10,
-        "Jack": 2,
-        "Queen": 3,
-        "King": 4,
+        "Jack": 10,
+        "Queen": 10,
+        "King": 10,
     }
 
     if isinstance(current, int):
@@ -157,7 +168,7 @@ class BlackJack(commands.Cog):
 
     @commands.slash_command(description="Сыграть в BlackJack на свои очки (/rep)")
     async def блекджек(
-        self, interaction: disnake.ApplicationCommandInteraction, ставка: int = None
+        self, interaction: disnake.ApplicationCommandInteraction, ставка: int = 0
     ):
         settings = await guild_sets_check(
             interaction.guild.id, "GENERAL_SETTINGS", "GAMES", "BLACKJACK"
@@ -183,8 +194,6 @@ class BlackJack(commands.Cog):
                     delete_after=5,
                     ephemeral=True,
                 )
-        else:
-            ставка = 1
 
         game_bj = GameBlackJack(author, commands, ставка)
 
@@ -275,18 +284,33 @@ class BlackJack(commands.Cog):
                                 await asyncio.sleep(2)
 
                                 if obj.bot_score > obj.score:
-                                    embed_dict[
-                                        "description"
-                                    ] += f"\n\n**Бот тебя обыграл. Ты потерял {obj.bet} оч.**"
+                                    if obj.bet:
+                                        embed_dict[
+                                            "description"
+                                        ] += f"\n\n**Бот тебя обыграл. Ты потерял {obj.bet} оч.**"
+                                    else:
+                                        embed_dict[
+                                            "description"
+                                        ] += f"\n\n**Бот тебя обыграл. Но, к счастью, ты ничего не потерял**"
 
                                     await interaction.message.edit(
                                         embed=disnake.Embed.from_dict(embed_dict)
                                     )
 
                                 elif obj.bot_score < obj.score:
-                                    embed_dict[
-                                        "description"
-                                    ] += f"\n\n**Ты выиграл! И получил {obj.bet} оч.**"
+                                    if obj.bet:
+                                        embed_dict[
+                                            "description"
+                                        ] += (
+                                            f"\n\n**Ты выиграл! И получил {obj.bet} оч.**"
+                                        )
+                                    else:
+                                        embed_dict[
+                                            "description"
+                                        ] += f"\n\n**Ты выиграл! И ничего не получил 🙂**"
+                                    embed_dict["image"] = {
+                                        "url": "https://tenor.com/bRWxj.gif"
+                                    }
 
                                     await interaction.message.edit(
                                         embed=disnake.Embed.from_dict(embed_dict)
@@ -353,7 +377,7 @@ class Roulette(commands.Cog):
         description="Крутануть рулеточку на свои РЕАЛЬНЫЕ очки (/rep)"
     )
     async def рулетка(
-        self, interaction: disnake.ApplicationCommandInteraction, ставка: int = None
+        self, interaction: disnake.ApplicationCommandInteraction, ставка: int = 0
     ):
         settings = await guild_sets_check(
             interaction.guild.id, "GENERAL_SETTINGS", "GAMES", "ROULETTE"

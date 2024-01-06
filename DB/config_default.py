@@ -58,9 +58,13 @@ GUILD_CONFIG = {
                 # }
             },
             "EVENTS": {
-                "TIME": 1860,
+                "TIME": 600,
                 "CHANNELS": [None],
-                "SCORES": 1,
+                "ADMIN_CHANNEL": None,
+                "ROLES": [
+                    {"ROLES_ID": [None], "SCORES": None},
+                    {"ROLES_ID": "everyone", "SCORES": 1},
+                ],
             },
         },
         "SCORES": {
@@ -68,7 +72,7 @@ GUILD_CONFIG = {
             "AMOUNT_TO_THIRD_LVL": 12,
             "AMOUNT_TO_FIFTH_LVL": 16,
         },
-        "GAMES": {"ROULETTE": {"CHANCE": 60}, "BLACKJACK": True},
+        "GAMES": {"ROULETTE": {"CHANCE": 60}},
         "AUTOUPDATE": {
             "MESSAGES": {"PLACE_LIMIT": 10},
             "SCORES": {"PLACE_LIMIT": 20},
@@ -91,7 +95,7 @@ GUILD_CONFIG = {
             "LOGS_MESSAGE": {"CHANNEL": None},
             "ADMIN_CHANNEL": None,
         },
-        "EXPERIENCE": {"FACTOR": 5},
+        "EXPERIENCE": {"FACTOR": 5, "LEVELING": [{"ROLE": None, "AMOUNT": None}]},
     },
     "COUNTERS": {
         "LOSE_SCORES": 0,
