@@ -9,6 +9,8 @@ from DB.DataBase import GuildsDBase
 from DB.JSONEnc import JsonEncoder
 import random
 from DB.config_default import GUILD_CONFIG
+from DB.models import Guilds
+from DB.DBTests import test_get_sets
 
 
 async def is_admin(member: disnake.Member) -> bool:
@@ -298,7 +300,9 @@ class GuildSetsGreetView(View):
         self.w_settings["CHANNEL"] = selectMenu.values[0].id
         await update_sets(self, interaction)
 
-        logger.debug(f"Channel for greetings  for guild {interaction.guild.name} was updated")
+        logger.debug(
+            f"Channel for greetings  for guild {interaction.guild.name} was updated"
+        )
 
     @button(label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger)
     async def to_back_callback(self, btn: Button, interaction: disnake.Interaction):
@@ -332,7 +336,9 @@ class GuildSetsGreetView(View):
 
         await toggle_set(self, interaction, True)
 
-        logger.debug(f"Set WELCOME for guild {interaction.guild.name} was switched to True")
+        logger.debug(
+            f"Set WELCOME for guild {interaction.guild.name} was switched to True"
+        )
 
     @button(label="Выкл", style=disnake.ButtonStyle.danger)
     async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
@@ -344,16 +350,22 @@ class GuildSetsGreetView(View):
 
         await toggle_set(self, interaction, switch_to=False)
 
-        logger.debug(f"Set WELCOME for guild {interaction.guild.name} was switched to False")
+        logger.debug(
+            f"Set WELCOME for guild {interaction.guild.name} was switched to False"
+        )
 
 
 class GreetModal(Modal):
     def __init__(self, parent):
+        self.parent = parent
         self.settings = parent.settings
+        self.w_settings = self.settings["WELCOME_SETTINGS"]
+        self.route = "WELCOME_SETTINGS"
+        self.gdb = self.parent.gdb
         options = [
             TextInput(
                 label="Заголовок",
-                value=self.settings["WELCOME_SETTINGS"]["EMBED"]["TITLE"],
+                value=self.w_settings["EMBED"]["TITLE"],
                 min_length=4,
                 max_length=75,
                 required=True,
@@ -361,7 +373,7 @@ class GreetModal(Modal):
             ),
             TextInput(
                 label="Сообщение",
-                value=self.settings["WELCOME_SETTINGS"]["EMBED"]["DESCRIPTION"],
+                value=self.w_settings["EMBED"]["DESCRIPTION"],
                 style=disnake.TextInputStyle.paragraph,
                 max_length=256,
                 required=False,
@@ -369,19 +381,19 @@ class GreetModal(Modal):
             ),
             TextInput(
                 label="Аватарка (дефолтная)",
-                value=self.settings["WELCOME_SETTINGS"]["AVATAR_IF_ERROR"],
+                value=self.w_settings["AVATAR_IF_ERROR"],
                 required=False,
                 custom_id="url_to_ava",
             ),
             TextInput(
                 label="Твоя картинка",
-                value=self.settings["WELCOME_SETTINGS"]["BACKGROUND_IMAGE"],
+                value=self.w_settings["BACKGROUND_IMAGE"],
                 required=False,
                 custom_id="background_image",
             ),
             TextInput(
                 label="Цвет эмбеда (hex)",
-                value=hex(self.settings["WELCOME_SETTINGS"]["EMBED"]["COLOR"]),
+                value=hex(self.w_settings["EMBED"]["COLOR"]),
                 required=False,
                 custom_id="color",
             ),
@@ -394,21 +406,17 @@ class GreetModal(Modal):
                 "You are not an admin😲", ephemeral=True
             )
             return
-        gdb = GuildsDBase()
 
-        title = interaction.text_values["title"]
-        description = interaction.text_values["description"]
-        url_to_ava = interaction.text_values["url_to_ava"]
-        background_image = interaction.text_values["background_image"]
+        self.w_settings["EMBED"]["TITLE"] = interaction.text_values["title"]
+        self.w_settings["EMBED"]["DESCRIPTION"] = interaction.text_values["description"]
+        self.w_settings["AVATAR_IF_ERROR"] = interaction.text_values["url_to_ava"]
+        self.w_settings["BACKGROUND_IMAGE"] = interaction.text_values["background_image"]
 
-        self.settings["WELCOME_SETTINGS"]["EMBED"]["TITLE"] = title
-        self.settings["WELCOME_SETTINGS"]["EMBED"]["DESCRIPTION"] = description
-        self.settings["WELCOME_SETTINGS"]["AVATAR_IF_ERROR"] = url_to_ava
-        self.settings["WELCOME_SETTINGS"]["BACKGROUND_IMAGE"] = background_image
+        await update_sets(self, interaction)
 
-        await gdb.update_guild(
-            {"guild_id": interaction.guild.id, "guild_sets": self.settings}
-        )
+        # await gdb.update_guild(
+        #     {"guild_id": interaction.guild.id, "guild_sets": self.settings}
+        # )
 
 
 class GuildSetsFarewellView(View):
@@ -1276,6 +1284,67 @@ def create_option_embed():
     return embed
 
 
+async def create_all_sets_embed(data, interaction):
+    interaction = interaction
+    embed = {
+        "title": "Все настройки сервера",
+        "description": "Здесь отображаются все настройки и их статус",
+        "color": 0x2B2D31,
+        "timestamp": datetime.datetime.now().isoformat(),
+        "author": None,
+        "fields": [
+            {
+                "name": "Приветствие",
+                "value": f"Статус: {'включено' if data['GENERAL_SETTINGS']['WELCOME'] else 'выключено'}\n"
+                f"Канал: {await interaction.guild.fetch_channel(data['WELCOME_SETTINGS']['CHANNEL'])}\n"
+                f"Заголовок: {data['WELCOME_SETTINGS']['EMBED']['TITLE']}\n"
+                f"Сообщение: {data['WELCOME_SETTINGS']['EMBED']['DESCRIPTION']}\n"
+                f"Цвет: {hex(data['WELCOME_SETTINGS']['EMBED']['COLOR'])}\n"
+                f"Автар для пользователей без него: {data['WELCOME_SETTINGS']['AVATAR_IF_ERROR']}\n"
+                f"Картинка: {data['WELCOME_SETTINGS']['BACKGROUND_IMAGE']}\n",
+            },
+            {
+                "name": "Прощание",
+                "value": f"Статус: {'включено' if data['GENERAL_SETTINGS']['FAREWELL'] else 'выключено'}\n"
+                f"Канал: {await interaction.guild.fetch_channel(data['FAREWELL_SETTINGS']['CHANNEL'])}\n"
+                f"Сообщение: {data['FAREWELL_SETTINGS']['MESSAGE']}\n",
+            },
+            {
+                "name": "Обратная связь",
+                "value": f"Статус: {'включено' if data['GENERAL_SETTINGS']['REQUESTS'] else 'выключено'}\n"
+                f"Канал: {await interaction.guild.fetch_channel(data['FAREWELL_SETTINGS']['CHANNEL'])}\n"
+                f"Сообщение: {data['COGS_SETTINGS']['REQUESTS']}\n",
+            },
+            {
+                "name": "Очки и опыт",
+                "value": f"Статус: "
+                f"{'включено' if data['GENERAL_SETTINGS']['EXPERIENCE'] or data['GENERAL_SETTINGS']['SCORES'] else 'выключено'}\n",
+            },
+            {
+                "name": "Игры",
+                "value": f"Все игры: {'включено' if data['GENERAL_SETTINGS']['GAMES'] else 'выключено'}\n"
+                f"Блэкджек: {'включено' if data['GENERAL_SETTINGS']['GAMES']['BLACKJACK'] else 'выключено'}\n"
+                f"Рулетка: {'включено' if data['GENERAL_SETTINGS']['GAMES']['ROULETTE'] else 'выключено'}\n"
+                f"Канал: {await interaction.guild.fetch_channel(data['COGS_SETTINGS']['GAMES']['CHANNEL'])}\n",
+            },
+            {
+                "name": "Ближайшие события",
+                "value": f"Статус: {'включено' if data['GENERAL_SETTINGS']['NEAREST_EVENTS'] else 'выключено'}\n"
+                f"Канал: {await interaction.guild.fetch_channel(data['COGS_SETTINGS']['NEAREST_EVENTS']['CHANNEL'])}\n"
+                f"Категории: {', '.join(data['COGS_SETTINGS']['NEAREST_EVENTS']['CATEGORIES'])}",
+            },
+            {
+                "name": "Модерация",
+                "value": f"Статус: {'включено' if data['GENERAL_SETTINGS']['MODERATION']['GIF'] else 'выключено'}\n"
+                f"Каналы: {interaction.guild.fetch_channel(data['MODERATION_SETTINGS']['CHANNEL'])}\n"
+                f"Категории: {', '.join(data['COGS_SETTINGS']['NEAREST_EVENTS']['CATEGORIES'])}",
+            },
+        ],
+    }
+
+    return embed
+
+
 class GuildsManage(commands.Cog):
     """
     This class will manage bot (client) guilds, configure them
@@ -1308,6 +1377,22 @@ class GuildsManage(commands.Cog):
             set_view = GuildSettings(interaction, enc.code_from_json(guild.guild_sets))
             await interaction.send(".")
             await set_view.create_home_view()
+
+    @commands.slash_command(name="текущие_настройки")
+    async def current_settings(self, interaction: disnake.ApplicationCommandInteraction):
+        gdb: GuildsDBase = GuildsDBase()
+        guild: Guilds = await gdb.get_guild({"guild_id": interaction.guild.id})
+        enc: JsonEncoder = JsonEncoder()
+        if guild:
+            await interaction.response.send_message(
+                embed=disnake.Embed.from_dict(
+                    await create_all_sets_embed(
+                        enc.code_from_json(guild.guild_sets), interaction
+                    )
+                ),
+                ephemeral=True,
+            )
+            await test_get_sets(False)
 
     @commands.slash_command(name="add_to_db")
     @commands.is_owner()
