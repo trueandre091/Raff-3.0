@@ -538,7 +538,7 @@ class GuildsDBase(DataBase):
             return guild_list[0] if is_dict else guild_list
 
         except Exception as e:
-            logger.error("Something went wrong when get guild\n", e)
+            logger.exception("Something went wrong when get guild\n", e)
 
         return
 
