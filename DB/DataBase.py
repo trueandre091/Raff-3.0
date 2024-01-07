@@ -19,8 +19,16 @@ class DataBase:
     def __init__(self, echo_mode: bool = False):
         try:
             self.echo = echo_mode
-            self.engine = create_engine("sqlite:///DB/DataBase.db", echo=self.echo)
+
+            # FOR MAIN APP
+            # self.engine = create_engine("sqlite:///DB/DataBase.db", echo=self.echo)
+
+            # FOP TESTS
             # self.engine = create_engine("sqlite:///DataBase.db", echo=self.echo)
+
+            # FOR UTILS
+            self.engine = create_engine("sqlite:///../DB/DataBase.db", echo=self.echo)
+
             self.Session = sessionmaker(self.engine)
             logger.debug("Engine was successfully created")
         except Exception as e:
