@@ -105,7 +105,7 @@ class ScoresOperations(commands.Cog):
             )
             return
 
-        await counter_functions.count_added_scores(количество)
+        await counter_functions.count_added_scores(количество, interaction.guild.id)
 
         user = await DB.get_user({"ds_id": участник.id})
         if user is None:
@@ -135,7 +135,7 @@ class ScoresOperations(commands.Cog):
         количество: int,
     ):
         """Removing from a member a certain amount of scores"""
-        await counter_functions.count_removed_scores(количество)
+        await counter_functions.count_removed_scores(количество, interaction.guild.id)
 
         user = await DB.get_user({"ds_id": участник.id})
         if not user:
@@ -183,7 +183,9 @@ class ScoresOperations(commands.Cog):
         members_list = участники.split()
         members_list_values = []
 
-        await counter_functions.count_removed_scores(количество * len(members_list))
+        await counter_functions.count_removed_scores(
+            количество * len(members_list), interaction.guild.id
+        )
 
         for member in members_list:
             member_id = int(member.strip("<@>"))
@@ -248,7 +250,9 @@ class ScoresOperations(commands.Cog):
         members_list = участники.split()
         members_list_values = []
 
-        await counter_functions.count_added_scores(количество * len(members_list))
+        await counter_functions.count_added_scores(
+            количество * len(members_list), interaction.guild.id
+        )
 
         for member in members_list:
             member_id = int(member.strip("<@>"))

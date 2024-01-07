@@ -131,6 +131,11 @@ class SettingEvents(commands.Cog):
         today = dt.datetime.now(dt.timezone(dt.timedelta(hours=3)))
         if int(today.weekday()) == 0 and 0 <= int(today.strftime("%H")) <= 12:
             guild = self.bot.get_guild(785312593614209055)
+            names = ["Еженедельный ивент 📩 (Сб)", "Еженедельный ивент 📩 (Вс)"]
+            for event in guild.scheduled_events:
+                if event.name in names:
+                    return
+
             scheduled_events = [
                 {
                     "name": "Еженедельный ивент 📩 (Сб)",

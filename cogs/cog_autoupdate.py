@@ -3,7 +3,7 @@ import disnake
 from disnake.ext import commands, tasks
 from datetime import datetime, timezone, timedelta
 
-from cogs.guilds_functions import GDB, DB, find_guilds_by_param
+from cogs.guilds_functions import GDB, DB, find_guilds_by_param, guild_sets_check
 from cogs.cog_scores import top_create_embed
 
 FOLDER = getcwd()
@@ -31,8 +31,23 @@ class AutoUpdateMessagesTop(commands.Cog):
             )
 
             for guild in guilds:
-                for user in guild.users:
-                    await DB.update_user({"ds_id": user.ds_id, "count_messages": 0})
+                top = await GDB.get_top_users_by_messages(guild.guild_id)
+                if top:
+                    settings = await guild_sets_check(guild.guild_id)
+                    settings["COGS_SETTINGS"]["COUNTERS"]["MESSAGES_PREVIOUS_BESTS"] = [
+                        user.ds_id for user in top[0:3]
+                    ]
+                    print(
+                        settings["COGS_SETTINGS"]["COUNTERS"]["MESSAGES_PREVIOUS_BESTS"]
+                    )
+
+                    await GDB.update_guild(
+                        {"guild_id": guild.guild_id, "guild_sets": settings}
+                    )
+
+                users = guild.users
+                for user in users:
+                    await DB.update_user({"ds_id": user.ds_id, "messages": 0})
 
     @reset_aup_top.before_loop
     async def before(self):

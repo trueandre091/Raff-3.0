@@ -1,6 +1,7 @@
 from disnake.ext import commands, tasks
 from DB.JSONEnc import JsonEncoder
 from DB.DataBase import GuildsDBase, UserDBase, RelationshipsDBase
+from DB.models import Guilds
 
 DB = UserDBase()
 GDB = GuildsDBase()
@@ -37,14 +38,14 @@ async def find_guilds_by_param(
     checking_set_2: str = False,
     checking_set_3: str = False,
     encode: bool = True,
-) -> list:
+) -> list[Guilds | dict]:
     """Finding servers by certain parameter, returns a list"""
     list_of_guilds = []
     for guild in bot.guilds:
         list_of_guilds.append({"guild_id": guild.id})
     list_temp = []
     for guild in list_of_guilds:
-        list_temp.append(await GDB.get_guild(guild))
+        list_temp.append(await GDB.get_guild_with_users(guild))
     if list_temp is None:
         return []
 

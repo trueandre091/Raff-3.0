@@ -27,7 +27,9 @@ async def get_channel_by_id(
         if len(data) != 0:
             for id in data:
                 if id is not None:
-                    channel: disnake.TextChannel = await interaction.guild.fetch_channel(id)
+                    channel: disnake.TextChannel = await interaction.guild.fetch_channel(
+                        id
+                    )
                     channels.append(channel.name)
                 else:
                     return "не задан"
@@ -261,7 +263,9 @@ class GuildSetsHomeScreenView(View):
         self, selectMenu: Select, interaction: disnake.ApplicationCommandInteraction
     ):
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
 
         value = selectMenu.values[0]
@@ -301,7 +305,9 @@ class GuildSetsHomeScreenView(View):
     async def reset_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
         self.settings = self.parent.enc.get_default_cfg()
         res = await self.gdb.update_guild(
@@ -336,30 +342,40 @@ class GuildSetsGreetView(View):
     )
     async def callback(self, selectMenu: Select, interaction: disnake.Interaction):
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
 
         self.w_settings["CHANNEL"] = selectMenu.values[0].id
         await update_sets(self, interaction)
 
-        logger.debug(f"Channel for greetings  for guild {interaction.guild.name} was updated")
+        logger.debug(
+            f"Channel for greetings  for guild {interaction.guild.name} was updated"
+        )
 
     @button(label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger)
     async def to_back_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
         await stud_interaction(interaction)
         await GuildSettings.create_home_view(self.parent)
 
     @button(label="Настроить")
-    async def open_greet_set_callback(self, btn: Button, interaction: disnake.Interaction):
+    async def open_greet_set_callback(
+        self, btn: Button, interaction: disnake.Interaction
+    ):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
 
@@ -369,25 +385,33 @@ class GuildSetsGreetView(View):
     async def enable_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
 
         await toggle_set(self, interaction, True)
 
-        logger.debug(f"Set WELCOME for guild {interaction.guild.name} was switched to True")
+        logger.debug(
+            f"Set WELCOME for guild {interaction.guild.name} was switched to True"
+        )
 
     @button(label="Выкл", style=disnake.ButtonStyle.danger)
     async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
 
         await toggle_set(self, interaction, switch_to=False)
 
-        logger.debug(f"Set WELCOME for guild {interaction.guild.name} was switched to False")
+        logger.debug(
+            f"Set WELCOME for guild {interaction.guild.name} was switched to False"
+        )
 
 
 class GreetModal(Modal):
@@ -437,7 +461,9 @@ class GreetModal(Modal):
 
     async def callback(self, interaction: ModalInteraction):
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
 
@@ -471,7 +497,9 @@ class GuildSetsFarewellView(View):
     )
     async def callback(self, selectMenu: Select, interaction: disnake.Interaction):
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
 
@@ -482,17 +510,23 @@ class GuildSetsFarewellView(View):
     async def to_back_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
         await stud_interaction(interaction)
         await GuildSettings.create_home_view(self.parent)
 
     @button(label="Настроить")
-    async def open_farewell_set_callback(self, btn: Button, interaction: disnake.Interaction):
+    async def open_farewell_set_callback(
+        self, btn: Button, interaction: disnake.Interaction
+    ):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
         await interaction.response.send_modal(FarewellModal(self.parent))
@@ -501,25 +535,33 @@ class GuildSetsFarewellView(View):
     async def enable_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
 
         await toggle_set(self, interaction, switch_to=True)
 
-        logger.debug(f"Set FAREWELL for guild {interaction.guild.name} was switched to True")
+        logger.debug(
+            f"Set FAREWELL for guild {interaction.guild.name} was switched to True"
+        )
 
     @button(label="Выкл", style=disnake.ButtonStyle.danger)
     async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
 
         await toggle_set(self, interaction, switch_to=False)
 
-        logger.debug(f"Set FAREWELL for guild {interaction.guild.name} was switched to False")
+        logger.debug(
+            f"Set FAREWELL for guild {interaction.guild.name} was switched to False"
+        )
 
 
 class FarewellModal(Modal):
@@ -542,7 +584,9 @@ class FarewellModal(Modal):
 
     async def callback(self, interaction: ModalInteraction):
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
 
@@ -568,9 +612,13 @@ class GuildSetsFeedbackView(View):
         placeholder="Где примем запросы?",
         min_values=0,
     )
-    async def channel_select_callback(self, selectMenu: Select, interaction: disnake.Interaction):
+    async def channel_select_callback(
+        self, selectMenu: Select, interaction: disnake.Interaction
+    ):
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
 
@@ -584,9 +632,13 @@ class GuildSetsFeedbackView(View):
         placeholder="В каком канале будем отвечать?",
         min_values=0,
     )
-    async def admin_select_callback(self, selectMenu: Select, interaction: disnake.Interaction):
+    async def admin_select_callback(
+        self, selectMenu: Select, interaction: disnake.Interaction
+    ):
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
 
@@ -600,9 +652,13 @@ class GuildSetsFeedbackView(View):
         placeholder="Где напоминать?",
         min_values=0,
     )
-    async def logs_select_callback(self, selectMenu: Select, interaction: disnake.Interaction):
+    async def logs_select_callback(
+        self, selectMenu: Select, interaction: disnake.Interaction
+    ):
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
 
@@ -615,17 +671,23 @@ class GuildSetsFeedbackView(View):
     async def to_back_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
         await stud_interaction(interaction)
         await GuildSettings.create_home_view(self.parent)
 
     @button(label="Настроить")
-    async def open_feedback_set_callback(self, btn: Button, interaction: disnake.Interaction):
+    async def open_feedback_set_callback(
+        self, btn: Button, interaction: disnake.Interaction
+    ):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
         await interaction.response.send_modal(FeedbackModal(self.parent))
@@ -634,25 +696,33 @@ class GuildSetsFeedbackView(View):
     async def enable_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
 
         await toggle_set(self, interaction, switch_to=True)
 
-        logger.debug(f"Set FEEDBACK for guild {interaction.guild.name} was switched to True")
+        logger.debug(
+            f"Set FEEDBACK for guild {interaction.guild.name} was switched to True"
+        )
 
     @button(label="Выкл", style=disnake.ButtonStyle.danger)
     async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
 
         await toggle_set(self, interaction, switch_to=False)
 
-        logger.debug(f"Set FEEDBACK for guild {interaction.guild.name} was switched to False")
+        logger.debug(
+            f"Set FEEDBACK for guild {interaction.guild.name} was switched to False"
+        )
 
 
 class FeedbackModal(Modal):
@@ -695,18 +765,24 @@ class FeedbackModal(Modal):
 
     async def callback(self, interaction: ModalInteraction):
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
 
-        self.s_settings["BUTTONS_MESSAGE"]["EMBED"]["TITLE"] = interaction.text_values["title"]
-        self.s_settings["BUTTONS_MESSAGE"]["EMBED"]["DESCRIPTION"] = interaction.text_values[
-            "description"
+        self.s_settings["BUTTONS_MESSAGE"]["EMBED"]["TITLE"] = interaction.text_values[
+            "title"
         ]
+        self.s_settings["BUTTONS_MESSAGE"]["EMBED"][
+            "DESCRIPTION"
+        ] = interaction.text_values["description"]
         self.s_settings["BUTTONS_MESSAGE"]["EMBED"]["COLOR"] = int(
             interaction.text_values["color"], 16
         )
-        self.s_settings["BUTTONS_MESSAGE"]["CALLBACK"] = interaction.text_values["set_callback"]
+        self.s_settings["BUTTONS_MESSAGE"]["CALLBACK"] = interaction.text_values[
+            "set_callback"
+        ]
 
         self.w_settings["REQUESTS"] = self.s_settings
 
@@ -726,7 +802,9 @@ class GuildSetsScoresExpView(View):
     async def to_back_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
         await stud_interaction(interaction)
         await GuildSettings.create_home_view(self.parent)
@@ -735,23 +813,31 @@ class GuildSetsScoresExpView(View):
     async def enable_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
 
         await toggle_set(self, interaction, switch_to=True)
 
-        logger.debug(f"Set SCORES and EXP for guild {interaction.guild.name} was switched to True")
+        logger.debug(
+            f"Set SCORES and EXP for guild {interaction.guild.name} was switched to True"
+        )
 
     @button(label="Выкл", style=disnake.ButtonStyle.danger)
     async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
 
         await toggle_set(self, interaction, switch_to=False)
 
-        logger.debug(f"Set SCORES and EXP for guild {interaction.guild.name} was switched to False")
+        logger.debug(
+            f"Set SCORES and EXP for guild {interaction.guild.name} was switched to False"
+        )
 
 
 class GuildSetsGamesView(View):
@@ -772,9 +858,13 @@ class GuildSetsGamesView(View):
         placeholder="В каких каналах можно играть?",
         max_values=25,
     )
-    async def channel_select_callback(self, selectMenu: Select, interaction: disnake.Interaction):
+    async def channel_select_callback(
+        self, selectMenu: Select, interaction: disnake.Interaction
+    ):
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
 
@@ -812,7 +902,9 @@ class GuildSetsGamesView(View):
         self, selectMenu: Select, interaction: disnake.ApplicationCommandInteraction
     ):
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
         value = selectMenu.values[0]
 
@@ -828,7 +920,9 @@ class GuildSetsGamesView(View):
     async def to_back_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
         await stud_interaction(interaction)
         await GuildSettings.create_home_view(self.parent)
@@ -837,7 +931,9 @@ class GuildSetsGamesView(View):
     async def enable_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
 
         await toggle_set(self, interaction, switch_to=True)
@@ -848,12 +944,16 @@ class GuildSetsGamesView(View):
     async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
 
         await toggle_set(self, interaction, switch_to=False)
 
-        logger.debug(f"Set GAMES for guild {interaction.guild.name} was switched to False")
+        logger.debug(
+            f"Set GAMES for guild {interaction.guild.name} was switched to False"
+        )
 
 
 class SetBlackJackView(View):
@@ -869,7 +969,9 @@ class SetBlackJackView(View):
     async def to_back_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
         await stud_interaction(interaction)
         await GuildSettings.create_games_view(self.parent)
@@ -878,23 +980,31 @@ class SetBlackJackView(View):
     async def enable_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
 
         await toggle_set(self, interaction, switch_to=True)
 
-        logger.debug(f"Set BLACKJACK for guild {interaction.guild.name} was switched to True")
+        logger.debug(
+            f"Set BLACKJACK for guild {interaction.guild.name} was switched to True"
+        )
 
     @button(label="Выкл", style=disnake.ButtonStyle.danger)
     async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
 
         await toggle_set(self, interaction, switch_to=False)
 
-        logger.debug(f"Set BLACKJACK for guild {interaction.guild.name} was switched to False")
+        logger.debug(
+            f"Set BLACKJACK for guild {interaction.guild.name} was switched to False"
+        )
 
 
 class SetRouletteView(View):
@@ -910,7 +1020,9 @@ class SetRouletteView(View):
     async def to_back_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
         await stud_interaction(interaction)
         await GuildSettings.create_games_view(self.parent)
@@ -919,23 +1031,31 @@ class SetRouletteView(View):
     async def enable_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
 
         await toggle_set(self, interaction, switch_to=True)
 
-        logger.debug(f"Set ROULETTE for guild {interaction.guild.name} was switched to True")
+        logger.debug(
+            f"Set ROULETTE for guild {interaction.guild.name} was switched to True"
+        )
 
     @button(label="Выкл", style=disnake.ButtonStyle.danger)
     async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
 
         await toggle_set(self, interaction, switch_to=False)
 
-        logger.debug(f"Set ROULETTE for guild {interaction.guild.name} was switched to False")
+        logger.debug(
+            f"Set ROULETTE for guild {interaction.guild.name} was switched to False"
+        )
 
 
 class GuildSetNearestEventsView(View):
@@ -959,7 +1079,9 @@ class GuildSetNearestEventsView(View):
         self, selectMenu: Select, interaction: disnake.ApplicationCommandInteraction
     ):
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
 
         self.s_settings["CHANNEL"] = selectMenu.values[0].id
@@ -970,16 +1092,22 @@ class GuildSetNearestEventsView(View):
     async def to_back_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
         await stud_interaction(interaction)
         await GuildSettings.create_home_view(self.parent)
 
     @button(label="Настроить")
-    async def open_farewell_set_callback(self, btn: Button, interaction: disnake.Interaction):
+    async def open_farewell_set_callback(
+        self, btn: Button, interaction: disnake.Interaction
+    ):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
         await interaction.response.send_modal(NearestEventModal(self.parent))
 
@@ -987,23 +1115,31 @@ class GuildSetNearestEventsView(View):
     async def enable_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
 
         await toggle_set(self, interaction, switch_to=True)
 
-        logger.debug(f"Set NEAREST_EVENTS for guild {interaction.guild.name} was switched to True")
+        logger.debug(
+            f"Set NEAREST_EVENTS for guild {interaction.guild.name} was switched to True"
+        )
 
     @button(label="Выкл", style=disnake.ButtonStyle.danger)
     async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
 
         await toggle_set(self, interaction, switch_to=False)
 
-        logger.debug(f"Set NEAREST_EVENTS for guild {interaction.guild.name} was switched to False")
+        logger.debug(
+            f"Set NEAREST_EVENTS for guild {interaction.guild.name} was switched to False"
+        )
 
 
 class NearestEventModal(Modal):
@@ -1027,7 +1163,9 @@ class NearestEventModal(Modal):
 
     async def callback(self, interaction: ModalInteraction):
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
 
@@ -1059,7 +1197,9 @@ class GuildSetModerationView(View):
         self, selectMenu: Select, interaction: disnake.ApplicationCommandInteraction
     ):
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
 
         channels_id = []
@@ -1074,16 +1214,22 @@ class GuildSetModerationView(View):
     async def to_back_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
         await stud_interaction(interaction)
         await GuildSettings.create_home_view(self.parent)
 
     @button(label="Настроить")
-    async def open_farewell_set_callback(self, btn: Button, interaction: disnake.Interaction):
+    async def open_farewell_set_callback(
+        self, btn: Button, interaction: disnake.Interaction
+    ):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
         await interaction.response.send_modal(ModerationModal(self.parent))
 
@@ -1091,23 +1237,31 @@ class GuildSetModerationView(View):
     async def enable_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
 
         await toggle_set(self, interaction, switch_to=True)
 
-        logger.debug(f"Set MODERATION for guild {interaction.guild.name} was switched to True")
+        logger.debug(
+            f"Set MODERATION for guild {interaction.guild.name} was switched to True"
+        )
 
     @button(label="Выкл", style=disnake.ButtonStyle.danger)
     async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
 
         await toggle_set(self, interaction, switch_to=False)
 
-        logger.debug(f"Set MODERATION for guild {interaction.guild.name} was switched to False")
+        logger.debug(
+            f"Set MODERATION for guild {interaction.guild.name} was switched to False"
+        )
 
 
 class ModerationModal(Modal):
@@ -1129,7 +1283,9 @@ class ModerationModal(Modal):
 
     async def callback(self, interaction: ModalInteraction):
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
 
@@ -1149,7 +1305,9 @@ class GuildSetReactionsThreadsView:
         self.toggle = "ADDING_REACTIONS_THREADS"
         self.view_manager = View()
 
-        self.home_screen_btn = Button(label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger)
+        self.home_screen_btn = Button(
+            label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger
+        )
 
         self.add_option_btn = Button(label="+", style=disnake.ButtonStyle.green)
 
@@ -1169,16 +1327,20 @@ class GuildSetReactionsThreadsView:
         self.home_screen_btn.callback = self.home_screen_callback
         self.add_option_btn.callback = self.add_option_callback
 
-    async def home_screen_callback(self, interaction: disnake.Interaction):
+    async def home_screen_callback(self, interaction: disnake.MessageInteraction):
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
         await stud_interaction(interaction)
         await GuildSettings.create_home_view(self.parent)
 
-    async def add_option_callback(self, interaction: disnake.Interaction):
+    async def add_option_callback(self, interaction: disnake.MessageInteraction):
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
         await stud_interaction(interaction)
         await self.parent.interaction.edit_original_response(
@@ -1192,9 +1354,11 @@ class GuildSetReactionsThreadsView:
             view=self.view_manager,
         )
 
-    async def option_callback(self, interaction: disnake.Interaction):
+    async def option_callback(self, interaction: disnake.MessageInteraction):
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
         option = interaction.component.custom_id
         channel = interaction.component.label
@@ -1225,7 +1389,9 @@ class OptionThreadView(View):
         self, selectMenu: Select, interaction: disnake.ApplicationCommandInteraction
     ):
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
         if self.option is None:
             self.w_settings[selectMenu.values[0].id] = {"REACTIONS": [], "THREAD": False}
@@ -1239,16 +1405,22 @@ class OptionThreadView(View):
     async def to_back_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
         await stud_interaction(interaction)
         await GuildSettings.create_auto_reactions_threads_view(self.parent)
 
     @button(label="Настроить")
-    async def open_reaction_set_callback(self, btn: Button, interaction: disnake.Interaction):
+    async def open_reaction_set_callback(
+        self, btn: Button, interaction: disnake.Interaction
+    ):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
 
         if self.option is None:
@@ -1256,13 +1428,17 @@ class OptionThreadView(View):
                 "Сначала выбери канал", delete_after=1, ephemeral=True
             )
         else:
-            await interaction.response.send_modal(OptionThreadModal(self.parent, self.option))
+            await interaction.response.send_modal(
+                OptionThreadModal(self.parent, self.option)
+            )
 
     @button(label="Вкл", style=disnake.ButtonStyle.green)
     async def enable_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
 
         if self.option is None:
@@ -1281,7 +1457,9 @@ class OptionThreadView(View):
     async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
 
         if self.option is None:
@@ -1297,10 +1475,14 @@ class OptionThreadView(View):
             )
 
     @button(label="Удалить", style=disnake.ButtonStyle.danger)
-    async def open_farewell_set_callback(self, btn: Button, interaction: disnake.Interaction):
+    async def open_farewell_set_callback(
+        self, btn: Button, interaction: disnake.Interaction
+    ):
         do_nothing(btn)
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
 
         if self.option is not None:
@@ -1328,7 +1510,9 @@ class OptionThreadModal(Modal):
 
     async def callback(self, interaction: ModalInteraction):
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
 
@@ -1679,7 +1863,14 @@ async def create_all_sets_embed(data, interaction):
     channels_name = [channels_name] if isinstance(channels_name, str) else channels_name
     channels_id = [*data["ADDING_REACTIONS_THREADS_SETTINGS"].keys()]
     for i in range(len(channels_id)):
-        ADDING_REACTIONS_THREADS["value"] = ADDING_REACTIONS_THREADS.get("value", "") + channels_name[i] + ": " + "включено" if data["ADDING_REACTIONS_THREADS_SETTINGS"][channels_id[i]]["THREAD"] else "выключено"
+        ADDING_REACTIONS_THREADS["value"] = (
+            ADDING_REACTIONS_THREADS.get("value", "")
+            + channels_name[i]
+            + ": "
+            + "включено"
+            if data["ADDING_REACTIONS_THREADS_SETTINGS"][channels_id[i]]["THREAD"]
+            else "выключено"
+        )
 
     embed["fields"].append(ADDING_REACTIONS_THREADS)
 
@@ -1694,10 +1885,16 @@ class GuildsManage(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
-    @commands.slash_command(name="настройка_бота", description="Поменять настройки сервера")
-    async def set_guild_settings(self, interaction: disnake.ApplicationCommandInteraction):
+    @commands.slash_command(
+        name="настройка_бота", description="Поменять настройки сервера"
+    )
+    async def set_guild_settings(
+        self, interaction: disnake.ApplicationCommandInteraction
+    ):
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             return
 
         db = GuildsDBase()
@@ -1716,7 +1913,9 @@ class GuildsManage(commands.Cog):
     @commands.slash_command(name="текущие_настройки")
     async def current_settings(self, interaction: disnake.ApplicationCommandInteraction):
         if not await is_admin(interaction.author):
-            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            await interaction.response.send_message(
+                "У тебя не хватает прав😛", ephemeral=True
+            )
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
         gdb: GuildsDBase = GuildsDBase()
@@ -1725,7 +1924,9 @@ class GuildsManage(commands.Cog):
         if guild:
             await interaction.response.send_message(
                 embed=disnake.Embed.from_dict(
-                    await create_all_sets_embed(enc.code_from_json(guild.guild_sets), interaction)
+                    await create_all_sets_embed(
+                        enc.code_from_json(guild.guild_sets), interaction
+                    )
                 ),
                 ephemeral=True,
             )
@@ -1752,7 +1953,9 @@ class GuildsManage(commands.Cog):
 
     @commands.slash_command(name="update_default_sets")
     @commands.is_owner()
-    async def update_default_sets(self, interaction: disnake.ApplicationCommandInteraction):
+    async def update_default_sets(
+        self, interaction: disnake.ApplicationCommandInteraction
+    ):
         gdb = GuildsDBase()
         enc = JsonEncoder()
         res = await gdb.update_guild(

@@ -309,7 +309,7 @@ class BlackJack(commands.Cog):
                                             "description"
                                         ] += f"\n\n**Ты выиграл! И ничего не получил 🙂**"
                                     embed_dict["image"] = {
-                                        "url": "https://tenor.com/bRWxj.gif"
+                                        "url": "https://tenor.com/bNigm.gif"
                                     }
 
                                     await interaction.message.edit(

@@ -138,7 +138,7 @@ async def order_command_check(
             )
 
         else:
-            await counter_functions.count_orders_counter()
+            await counter_functions.count_orders_counter(message.guild.id)
 
             barmen_role = f"<@&{settings['BARMEN_ROLE']}>"
             embed = disnake.Embed(
