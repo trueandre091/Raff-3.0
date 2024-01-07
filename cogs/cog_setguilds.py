@@ -24,12 +24,15 @@ async def get_channel_by_id(
         return await interaction.guild.fetch_channel(data)
     elif isinstance(data, list):
         channels = []
-        for id in data:
-            if id is not None:
-                channel: disnake.TextChannel = await interaction.guild.fetch_channel(id)
-                channels.append(channel.name)
-            else:
-                return "не задан"
+        if len(data) != 0:
+            for id in data:
+                if id is not None:
+                    channel: disnake.TextChannel = await interaction.guild.fetch_channel(id)
+                    channels.append(channel.name)
+                else:
+                    return "не задан"
+        else:
+            return "не задан"
 
         return ", ".join(channels)
     else:
@@ -62,16 +65,25 @@ def do_nothing(btn: Button):
     return btn
 
 
-async def update_sets(self, interaction):
+async def update_sets(self, interaction, switch_to=None):
     self.settings[self.route] = self.w_settings
 
     res = await self.gdb.update_guild(
         {"guild_id": self.parent.interaction.guild.id, "guild_sets": self.settings}
     )
     if res:
-        await interaction.response.send_message(
-            "Настройки обновлены", delete_after=1, ephemeral=True
-        )
+        if switch_to is None:
+            await interaction.response.send_message(
+                "Настройки обновлены", delete_after=1, ephemeral=True
+            )
+        elif not switch_to:
+            await interaction.response.send_message(
+                "Функция выключена", delete_after=1, ephemeral=True
+            )
+        elif switch_to:
+            await interaction.response.send_message(
+                "Функция включена", delete_after=1, ephemeral=True
+            )
     else:
         await interaction.response.send_message(
             "Не удалось обновить настройки", delete_after=1, ephemeral=True
@@ -176,7 +188,10 @@ class GuildSettings:
         )
 
     async def create_auto_reactions_threads_view(self):
-        await GuildSetReactionsThreadsView(self).send_view()
+        options = await get_channel_by_id(
+            self.interaction, [*self.settings["ADDING_REACTIONS_THREADS_SETTINGS"].keys()]
+        )
+        await GuildSetReactionsThreadsView(self, options).send_view()
 
 
 class GuildSetsHomeScreenView(View):
@@ -1038,7 +1053,7 @@ class GuildSetModerationView(View):
         channel_types=[disnake.ChannelType.text, disnake.ChannelType.news],
         placeholder="В каких каналах будем следить за участниками?",
         min_values=0,
-        max_values=25
+        max_values=25,
     )
     async def select_callback(
         self, selectMenu: Select, interaction: disnake.ApplicationCommandInteraction
@@ -1118,16 +1133,20 @@ class ModerationModal(Modal):
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
 
-        self.w_settings["GIF"]["MESSAGES_FOR_GIF"] = int(interaction.text_values["messages_for_gif"])
+        self.w_settings["GIF"]["MESSAGES_FOR_GIF"] = int(
+            interaction.text_values["messages_for_gif"]
+        )
 
         await update_sets(self, interaction)
 
 
 class GuildSetReactionsThreadsView:
-    def __init__(self, parent):
+    def __init__(self, parent, options):
         self.parent = parent
+        self.options = options
         self.settings = parent.settings
-        self.count_options = len(self.settings["ADDING_REACTIONS_THREADS_SETTINGS"])
+        self.channels_id = [*self.settings["ADDING_REACTIONS_THREADS_SETTINGS"].keys()]
+        self.toggle = "ADDING_REACTIONS_THREADS"
         self.view_manager = View()
 
         self.home_screen_btn = Button(label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger)
@@ -1137,10 +1156,15 @@ class GuildSetReactionsThreadsView:
         self.view_manager.add_item(self.home_screen_btn)
         self.view_manager.add_item(self.add_option_btn)
 
-        for i in range(1, self.count_options + 1):
-            btn = Button(label=str(i))
-            btn.callback = self.option_callback
+        if self.options != "не задан":
+            self.options = self.options.split(", ")
+        else:
+            self.options = []
+
+        for i in range(len(self.channels_id)):
+            btn = Button(label=self.options[i], custom_id=self.channels_id[i])
             self.view_manager.add_item(btn)
+            btn.callback = self.option_callback
 
         self.home_screen_btn.callback = self.home_screen_callback
         self.add_option_btn.callback = self.add_option_callback
@@ -1168,10 +1192,17 @@ class GuildSetReactionsThreadsView:
             view=self.view_manager,
         )
 
-    async def option_callback(self, interaction):
+    async def option_callback(self, interaction: disnake.Interaction):
         if not await is_admin(interaction.author):
             await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
             return
+        option = interaction.component.custom_id
+        channel = interaction.component.label
+        await stud_interaction(interaction)
+        await self.parent.interaction.edit_original_response(
+            embed=disnake.Embed.from_dict(create_option_embed(channel)),
+            view=OptionThreadView(self.parent, option=option),
+        )
 
 
 class OptionThreadView(View):
@@ -1179,11 +1210,16 @@ class OptionThreadView(View):
         super().__init__()
         self.parent = parent
         self.option = option
+        self.settings = parent.settings
+        self.w_settings: dict = parent.settings["ADDING_REACTIONS_THREADS_SETTINGS"]
+        self.route: str = "ADDING_REACTIONS_THREADS_SETTINGS"
+        self.gdb = self.parent.gdb
 
     @channel_select(
         channel_types=[disnake.ChannelType.text, disnake.ChannelType.news],
-        placeholder="В каких каналах будем следить за участниками?",
+        placeholder="В каких каналах будем добавлять реакции и ветки?",
         min_values=0,
+        max_values=1,
     )
     async def select_callback(
         self, selectMenu: Select, interaction: disnake.ApplicationCommandInteraction
@@ -1191,6 +1227,13 @@ class OptionThreadView(View):
         if not await is_admin(interaction.author):
             await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
             return
+        if self.option is None:
+            self.w_settings[selectMenu.values[0].id] = {"REACTIONS": [], "THREAD": False}
+            self.option = selectMenu.values[0].id
+        else:
+            self.w_settings[selectMenu.values[0].id] = self.w_settings.pop(self.option)
+
+        await update_sets(self, interaction)
 
     @button(label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger)
     async def to_back_callback(self, btn: Button, interaction: disnake.Interaction):
@@ -1202,25 +1245,101 @@ class OptionThreadView(View):
         await GuildSettings.create_auto_reactions_threads_view(self.parent)
 
     @button(label="Настроить")
+    async def open_reaction_set_callback(self, btn: Button, interaction: disnake.Interaction):
+        do_nothing(btn)
+        if not await is_admin(interaction.author):
+            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            return
+
+        if self.option is None:
+            await interaction.response.send_message(
+                "Сначала выбери канал", delete_after=1, ephemeral=True
+            )
+        else:
+            await interaction.response.send_modal(OptionThreadModal(self.parent, self.option))
+
+    @button(label="Вкл", style=disnake.ButtonStyle.green)
+    async def enable_callback(self, btn: Button, interaction: disnake.Interaction):
+        do_nothing(btn)
+        if not await is_admin(interaction.author):
+            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            return
+
+        if self.option is None:
+            await interaction.response.send_message(
+                "Сначала выбери канал", delete_after=1, ephemeral=True
+            )
+        else:
+            self.w_settings[self.option]["THREAD"] = True
+            await update_sets(self, interaction, switch_to=True)
+
+            logger.debug(
+                f"Set THREAD for channel {self.option} for guild {interaction.guild.name} was switched to True"
+            )
+
+    @button(label="Выкл", style=disnake.ButtonStyle.danger)
+    async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
+        do_nothing(btn)
+        if not await is_admin(interaction.author):
+            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            return
+
+        if self.option is None:
+            await interaction.response.send_message(
+                "Сначала выбери канал", delete_after=1, ephemeral=True
+            )
+        else:
+            self.w_settings[self.option]["THREAD"] = False
+            await update_sets(self, interaction, switch_to=False)
+
+            logger.debug(
+                f"Set THREAD for channel {self.option} for guild {interaction.guild.name} was switched to False"
+            )
+
+    @button(label="Удалить")
     async def open_farewell_set_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
             await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
             return
-        await interaction.response.send_modal(OptionThreadModal(self.option))
+
+        if self.option is not None:
+            del self.w_settings[self.option]
+            await update_sets(self, interaction)
+        await GuildSettings.create_auto_reactions_threads_view(self.parent)
 
 
 class OptionThreadModal(Modal):
-    def __init__(self, option):
+    def __init__(self, parent, option):
+        self.parent = parent
         self.option = option
+        self.settings = parent.settings
+        self.w_settings: dict = parent.settings["ADDING_REACTIONS_THREADS_SETTINGS"]
+        self.route: str = "ADDING_REACTIONS_THREADS_SETTINGS"
+        self.gdb = self.parent.gdb
         components = [
             TextInput(
                 label="Код реакции",
-                value="" if self.option is None else self.option["REACTIONS"],
+                value=", ".join(self.w_settings[self.option]["REACTIONS"]),
                 custom_id="reacts",
             )
         ]
         super().__init__(title="Настройка реакций", components=components)
+
+    async def callback(self, interaction: ModalInteraction):
+        if not await is_admin(interaction.author):
+            await interaction.response.send_message("У тебя не хватает прав😛", ephemeral=True)
+            logger.debug(f"User {interaction.author.name} is not an admin")
+            return
+
+        reacts = interaction.text_values["reacts"]
+
+        if "," in reacts:
+            self.w_settings[self.option]["REACTIONS"] = reacts.split(", ")
+        else:
+            self.w_settings[self.option]["REACTIONS"] = reacts
+
+        await update_sets(self, interaction)
 
 
 def create_hello_embed():
@@ -1464,7 +1583,7 @@ def create_reactions_threads_embed():
     return embed
 
 
-def create_option_embed():
+def create_option_embed(option_channel=None):
     embed = {
         "title": "чё происходит",
         "description": "Настрой вот это вот",
@@ -1482,6 +1601,10 @@ def create_option_embed():
             },
         ],
     }
+
+    if option_channel:
+        channel = {"name": "Канал", "value": option_channel}
+        embed["fields"].append(channel)
 
     return embed
 
@@ -1548,6 +1671,17 @@ async def create_all_sets_embed(data, interaction):
             },
         ],
     }
+
+    ADDING_REACTIONS_THREADS = {"name": "Автореакции и автоветки"}
+    channels_name = await get_channel_by_id(
+        interaction, [*data["ADDING_REACTIONS_THREADS_SETTINGS"].keys()]
+    )
+    channels_name = [channels_name] if isinstance(channels_name, str) else channels_name
+    channels_id = [*data["ADDING_REACTIONS_THREADS_SETTINGS"].keys()]
+    for i in range(len(channels_id)):
+        ADDING_REACTIONS_THREADS["value"] = ADDING_REACTIONS_THREADS.get("value", "") + channels_name[i] + ": " + "включено" if data["ADDING_REACTIONS_THREADS_SETTINGS"][channels_id[i]]["THREAD"] else "выключено"
+
+    embed["fields"].append(ADDING_REACTIONS_THREADS)
 
     return embed
 
