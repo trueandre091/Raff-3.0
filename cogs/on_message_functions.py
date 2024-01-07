@@ -114,14 +114,9 @@ async def boosts_check(message: disnake.Message, settings: dict) -> None:
                 skip_first_flag = False
 
             if flag:
-                await counter_functions.count_users_boosts(message.interaction.user.id)
-
-        if message.author.id == settings["BOOST_BOTS"]["DSMonitoring"]:
-            if (
-                "Вы успешно лайкнули сервер."
-                in message.embeds[-1].to_dict()["description"]
-            ):
-                await counter_functions.count_users_boosts(message.interaction.user.id)
+                await counter_functions.count_users_boosts(
+                    message.interaction.user.id, message.guild.id
+                )
 
 
 async def order_command_check(

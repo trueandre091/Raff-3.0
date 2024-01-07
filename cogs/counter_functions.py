@@ -1,20 +1,17 @@
 from os import getcwd
 import disnake
 from json import load, dump
-from cogs.guilds_functions import DB, RDB, GDB
+from cogs.guilds_functions import DB, GDB, guild_sets_check
 
 FOLDER = getcwd()
 
 
-async def count_orders_counter() -> None:
+async def count_orders_counter(guild_id: int) -> None:
     """Counting the number of orders"""
-    with open(f"{FOLDER}/data/counters.json", "r", encoding="utf-8") as f:
-        data = load(f)
+    settings = await guild_sets_check(guild_id)
+    settings["COUNTERS"]["ORDERS"] += 1
 
-    data["ORDERS"] += 1
-
-    with open(f"{FOLDER}/data/counters.json", "w", encoding="utf-8") as f:
-        dump(data, f)
+    await GDB.update_guild({"guild_id": guild_id, "guild_sets": settings})
 
 
 async def count_failed_gif_counter() -> None:
@@ -28,25 +25,19 @@ async def count_failed_gif_counter() -> None:
         dump(data, f)
 
 
-async def count_number_of_events_counter() -> None:
+async def count_number_of_events_counter(guild_id: int) -> None:
     """Counting the number of events"""
-    with open(f"{FOLDER}/data/counters.json", "r", encoding="utf-8") as f:
-        data = load(f)
+    settings = await guild_sets_check(guild_id)
+    settings["COUNTERS"]["NUMBER_OF_EVENTS"] += 1
 
-    data["NUMBER_OF_EVENTS"] += 1
-
-    with open(f"{FOLDER}/data/counters.json", "w", encoding="utf-8") as f:
-        dump(data, f)
+    await GDB.update_guild({"guild_id": guild_id, "guild_sets": settings})
 
 
-async def count_lose_scores(scores: int):
-    with open(f"{FOLDER}/data/counters.json", "r", encoding="utf-8") as f:
-        data = load(f)
+async def count_lose_scores(scores: int, guild_id: int):
+    settings = await guild_sets_check(guild_id)
+    settings["COUNTERS"]["LOSE_SCORES"] += scores
 
-    data["LOSE_SCORES"] += scores
-
-    with open(f"{FOLDER}/data/counters.json", "w", encoding="utf-8") as f:
-        dump(data, f)
+    await GDB.update_guild({"guild_id": guild_id, "guild_sets": settings})
 
 
 async def count_every_message(message: disnake.Message) -> None:
@@ -68,37 +59,28 @@ async def count_every_message(message: disnake.Message) -> None:
             )
 
 
-async def count_users_boosts(author_id: int) -> None:
+async def count_users_boosts(author_id: int, guild_id: int) -> None:
     """Counting users' boost on the monitoring sites"""
-    with open(f"{FOLDER}/data/counters.json", "r", encoding="utf-8") as f:
-        data = load(f)
-
-    if str(author_id) not in data["BOOSTS"]:
-        data["BOOSTS"][str(author_id)] = 1
+    settings = await guild_sets_check(guild_id)
+    if str(author_id) in settings["COUNTERS"]["BOOSTS"]:
+        settings["COUNTERS"]["BOOSTS"][str(author_id)] += 1
     else:
-        data["BOOSTS"][str(author_id)] += 1
+        settings["COUNTERS"]["BOOSTS"][str(author_id)] = 1
 
-    with open(f"{FOLDER}/data/counters.json", "w", encoding="utf-8") as f:
-        dump(data, f)
+    await GDB.update_guild({"guild_id": guild_id, "guild_sets": settings})
 
 
-async def count_added_scores(scores: int) -> None:
+async def count_added_scores(scores: int, guild_id: int) -> None:
     """Counting added scores"""
-    with open(f"{FOLDER}/data/counters.json", "r", encoding="utf-8") as f:
-        data = load(f)
+    settings = await guild_sets_check(guild_id)
+    settings["COUNTERS"]["ADDED_SCORES"] += scores
 
-    data["ADDED_SCORES"] += scores
-
-    with open(f"{FOLDER}/data/counters.json", "w", encoding="utf-8") as f:
-        dump(data, f)
+    await GDB.update_guild({"guild_id": guild_id, "guild_sets": settings})
 
 
-async def count_removed_scores(scores: int) -> None:
+async def count_removed_scores(scores: int, guild_id: int) -> None:
     """Counting removed scores"""
-    with open(f"{FOLDER}/data/counters.json", "r", encoding="utf-8") as f:
-        data = load(f)
+    settings = await guild_sets_check(guild_id)
+    settings["COUNTERS"]["REMOVED_SCORES"] += scores
 
-    data["REMOVED_SCORES"] += scores
-
-    with open(f"{FOLDER}/data/counters.json", "w", encoding="utf-8") as f:
-        dump(data, f)
+    await GDB.update_guild({"guild_id": guild_id, "guild_sets": settings})

@@ -1,6 +1,6 @@
 from os import getcwd
 import disnake
-from disnake.ext import commands, tasks
+from disnake.ext import commands
 from json import load, dump
 
 FOLDER = getcwd()
@@ -15,24 +15,6 @@ async def load_database() -> dict:
 async def dump_database(data: dict) -> None:
     with open(f"{FOLDER}/data/counters.json", "w", encoding="utf-8") as f:
         dump(data, f)
-
-
-class CalculateScoresTotal(commands.Cog):
-    """Calculating the total amount of added and removed scores for all the time"""
-
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
-        self.calculate_scores_flow.start()
-
-    @tasks.loop(hours=24)
-    async def calculate_scores_flow(self):
-        data = await load_database()
-        data["TOTAL_SCORES"] = data["ADDED_SCORES"] + data["REMOVED_SCORES"]
-        await dump_database(data)
-
-    @calculate_scores_flow.before_loop
-    async def before(self):
-        await self.bot.wait_until_ready()
 
 
 class CheckCommands(commands.Cog):
@@ -73,5 +55,4 @@ class CheckCommands(commands.Cog):
 
 
 def setup(bot: commands.Bot):
-    bot.add_cog(CalculateScoresTotal(bot))
     bot.add_cog(CheckCommands(bot))
