@@ -16,7 +16,7 @@ from DB.JSONEnc import JsonEncoder
 class DataBase:
     """Class for creating connection to database and managing it"""
 
-    def __init__(self, echo_mode: bool = False):
+    def init(self, echo_mode: bool = False):
         try:
             self.echo = echo_mode
 
@@ -965,7 +965,7 @@ class RelationshipsDBase(DataBase):
                         for user in received_users:
                             if user in guild.users:
                                 guild.users.remove(user)
-                                logger.debug(guild, user)
+                                logger.debug(str(guild) + " " + str(user))
 
                     session.commit()
 

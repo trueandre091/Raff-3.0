@@ -110,7 +110,6 @@ class AutoRelationshipsAdding(commands.Cog):
                             "guilds": [{"guild_id": guild.id}],
                         }
                     )
-                    continue
 
     @auto_relations_adding.before_loop
     async def before(self):
