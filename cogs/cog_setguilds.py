@@ -1296,7 +1296,7 @@ class OptionThreadView(View):
                 f"Set THREAD for channel {self.option} for guild {interaction.guild.name} was switched to False"
             )
 
-    @button(label="Удалить")
+    @button(label="Удалить", style=disnake.ButtonStyle.danger)
     async def open_farewell_set_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction.author):
