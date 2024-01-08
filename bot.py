@@ -1,7 +1,7 @@
 import config as cfg
 from cogs.counter_functions import *
 from cogs.on_message_functions import *
-from cogs.guilds_functions import guild_sets_check, GDB, dicts, dicts1
+from cogs.cog_guilds_functions import guild_sets_check, GDB, dicts, dicts1
 from cogs.cog_experience import count_experience
 from DB.DataBase import GuildsDBase
 from loguru import logger
@@ -33,8 +33,7 @@ bot.load_extension("cogs.cog_scores")
 bot.load_extension("cogs.cog_special")
 bot.load_extension("cogs.cog_experience")
 bot.load_extension("cogs.cog_setguilds")
-
-bot.load_extension("cogs.guilds_functions")
+bot.load_extension("cogs.cog_guilds_functions")
 
 
 @bot.event

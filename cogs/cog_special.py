@@ -5,7 +5,7 @@ from disnake.ext import commands
 import time
 
 from DB.DataBase import UserDBase
-from cogs.guilds_functions import guild_sets_check
+from cogs.cog_guilds_functions import guild_sets_check
 
 DB = UserDBase()
 

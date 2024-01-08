@@ -3,7 +3,7 @@ from disnake.ext import commands
 from random import randint
 import math
 
-from cogs.guilds_functions import guild_sets_check, DB
+from cogs.cog_guilds_functions import guild_sets_check, DB
 from DB.models import Users
 
 

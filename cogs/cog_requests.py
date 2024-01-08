@@ -2,7 +2,7 @@ import disnake
 from disnake.ext import commands, tasks
 from disnake.ui import Button
 
-from cogs.guilds_functions import guild_sets_check, find_guilds_by_param, encoder, GDB
+from cogs.cog_guilds_functions import guild_sets_check, find_guilds_by_param, encoder, GDB
 
 
 class Request:

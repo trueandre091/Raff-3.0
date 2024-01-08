@@ -8,7 +8,7 @@ from datetime import date
 
 from cogs import counter_functions
 from cogs.cog_experience import convert_ex_to_lvl
-from cogs.guilds_functions import DB, GDB, RDB, guild_sets_check
+from cogs.cog_guilds_functions import DB, GDB, RDB, guild_sets_check
 
 FOLDER = getcwd()
 
