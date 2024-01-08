@@ -16,7 +16,7 @@ from DB.JSONEnc import JsonEncoder
 class DataBase:
     """Class for creating connection to database and managing it"""
 
-    def init(self, echo_mode: bool = False):
+    def __init__(self, echo_mode: bool = False):
         try:
             self.echo = echo_mode
 
