@@ -1,8 +1,8 @@
-from json import loads
 from os import getcwd
 import disnake
 from disnake.ext import commands
-from cogs.guilds_functions import guild_sets_check, GDB
+from cogs.cog_guilds_functions import guild_sets_check, GDB
+from cogs.cog_slash_commands import Commands
 
 FOLDER = getcwd()
 
@@ -55,7 +55,6 @@ class CheckCommands(commands.Cog):
 
     @commands.slash_command(
         description="Изменить статистику",
-        default_member_permissions=disnake.Permissions(administrator=True),
     )
     async def set_counter(
         self,

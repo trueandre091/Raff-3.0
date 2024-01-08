@@ -3,7 +3,7 @@ import disnake
 from disnake.ext import commands
 from random import randint, shuffle
 
-from cogs.guilds_functions import guild_sets_check, DB
+from cogs.cog_guilds_functions import guild_sets_check, DB
 from cogs.counter_functions import count_lose_scores
 
 
@@ -94,8 +94,10 @@ async def bj_designed_embed_if_lose(embed_dict: dict, interaction, bet):
     if bet:
         embed_dict["description"] += f"\n\n**Ты проиграл** и потерял {bet} оч."
     else:
-        embed_dict["description"] += "**Ты проиграл(**"
-    embed_dict["image"] = {"url": "https://tenor.com/vDKzyOi26zj.gif"}
+        embed_dict["description"] += "\n\n**Ты проиграл(**"
+    embed_dict["image"] = {
+        "url": "https://images-ext-1.discordapp.net/external/XbERZMkTlGu1UN4TQk4DU1xTaGvd3p6cXGqsbLiLgoQ/https/media.tenor.com/AGHJaKvqt08AAAPo/dad-sadcat.mp4"
+    }
     await interaction.message.edit(embed=disnake.Embed.from_dict(embed_dict))
 
 
@@ -309,7 +311,7 @@ class BlackJack(commands.Cog):
                                             "description"
                                         ] += f"\n\n**Ты выиграл! И ничего не получил 🙂**"
                                     embed_dict["image"] = {
-                                        "url": "https://tenor.com/bNigm.gif"
+                                        "url": "https://images-ext-2.discordapp.net/external/7IutxW7OOyB6Thi1CqhlOhYtn5rUVcfPbyWB4ixBUK0/https/media.tenor.com/TVvqPz9NMycAAAPo/good-morning.mp4"
                                     }
 
                                     await interaction.message.edit(
@@ -454,11 +456,11 @@ class Roulette(commands.Cog):
                     ] = "https://im.wampi.ru/2023/11/02/Bez_nazvania1_20211210115049.png"
 
                 if flag == 1:
-                    await count_lose_scores(ставка)
+                    await count_lose_scores(ставка, interaction.guild.id)
 
                     embed_dict["title"] += "Вам не повезло 🤕"
                 elif flag == 0:
-                    await count_lose_scores(ставка)
+                    await count_lose_scores(ставка, interaction.guild.id)
 
                     embed_dict["title"] += "Вам КАТЕГОРИЧЕСКИ НЕ повезло 💔"
                 elif flag == 2:

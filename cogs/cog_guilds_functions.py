@@ -94,6 +94,9 @@ class AutoRelationshipsAdding(commands.Cog):
 
         for guild in self.bot.guilds:
             rdb_guild = await GDB.get_guild_with_users({"guild_id": guild.id})
+            if rdb_guild is None:
+                continue
+
             for user in users:
                 if guild.get_member(user.ds_id):
                     await RDB.add_relationship(

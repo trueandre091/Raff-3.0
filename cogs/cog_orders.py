@@ -2,7 +2,7 @@ from datetime import datetime
 import disnake
 from disnake.ext import commands
 
-from cogs.guilds_functions import guild_sets_check, GDB, encoder
+from cogs.cog_guilds_functions import guild_sets_check, GDB, encoder
 from cogs import counter_functions
 
 

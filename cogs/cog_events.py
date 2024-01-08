@@ -3,7 +3,7 @@ from os import getcwd
 import disnake
 from disnake.ext import commands, tasks
 
-from cogs.guilds_functions import guild_sets_check
+from cogs.cog_guilds_functions import guild_sets_check
 
 FOLDER = getcwd()
 

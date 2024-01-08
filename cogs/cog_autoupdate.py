@@ -3,7 +3,7 @@ import disnake
 from disnake.ext import commands, tasks
 from datetime import datetime, timezone, timedelta
 
-from cogs.guilds_functions import GDB, DB, find_guilds_by_param, guild_sets_check
+from cogs.cog_guilds_functions import GDB, DB, find_guilds_by_param, guild_sets_check
 from cogs.cog_scores import top_create_embed
 
 FOLDER = getcwd()
