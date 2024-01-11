@@ -275,7 +275,7 @@ dicts1 = {
         "AUTOUPDATE_MESSAGES": {"MESSAGES": True, "SCORES": True},
         "NEAREST_EVENTS": True,
         "EXPERIENCE": True,
-        "GAMES": {"ALL_GAMES": True, "BLACKJACK": True, "ROULETTE": True},
+        "GAMES": {"BLACKJACK": True, "ROULETTE": True},
         "ORDERS": True,
         "REQUESTS": False,
         "SCORES": True,
