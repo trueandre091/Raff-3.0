@@ -3,7 +3,7 @@ from os import getcwd
 import disnake
 from disnake.ext import commands, tasks
 
-from cogs.cog_guilds_functions import guild_sets_check
+from cogs.cog_guilds_functions import guild_sets_check, DB
 
 FOLDER = getcwd()
 
@@ -88,7 +88,9 @@ class AutoSendingMessage(commands.Cog):
         )
 
     @commands.Cog.listener()
-    async def on_guild_scheduled_event_update(self, before, after):
+    async def on_guild_scheduled_event_update(
+        self, before: disnake.GuildScheduledEvent, after: disnake.GuildScheduledEvent
+    ):
         settings = await guild_sets_check(
             after.guild.id, "GENERAL_SETTINGS", "NEAREST_EVENTS"
         )
@@ -163,6 +165,256 @@ class SettingEvents(commands.Cog):
         await self.bot.wait_until_ready()
 
 
+async def create_message(member: disnake.Member, timedelta, channel: disnake.TextChannel):
+    embed_dict = {
+        "title": "Выдача очков участникам последнего ивента",
+        "fields": [{"name": f"{timedelta}", "value": f"{member.mention}"}],
+        "footer": {"text": member.guild.name},
+        "color": 0x2B2D31,
+    }
+    try:
+        embed_dict["footer"]["icon_url"] = member.guild.icon.url
+    except AttributeError:
+        embed_dict["footer"][
+            "icon_url"
+        ] = "https://im.wampi.ru/2023/11/02/Bez_nazvania1_20211210115049.png"
+
+    flag = True
+    async for msg in channel.history(limit=1):
+        try:
+            if (
+                "Выдача очков участникам последнего ивента"
+                in msg.embeds[-1].to_dict()["title"]
+            ):
+                flag = False
+                embed = msg.embeds[-1].to_dict()
+                embed["fields"].append(
+                    {"name": f"{timedelta}", "value": f"{member.mention}"}
+                )
+                await msg.edit(
+                    embed=disnake.Embed.from_dict(embed),
+                    components=[
+                        disnake.ui.Button(
+                            label="Выдать очки",
+                            style=disnake.ButtonStyle.grey,
+                            custom_id="accept_member",
+                        ),
+                        disnake.ui.Button(
+                            label="Отклонить",
+                            style=disnake.ButtonStyle.red,
+                            custom_id="deny",
+                        ),
+                    ],
+                )
+        except:
+            pass
+
+    if flag:
+        await channel.send(
+            embed=disnake.Embed.from_dict(embed_dict),
+            components=[
+                disnake.ui.Button(
+                    label="Выдать очки",
+                    style=disnake.ButtonStyle.grey,
+                    custom_id="accept_member",
+                ),
+                disnake.ui.Button(
+                    label="Отклонить",
+                    style=disnake.ButtonStyle.red,
+                    custom_id="deny",
+                ),
+            ],
+        )
+
+
+class UserOnEvent:
+    list_of_members = []
+
+    def __init__(
+        self,
+        guild: disnake.Guild,
+        ds_id: int,
+        event: id = None,
+        settings: list = None,
+    ):
+        self.guild = guild
+        self.ds_id = ds_id
+        self.event = event
+        self.minutes = -1
+        self.settings = settings
+        self.check_for_event.start()
+
+    @tasks.loop(minutes=1)
+    async def check_for_event(self):
+        event_check = None
+        for event in self.guild.scheduled_events:
+            if "active" in str(event.status):
+                event_check = event.id
+                break
+
+        if event_check is None:
+            if self.minutes >= 1:
+                member = self.guild.get_member(self.ds_id)
+                logs_channel = self.guild.get_channel(
+                    self.settings["LOGS_CHANNEL"]
+                )  #  1189981495658565632
+
+                await create_message(member, self.minutes, logs_channel)
+
+                UserOnEvent.list_of_members.remove(self)
+                self.check_for_event.stop()
+
+        member = self.guild.get_member(self.ds_id)
+        if member.voice is None:
+            return
+
+        if member.voice.channel.id in self.settings["CHANNELS"] and event_check:
+            self.minutes += 1
+            print(self.ds_id, self.minutes)
+
+
+class AutoScoresAdding(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+
+    @commands.Cog.listener()
+    async def on_voice_state_update(
+        self,
+        member: disnake.Member,
+        before: disnake.VoiceState,
+        after: disnake.VoiceState,
+    ):
+        settings = await guild_sets_check(
+            member.guild.id,
+            "GENERAL_SETTINGS",
+            "AUTO_ADDING_SCORES_FOR_TIME_IN_VOICE_CHANNEL",
+        )
+        if not settings:
+            return
+        settings = settings["COGS_SETTINGS"]["SPECIAL"]["EVENTS"]
+        channels = settings["CHANNELS"]
+
+        if before.channel != after.channel:
+            event_check = 0
+            for event in member.guild.scheduled_events:
+                if "active" in str(event.status):
+                    event_check = event.id
+            if after.channel is None:
+                return
+
+            if after.channel.id in channels:
+                flag = True
+                for user in UserOnEvent.list_of_members:
+                    if user.ds_id == member.id:
+                        flag = False
+
+                if flag:
+                    user_obj = UserOnEvent(
+                        member.guild,
+                        member.id,
+                        event_check if event_check else 0,
+                        settings,
+                    )
+                    UserOnEvent.list_of_members.append(user_obj)
+                    print(user_obj.ds_id, user_obj.event)
+
+        # if before.channel is None and after.channel.id:
+        #     while_event = False
+        #     for event in member.guild.scheduled_events:
+        #         if "active" in str(event.status):
+        #             while_event = True
+        #
+        #     if after.channel.id in settings["CHANNELS"] and while_event:
+        #         t1 = time.time()
+        #         OnSpecialEvents.list_of_members[str(member.id)] = t1
+        #
+        # elif (
+        #     before.channel
+        #     and after.channel is None
+        #     and str(member.id) in OnSpecialEvents.list_of_members
+        # ):
+        #     if before.channel.id in settings["CHANNELS"]:
+        #         t2 = time.time()
+        #         need_time = settings["TIME"]
+        #         delta = t2 - OnSpecialEvents.list_of_members[str(member.id)]
+        #
+        #         if delta >= need_time:
+        #             await create_message(
+        #                 member, delta, member.guild.get_channel(settings["LOGS_CHANNEL"])
+        #             )
+
+    @commands.Cog.listener()
+    async def on_interaction(self, interaction: disnake.MessageInteraction):
+        if interaction.type == disnake.InteractionType.component:
+            if interaction.component.custom_id == "accept_member":
+                settings = await guild_sets_check(
+                    interaction.guild.id,
+                    "GENERAL_SETTINGS",
+                    "AUTO_ADDING_SCORES_FOR_TIME_IN_VOICE_CHANNEL",
+                )
+                if settings is None:
+                    await interaction.response.send_message(
+                        "Данная функция отключена на сервере", ephemeral=True
+                    )
+                    return
+
+                member = interaction.guild.get_member(interaction.author.id)
+                if not member.guild_permissions.administrator:
+                    await interaction.response.send_message(
+                        "Эта команда вам недоступна", ephemeral=True
+                    )
+                    return
+
+                settings = settings["COGS_SETTINGS"]["SPECIAL"]["EVENTS"]
+
+                fields = interaction.message.embeds[-1].to_dict()["fields"]
+                for field in fields:
+                    member_str = field["value"]
+                    member_id = int(member_str.strip("<@>"))
+                    member = interaction.guild.get_member(member_id)
+
+                    default_scores = 1
+                    if settings["ROLES"]:
+                        for roles_set in settings["ROLES"]:
+                            if roles_set["ROLES_ID"] == "everyone":
+                                default_scores = roles_set["SCORES"]
+                                continue
+
+                            roles_need = []
+                            for role_id in roles_set["ROLES_ID"]:
+                                roles_need.append(interaction.guild.get_role(role_id))
+
+                            if any(map(lambda v: v in roles_need, member.roles)):
+                                scores = roles_set["SCORES"]
+                            else:
+                                scores = default_scores
+                            user = await DB.add_user(
+                                {
+                                    "ds_id": member.id,
+                                    "username": member.name,
+                                    "scores": scores,
+                                }
+                            )
+                            if user:
+                                await DB.update_user(
+                                    {
+                                        "ds_id": user.ds_id,
+                                        "username": user.username,
+                                        "scores": user.scores + scores,
+                                    }
+                                )
+
+                await interaction.response.send_message(f"Очки выданы", ephemeral=True)
+                await interaction.message.edit(
+                    components=disnake.ui.Button(
+                        label="Выдано",
+                        style=disnake.ButtonStyle.green,
+                        custom_id="pass",
+                    )
+                )
+
+
 def setup(bot: commands.Bot):
     bot.add_cog(AutoSendingMessage(bot))
     bot.add_cog(SettingEvents(bot))
+    bot.add_cog(AutoScoresAdding(bot))
