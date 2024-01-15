@@ -34,12 +34,9 @@ class AutoUpdateMessagesTop(commands.Cog):
                 top = await GDB.get_top_users_by_messages(guild.guild_id)
                 if top:
                     settings = await guild_sets_check(guild.guild_id)
-                    settings["COGS_SETTINGS"]["COUNTERS"]["MESSAGES_PREVIOUS_BESTS"] = [
+                    settings["COUNTERS"]["MESSAGES_PREVIOUS_BESTS"] = [
                         user.ds_id for user in top[0:3]
                     ]
-                    print(
-                        settings["COGS_SETTINGS"]["COUNTERS"]["MESSAGES_PREVIOUS_BESTS"]
-                    )
 
                     await GDB.update_guild(
                         {"guild_id": guild.guild_id, "guild_sets": settings}
@@ -96,8 +93,14 @@ class AutoUpdateMessagesTop(commands.Cog):
                         continue
                     embed_dict[
                         "description"
-                    ] += f"`{place}.` {member.mention} - {user.messages}\n"
+                    ] += f"`{place}.` {member.mention} - `{user.messages}`\n"
                     place += 1
+
+            if settings["COUNTERS"]["MESSAGES_PREVIOUS_BESTS"]:
+                embed_dict["description"] += "\n**Топ 3 предыдущей недели:**\n"
+                for member_id in settings["COUNTERS"]["MESSAGES_PREVIOUS_BESTS"]:
+                    member = guild.get_member(member_id)
+                    embed_dict["description"] += f"{member.mention} "
 
             flag = True
             async for msg in channel.history(limit=50):

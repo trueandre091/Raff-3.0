@@ -234,13 +234,14 @@ class UserOnEvent:
         self,
         guild: disnake.Guild,
         ds_id: int,
-        event: id = None,
+        channel: id = None,
         settings: list = None,
     ):
         self.guild = guild
         self.ds_id = ds_id
-        self.event = event
+        self.channel = channel
         self.minutes = -1
+        self.minutes_out = -1
         self.settings = settings
         self.check_for_event.start()
 
@@ -250,25 +251,29 @@ class UserOnEvent:
         for event in self.guild.scheduled_events:
             if "active" in str(event.status):
                 event_check = event.id
+                self.channel = event.channel.id
                 break
 
         if event_check is None:
-            if self.minutes >= 1:
+            if self.minutes >= self.settings["TIME"]:
                 member = self.guild.get_member(self.ds_id)
-                logs_channel = self.guild.get_channel(
-                    self.settings["LOGS_CHANNEL"]
-                )  #  1189981495658565632
+                logs_channel = self.guild.get_channel(self.settings["LOGS_CHANNEL"])
 
                 await create_message(member, self.minutes, logs_channel)
 
                 UserOnEvent.list_of_members.remove(self)
                 self.check_for_event.stop()
+            else:
+                self.minutes_out += 1
+                if self.minutes_out >= 60:
+                    UserOnEvent.list_of_members.remove(self)
+                    self.check_for_event.stop()
 
         member = self.guild.get_member(self.ds_id)
         if member.voice is None:
             return
 
-        if member.voice.channel.id in self.settings["CHANNELS"] and event_check:
+        if member.voice.channel.id == self.channel and event_check:
             self.minutes += 1
             print(self.ds_id, self.minutes)
 
@@ -295,10 +300,6 @@ class AutoScoresAdding(commands.Cog):
         channels = settings["CHANNELS"]
 
         if before.channel != after.channel:
-            event_check = 0
-            for event in member.guild.scheduled_events:
-                if "active" in str(event.status):
-                    event_check = event.id
             if after.channel is None:
                 return
 
@@ -312,36 +313,11 @@ class AutoScoresAdding(commands.Cog):
                     user_obj = UserOnEvent(
                         member.guild,
                         member.id,
-                        event_check if event_check else 0,
+                        None,
                         settings,
                     )
                     UserOnEvent.list_of_members.append(user_obj)
-                    print(user_obj.ds_id, user_obj.event)
-
-        # if before.channel is None and after.channel.id:
-        #     while_event = False
-        #     for event in member.guild.scheduled_events:
-        #         if "active" in str(event.status):
-        #             while_event = True
-        #
-        #     if after.channel.id in settings["CHANNELS"] and while_event:
-        #         t1 = time.time()
-        #         OnSpecialEvents.list_of_members[str(member.id)] = t1
-        #
-        # elif (
-        #     before.channel
-        #     and after.channel is None
-        #     and str(member.id) in OnSpecialEvents.list_of_members
-        # ):
-        #     if before.channel.id in settings["CHANNELS"]:
-        #         t2 = time.time()
-        #         need_time = settings["TIME"]
-        #         delta = t2 - OnSpecialEvents.list_of_members[str(member.id)]
-        #
-        #         if delta >= need_time:
-        #             await create_message(
-        #                 member, delta, member.guild.get_channel(settings["LOGS_CHANNEL"])
-        #             )
+                    print(user_obj.ds_id)
 
     @commands.Cog.listener()
     async def on_interaction(self, interaction: disnake.MessageInteraction):
@@ -373,11 +349,11 @@ class AutoScoresAdding(commands.Cog):
                     member_id = int(member_str.strip("<@>"))
                     member = interaction.guild.get_member(member_id)
 
-                    default_scores = 1
+                    scores = 1
                     if settings["ROLES"]:
                         for roles_set in settings["ROLES"]:
                             if roles_set["ROLES_ID"] == "everyone":
-                                default_scores = roles_set["SCORES"]
+                                scores = roles_set["SCORES"]
                                 continue
 
                             roles_need = []
@@ -386,23 +362,22 @@ class AutoScoresAdding(commands.Cog):
 
                             if any(map(lambda v: v in roles_need, member.roles)):
                                 scores = roles_set["SCORES"]
-                            else:
-                                scores = default_scores
-                            user = await DB.add_user(
+
+                        user = await DB.add_user(
+                            {
+                                "ds_id": member.id,
+                                "username": member.name,
+                                "scores": scores,
+                            }
+                        )
+                        if user:
+                            await DB.update_user(
                                 {
-                                    "ds_id": member.id,
-                                    "username": member.name,
-                                    "scores": scores,
+                                    "ds_id": user.ds_id,
+                                    "username": user.username,
+                                    "scores": user.scores + scores,
                                 }
                             )
-                            if user:
-                                await DB.update_user(
-                                    {
-                                        "ds_id": user.ds_id,
-                                        "username": user.username,
-                                        "scores": user.scores + scores,
-                                    }
-                                )
 
                 await interaction.response.send_message(f"Очки выданы", ephemeral=True)
                 await interaction.message.edit(

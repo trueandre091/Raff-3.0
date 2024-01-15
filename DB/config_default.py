@@ -58,7 +58,7 @@ GUILD_CONFIG = {
                 # }
             },
             "EVENTS": {
-                "TIME": 600,
+                "TIME": 10,
                 "CHANNELS": [None],
                 "ADMIN_CHANNEL": None,
                 "ROLES": [
