@@ -46,7 +46,7 @@ class RequestsReminder(commands.Cog):
 
             place = 1
             for request in Request.list_of_objects:
-                if request.guild_id == guild.id and not request.read:
+                if request.guild_id == guild.id and not request.flag:
                     message = await channel_logs.fetch_message(request.message_id)
                     name = message.embeds[-1].to_dict()["description"].split("\n")[0]
                     value = message.jump_url
@@ -75,7 +75,9 @@ class SendMessage(commands.Cog):
         description="Отправить сообщение для создания запросов",
         default_member_permissions=disnake.Permissions(administrator=True),
     )
-    async def buttons(self, interaction: disnake.ApplicationCommandInteraction):
+    async def send_requests_message(
+        self, interaction: disnake.ApplicationCommandInteraction
+    ):
         """Sending the message to make requests"""
         settings = await guild_sets_check(
             interaction.guild.id, "GENERAL_SETTINGS", "REQUESTS"
@@ -321,7 +323,7 @@ class RequestInteractions(commands.Cog):
 
                 for request in Request.list_of_objects:
                     if request.message_id == interaction.message.id:
-                        request.read = True
+                        request.flag = True
 
                 await interaction.response.send_message("Отмечено", ephemeral=True)
                 await interaction.message.edit(
@@ -352,7 +354,7 @@ class RequestInteractions(commands.Cog):
 
                 for request in Request.list_of_objects:
                     if request.message_id == interaction.message.id:
-                        request.read = False
+                        request.flag = False
 
                 await interaction.response.send_message("Отмечено", ephemeral=True)
                 await interaction.message.edit(

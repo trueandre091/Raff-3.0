@@ -1335,7 +1335,7 @@ class GuildSetModerationView(View):
             )
             return
         await stud_interaction(interaction)
-        await GuildSettings.create_home_view(self.parent)
+        await GuildSettings.create_general_view(self.parent)
 
     @button(label="Настроить")
     async def open_farewell_set_callback(
@@ -1450,7 +1450,7 @@ class GuildSetReactionsThreadsView:
             )
             return
         await stud_interaction(interaction)
-        await GuildSettings.create_home_view(self.parent)
+        await GuildSettings.create_general_view(self.parent)
 
     async def add_option_callback(self, interaction: disnake.MessageInteraction):
         if not await is_admin(interaction.author):
@@ -1634,8 +1634,8 @@ class OptionThreadModal(Modal):
 
         reacts = interaction.text_values["reacts"]
 
-        if "," in reacts:
-            reacts = reacts.split(", ")
+        if " " in reacts:
+            reacts = reacts.split(" ")
         else:
             reacts = [reacts]
 
@@ -1763,8 +1763,7 @@ def create_feedback_embed():
             {
                 "name": "Кастомные настройки 🔖",
                 "value": "Нажми на кнопку `Настроить` и измени поля сообщения, к которому будет прикреплена кнопка создания запроса, "
-                "как тебе нужно (или оставь базовое)! Все поля сделаны под Embed\n\n"
-                "Ты также можешь использовать переменные: `{member.mention}`, `{member.nick}`, `{member.name}`, `{member}` (вводи с фигурными скобками) ⚙️",
+                "как тебе нужно (или оставь базовое)! Все поля сделаны под Embed",
             },
         ],
     }
@@ -1834,7 +1833,7 @@ def create_blackjack_embed():
 def create_roulette_embed():
     embed = {
         "title": "Roulette 🎲",
-        "description": "Рулетка - стандартная азартная игра с случайной вероятностью победить или выиграть",
+        "description": "Рулетка - стандартная азартная игра с случайной вероятностью выиграть очки",
         "color": 0x2B2D31,
         "timestamp": datetime.datetime.now().isoformat(),
         "author": None,
