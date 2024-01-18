@@ -879,7 +879,7 @@ class RelationshipsDBase(DataBase):
         self.guilds_db = GuildsDBase(echo_mode)
         self.users_db = UserDBase(echo_mode)
 
-    async def add_relationship(self, data: Union[dict, list[dict]]) -> Union[True, None]:
+    async def add_relationship(self, data: Union[dict, list[dict]] = None, **kwargs) -> Union[True, None]:
         """
         Adds a relationship between the user and the guild
 
@@ -891,6 +891,9 @@ class RelationshipsDBase(DataBase):
 
         Returns True if operation was successful and None if there was an error
         """
+
+        if data is None:
+            data = kwargs
 
         is_dict = True if type(data) is dict else False
 
@@ -929,7 +932,7 @@ class RelationshipsDBase(DataBase):
 
         return
 
-    async def delete_relationship(self, data) -> Union[True, None]:
+    async def delete_relationship(self, data: Union[dict, list[dict]] = None, **kwargs) -> Union[True, None]:
         """
         Deletes a relationship between the user and the guild
 
@@ -941,6 +944,9 @@ class RelationshipsDBase(DataBase):
 
         Returns True if operation was successful and None if there was an error
         """
+
+        if data is None:
+            data = kwargs
 
         is_dict = True if type(data) is dict else False
 
