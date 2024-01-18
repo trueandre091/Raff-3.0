@@ -37,8 +37,12 @@ class RequestsReminder(commands.Cog):
             guild = self.bot.get_guild(settings["GUILD_ID"])
             settings = settings["COGS_SETTINGS"]["REQUESTS"]
 
-            channel = guild.get_channel(settings["ADMIN_CHANNEL"])
-            channel_logs = guild.get_channel(settings["LOGS_MESSAGE"]["CHANNEL"])
+            admin_channel = settings["ADMIN_CHANNEL"]
+            channel_logs = settings["LOGS_MESSAGE"]["CHANNEL"]
+
+            channel = guild.get_channel(admin_channel) if admin_channel is not None else None
+            channel_logs = guild.get_channel(channel_logs) if channel_logs is not None else None
+
             if channel is None or channel_logs is None:
                 continue
 
