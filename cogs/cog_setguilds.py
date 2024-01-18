@@ -469,12 +469,12 @@ class GuildSetsGreetView(View):
             )
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
-
-        self.w_settings["CHANNEL"] = selectMenu.values[0].id
+        values = selectMenu.values
+        self.w_settings["CHANNEL"] = values[0].id if values is not None else None
         await update_sets(self, interaction)
 
         logger.debug(
-            f"Channel for greetings  for guild {interaction.guild.name} was updated"
+            f"Channel for greetings for guild {interaction.guild.name} was updated"
         )
 
     @button(label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger)
@@ -593,6 +593,7 @@ class GreetModal(Modal):
         self.w_settings["EMBED"]["DESCRIPTION"] = interaction.text_values["description"]
         self.w_settings["AVATAR_IF_ERROR"] = interaction.text_values["url_to_ava"]
         self.w_settings["BACKGROUND_IMAGE"] = interaction.text_values["background_image"]
+        self.w_settings["EMBED"]["COLOR"] = int(interaction.text_values["color"], 16)
 
         await update_sets(self, interaction)
 
@@ -604,7 +605,7 @@ class GuildSetsFarewellView(View):
         self.settings: dict = parent.settings
         self.w_settings: dict = parent.settings["FAREWELL_SETTINGS"]
         self.route: str = "FAREWELL_SETTINGS"
-        self.toggle: str = "FAREWELL_SETTINGS"
+        self.toggle: str = "FAREWELL"
         self.gdb: GuildsDBase = parent.gdb
         self.enc: JsonEncoder = parent.enc
 
@@ -620,8 +621,8 @@ class GuildSetsFarewellView(View):
             )
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
-
-        self.w_settings["CHANNEL"] = selectMenu.values[0].id
+        values = selectMenu.values
+        self.w_settings["CHANNEL"] = values[0].id if values is not None else None
         await update_sets(self, interaction)
 
     @button(label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger)
@@ -740,7 +741,9 @@ class GuildSetsFeedbackView(View):
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
 
-        self.s_settings["BUTTONS_MESSAGE"]["CHANNEL"] = selectMenu.values[0].id
+        values = selectMenu.values
+
+        self.s_settings["BUTTONS_MESSAGE"]["CHANNEL"] = values[0].id if values is not None else None
         self.w_settings["REQUESTS"] = self.s_settings
 
         await update_sets(self, interaction)
@@ -760,7 +763,9 @@ class GuildSetsFeedbackView(View):
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
 
-        self.s_settings["ADMIN_CHANNEL"] = selectMenu.values[0].id
+        values = selectMenu.values
+
+        self.s_settings["ADMIN_CHANNEL"] = values[0].id if values is not None else None
         self.w_settings["REQUESTS"] = self.s_settings
 
         await update_sets(self, interaction)
@@ -780,7 +785,9 @@ class GuildSetsFeedbackView(View):
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
 
-        self.s_settings["LOGS_MESSAGE"]["CHANNEL"] = selectMenu.values[0].id
+        values = selectMenu.values
+
+        self.s_settings["LOGS_MESSAGE"]["CHANNEL"] = values[0].id if values is not None else None
         self.w_settings["REQUESTS"] = self.s_settings
 
         await update_sets(self, interaction)
@@ -895,12 +902,12 @@ class FeedbackModal(Modal):
         self.s_settings["BUTTONS_MESSAGE"]["EMBED"][
             "DESCRIPTION"
         ] = interaction.text_values["description"]
-        self.s_settings["BUTTONS_MESSAGE"]["EMBED"]["COLOR"] = int(
-            interaction.text_values["color"], 16
-        )
         self.s_settings["BUTTONS_MESSAGE"]["CALLBACK"] = interaction.text_values[
             "set_callback"
         ]
+        self.s_settings["BUTTONS_MESSAGE"]["EMBED"]["COLOR"] = int(
+            interaction.text_values["color"], 16
+        )
 
         self.w_settings["REQUESTS"] = self.s_settings
 
@@ -974,6 +981,7 @@ class GuildSetsGamesView(View):
     @channel_select(
         channel_types=[disnake.ChannelType.text, disnake.ChannelType.news],
         placeholder="В каких каналах доступны игры?",
+        min_values=0,
         max_values=25,
     )
     async def channel_select_callback(
@@ -986,10 +994,13 @@ class GuildSetsGamesView(View):
             logger.debug(f"User {interaction.author.name} is not an admin")
             return
 
-        channels_id = []
-        for value in selectMenu.values:
-            channel_id = value.id
-            channels_id.append(channel_id)
+        if selectMenu.values is not None:
+            channels_id = []
+            for value in selectMenu.values:
+                channel_id = value.id
+                channels_id.append(channel_id)
+        else:
+            channels_id = None
 
         self.s_settings["CHANNEL"] = channels_id
         self.w_settings["GAMES"] = self.s_settings
@@ -1199,8 +1210,8 @@ class GuildSetNearestEventsView(View):
                 "У тебя не хватает прав😛", ephemeral=True
             )
             return
-
-        self.s_settings["CHANNEL"] = selectMenu.values[0].id
+        values = selectMenu.values
+        self.s_settings["CHANNEL"] = values[0].id if values is not None else None
 
         await update_sets(self, interaction)
 
@@ -1317,10 +1328,12 @@ class GuildSetModerationView(View):
                 "У тебя не хватает прав😛", ephemeral=True
             )
             return
-
-        channels_id = []
-        for value in selectMenu.values:
-            channels_id.append(value.id)
+        if selectMenu.values is not None:
+            channels_id = []
+            for value in selectMenu.values:
+                channels_id.append(value.id)
+        else:
+            channels_id = None
 
         self.w_settings["CHANNEL"] = channels_id
 
@@ -1509,11 +1522,14 @@ class OptionThreadView(View):
                 "У тебя не хватает прав😛", ephemeral=True
             )
             return
-        if self.option is None:
-            self.w_settings[selectMenu.values[0].id] = {"REACTIONS": [], "THREAD": False}
-            self.option = selectMenu.values[0].id
-        else:
-            self.w_settings[selectMenu.values[0].id] = self.w_settings.pop(self.option)
+        if selectMenu.values is not None:
+            if self.option is None:
+                self.w_settings[selectMenu.values[0].id] = {"REACTIONS": [], "THREAD": False}
+            else:
+                self.w_settings[selectMenu.values[0].id] = self.w_settings.pop(self.option)
+
+        values = selectMenu.values
+        self.option = values[0].id if values is not None else self.w_settings.pop(self.option)
 
         await update_sets(self, interaction)
 
@@ -1618,7 +1634,7 @@ class OptionThreadModal(Modal):
         components = [
             TextInput(
                 label="Код реакции",
-                value=", ".join(self.w_settings[self.option]["REACTIONS"]),
+                value=" ".join(self.w_settings[self.option]["REACTIONS"]),
                 custom_id="reacts",
             )
         ]
@@ -1639,6 +1655,8 @@ class OptionThreadModal(Modal):
         else:
             reacts = [reacts]
 
+        emojis = interaction.guild.emojis
+
         emojis = await interaction.guild.fetch_emojis()
         emojis_name = [f"<:{emoji.name}:{str(emoji.id)}>" for emoji in emojis]
         extra_emojis = False
@@ -1653,7 +1671,8 @@ class OptionThreadModal(Modal):
 
         if extra_emojis:
             await interaction.channel.send(
-                f"Этих эмодзи нет на твоём сервере: {', '.join(extra_emojis_list)}"
+                f"Этих эмодзи нет на твоём сервере: {', '.join(extra_emojis_list)}",
+                ephemeral=True
             )
 
         self.w_settings[self.option]["REACTIONS"] = to_add_reacts
