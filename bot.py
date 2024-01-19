@@ -1,7 +1,7 @@
 import config as cfg
 from cogs.counter_functions import *
 from cogs.on_message_functions import *
-from cogs.cog_guilds_functions import guild_sets_check, GDB, encoder, dicts1
+from cogs.cog_guilds_functions import guild_sets_check, GDB, encoder, dicts1, dicts
 from cogs.cog_experience import count_experience
 from DB.DataBase import GuildsDBase
 from loguru import logger
@@ -23,7 +23,7 @@ bot = commands.Bot(
     intents=disnake.Intents.all(),
     chunk_guilds_at_startup=False,
 )
-# bot.load_extension("cogs.cog_autoupdate")
+bot.load_extension("cogs.cog_autoupdate")
 bot.load_extension("cogs.cog_counters")
 bot.load_extension("cogs.cog_events")
 bot.load_extension("cogs.cog_games")
@@ -126,6 +126,7 @@ async def on_ready():
     """Bot writes in console when it starts"""
     # print(f"Bot {bot.user} is ready to work!")
     logger.info(f"Bot {bot.user} is ready to work!")
+    # await GDB.update_guild({"guild_id": 785312593614209055, "guild_sets": dicts})
 
 
 bot.run(cfg.TOKEN)

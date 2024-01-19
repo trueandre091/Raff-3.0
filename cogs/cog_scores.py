@@ -107,12 +107,10 @@ class ScoresOperations(commands.Cog):
 
         await counter_functions.count_added_scores(количество, interaction.guild.id)
 
-        user = await DB.get_user({"ds_id": участник.id})
-        if user is None:
-            await DB.add_user(
-                {"ds_id": участник.id, "username": участник.name, "scores": количество}
-            )
-        else:
+        user = await DB.add_user(
+            {"ds_id": участник.id, "username": участник.name, "scores": количество}
+        )
+        if user:
             await DB.update_user(
                 {
                     "ds_id": user.ds_id,
@@ -257,13 +255,10 @@ class ScoresOperations(commands.Cog):
         for member in members_list:
             member_id = int(member.strip("<@>"))
             member = guild.get_member(member_id)
-            user = await DB.get_user({"ds_id": member_id})
-            if not user:
-                await DB.add_user(
-                    {"ds_id": member_id, "username": member.name, "scores": количество}
-                )
-                members_list_values.append(количество)
-            else:
+            user = await DB.add_user(
+                {"ds_id": member_id, "username": member.name, "scores": количество}
+            )
+            if user:
                 await DB.update_user(
                     {
                         "ds_id": user.ds_id,
@@ -272,6 +267,8 @@ class ScoresOperations(commands.Cog):
                     }
                 )
                 members_list_values.append(user.scores + количество)
+            else:
+                members_list_values.append(количество)
 
         members_dict = dict(zip(members_list, members_list_values))
         embed = disnake.Embed(
@@ -293,7 +290,7 @@ class ScoresOperations(commands.Cog):
         description="Установить определённое кол-во очков участнику",
         default_member_permissions=disnake.Permissions(administrator=True),
     )
-    async def set_just_one(
+    async def set_one(
         self,
         interaction: disnake.ApplicationCommandInteraction,
         участник: disnake.Member,
@@ -309,18 +306,10 @@ class ScoresOperations(commands.Cog):
             )
             return
 
-        user = await DB.get_user({"ds_id": участник.id})
-        if not user:
-            await DB.add_user(
-                {"ds_id": участник.id, "username": участник.name, "scores": количество}
-            )
-            await RDB.add_relationship(
-                {
-                    "users": [{"ds_id": участник.id}],
-                    "guilds": [{"guild_id": interaction.guild.id}],
-                }
-            )
-        else:
+        user = await DB.add_user(
+            {"ds_id": участник.id, "username": участник.name, "scores": количество}
+        )
+        if user:
             await DB.update_user(
                 {"ds_id": участник.id, "username": участник.name, "scores": количество}
             )

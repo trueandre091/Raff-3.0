@@ -168,7 +168,7 @@ class SettingEvents(commands.Cog):
 async def create_message(member: disnake.Member, timedelta, channel: disnake.TextChannel):
     embed_dict = {
         "title": "Выдача очков участникам последнего ивента",
-        "fields": [{"name": f"{timedelta}", "value": f"{member.mention}"}],
+        "fields": [{"name": f"{timedelta} мин.", "value": f"{member.mention}"}],
         "footer": {"text": member.guild.name},
         "color": 0x2B2D31,
     }
@@ -189,7 +189,7 @@ async def create_message(member: disnake.Member, timedelta, channel: disnake.Tex
                 flag = False
                 embed = msg.embeds[-1].to_dict()
                 embed["fields"].append(
-                    {"name": f"{timedelta}", "value": f"{member.mention}"}
+                    {"name": f"{timedelta} мин.", "value": f"{member.mention}"}
                 )
                 await msg.edit(
                     embed=disnake.Embed.from_dict(embed),
@@ -197,7 +197,7 @@ async def create_message(member: disnake.Member, timedelta, channel: disnake.Tex
                         disnake.ui.Button(
                             label="Выдать очки",
                             style=disnake.ButtonStyle.grey,
-                            custom_id="accept_member",
+                            custom_id="accept_members",
                         ),
                         disnake.ui.Button(
                             label="Отклонить",
@@ -216,7 +216,7 @@ async def create_message(member: disnake.Member, timedelta, channel: disnake.Tex
                 disnake.ui.Button(
                     label="Выдать очки",
                     style=disnake.ButtonStyle.grey,
-                    custom_id="accept_member",
+                    custom_id="accept_members",
                 ),
                 disnake.ui.Button(
                     label="Отклонить",
@@ -322,7 +322,7 @@ class AutoScoresAdding(commands.Cog):
     @commands.Cog.listener()
     async def on_interaction(self, interaction: disnake.MessageInteraction):
         if interaction.type == disnake.InteractionType.component:
-            if interaction.component.custom_id == "accept_member":
+            if interaction.component.custom_id == "accept_members":
                 settings = await guild_sets_check(
                     interaction.guild.id,
                     "GENERAL_SETTINGS",
@@ -349,20 +349,27 @@ class AutoScoresAdding(commands.Cog):
                     member_id = int(member_str.strip("<@>"))
                     member = interaction.guild.get_member(member_id)
 
+                    flag = True
+                    default_scores = 1
                     scores = 1
                     if settings["ROLES"]:
                         for roles_set in settings["ROLES"]:
                             if roles_set["ROLES_ID"] == "everyone":
-                                scores = roles_set["SCORES"]
+                                default_scores = roles_set["SCORES"]
                                 continue
 
                             roles_need = []
                             for role_id in roles_set["ROLES_ID"]:
                                 roles_need.append(interaction.guild.get_role(role_id))
 
-                            if any(map(lambda v: v in roles_need, member.roles)):
+                            if [x for x in roles_need if x in member.roles]:
                                 scores = roles_set["SCORES"]
+                                flag = False
 
+                        if flag:
+                            scores = default_scores
+
+                        print(member, scores)
                         user = await DB.add_user(
                             {
                                 "ds_id": member.id,

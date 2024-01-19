@@ -743,7 +743,9 @@ class GuildSetsFeedbackView(View):
 
         values = selectMenu.values
 
-        self.s_settings["BUTTONS_MESSAGE"]["CHANNEL"] = values[0].id if values is not None else None
+        self.s_settings["BUTTONS_MESSAGE"]["CHANNEL"] = (
+            values[0].id if values is not None else None
+        )
         self.w_settings["REQUESTS"] = self.s_settings
 
         await update_sets(self, interaction)
@@ -787,7 +789,9 @@ class GuildSetsFeedbackView(View):
 
         values = selectMenu.values
 
-        self.s_settings["LOGS_MESSAGE"]["CHANNEL"] = values[0].id if values is not None else None
+        self.s_settings["LOGS_MESSAGE"]["CHANNEL"] = (
+            values[0].id if values is not None else None
+        )
         self.w_settings["REQUESTS"] = self.s_settings
 
         await update_sets(self, interaction)
@@ -1444,7 +1448,7 @@ class GuildSetReactionsThreadsView:
         self.view_manager.add_item(self.add_option_btn)
 
         if self.options != "не задан":
-            self.options = self.options.split(", ")
+            self.options = self.options.split(" ")
         else:
             self.options = []
 
@@ -1529,7 +1533,7 @@ class OptionThreadView(View):
             self.w_settings[selectMenu.values[0].id] = self.w_settings.pop(self.option)
 
         values = selectMenu.values
-        self.option = values[0].id 
+        self.option = values[0].id
 
         await update_sets(self, interaction)
 

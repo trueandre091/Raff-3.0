@@ -54,7 +54,7 @@ async def find_guilds_by_param(
         if guild:
             guild_dict = encoder.code_from_json(guild.guild_sets)
             if checking_set_1 and checking_set_2 and checking_set_3:
-                if guild_dict[checking_set_1][checking_set_2]:
+                if guild_dict[checking_set_1][checking_set_2][checking_set_3]:
                     if encode:
                         list_res.append(guild_dict)
                     else:
@@ -128,20 +128,20 @@ dicts = {
     "GUILD_ID": 785312593614209055,
     "GENERAL_SETTINGS": {
         "PASSWORD": 152364,
-        "WELCOME": True,
-        "FAREWELL": True,
-        "MODERATION": {"GIF": True},
-        "AUTOUPDATE_MESSAGES": {"MESSAGES": True, "SCORES": True},
-        "NEAREST_EVENTS": True,
-        "EXPERIENCE": True,
-        "GAMES": {"BLACKJACK": True, "ROULETTE": True},
-        "ORDERS": True,
-        "REQUESTS": True,
-        "SCORES": True,
-        "COUNTING_BOOSTS": True,
-        "ADDING_REACTIONS_THREADS": True,
-        "AUTO_ADDING_ROLES": True,
-        "AUTO_ADDING_SCORES_FOR_TIME_IN_VOICE_CHANNEL": True,
+        "WELCOME": False,
+        "FAREWELL": False,
+        "MODERATION": {"GIF": False},
+        "AUTOUPDATE_MESSAGES": {"MESSAGES": False, "SCORES": False},
+        "NEAREST_EVENTS": False,
+        "EXPERIENCE": False,
+        "GAMES": {"BLACKJACK": False, "ROULETTE": False},
+        "ORDERS": False,
+        "REQUESTS": False,
+        "SCORES": False,
+        "COUNTING_BOOSTS": False,
+        "ADDING_REACTIONS_THREADS": False,
+        "AUTO_ADDING_ROLES": False,
+        "AUTO_ADDING_SCORES_FOR_TIME_IN_VOICE_CHANNEL": False,
     },
     "TIMERS": {
         "CHANNEL": 785312596546813974,
@@ -206,7 +206,7 @@ dicts = {
                 }
             },
             "EVENTS": {
-                "TIME": 600,
+                "TIME": 1,
                 "CHANNELS": [
                     858737175439736873,
                     1186721973242429480,

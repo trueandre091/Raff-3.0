@@ -2,7 +2,6 @@ from os import getcwd
 import disnake
 from disnake.ext import commands
 from cogs.cog_guilds_functions import guild_sets_check, GDB
-from cogs.cog_slash_commands import Commands
 
 FOLDER = getcwd()
 
