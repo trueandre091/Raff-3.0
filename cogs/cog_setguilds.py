@@ -1511,7 +1511,7 @@ class OptionThreadView(View):
     @channel_select(
         channel_types=[disnake.ChannelType.text, disnake.ChannelType.news],
         placeholder="В каких каналах будем добавлять реакции и ветки?",
-        min_values=0,
+        min_values=1,
         max_values=1,
     )
     async def select_callback(
@@ -1522,14 +1522,14 @@ class OptionThreadView(View):
                 "У тебя не хватает прав😛", ephemeral=True
             )
             return
-        if selectMenu.values is not None:
-            if self.option is None:
-                self.w_settings[selectMenu.values[0].id] = {"REACTIONS": [], "THREAD": False}
-            else:
-                self.w_settings[selectMenu.values[0].id] = self.w_settings.pop(self.option)
+
+        if self.option is None:
+            self.w_settings[selectMenu.values[0].id] = {"REACTIONS": [], "THREAD": False}
+        else:
+            self.w_settings[selectMenu.values[0].id] = self.w_settings.pop(self.option)
 
         values = selectMenu.values
-        self.option = values[0].id if values is not None else self.w_settings.pop(self.option)
+        self.option = values[0].id 
 
         await update_sets(self, interaction)
 
@@ -1655,27 +1655,7 @@ class OptionThreadModal(Modal):
         else:
             reacts = [reacts]
 
-        emojis = interaction.guild.emojis
-
-        emojis = await interaction.guild.fetch_emojis()
-        emojis_name = [f"<:{emoji.name}:{str(emoji.id)}>" for emoji in emojis]
-        extra_emojis = False
-        extra_emojis_list = []
-        to_add_reacts = []
-        for react in reacts:
-            if react not in emojis_name:
-                extra_emojis = True
-                extra_emojis_list.append(react)
-            else:
-                to_add_reacts.append(react)
-
-        if extra_emojis:
-            await interaction.channel.send(
-                f"Этих эмодзи нет на твоём сервере: {', '.join(extra_emojis_list)}",
-                ephemeral=True
-            )
-
-        self.w_settings[self.option]["REACTIONS"] = to_add_reacts
+        self.w_settings[self.option]["REACTIONS"] = reacts
 
         await update_sets(self, interaction)
 
