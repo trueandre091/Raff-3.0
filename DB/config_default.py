@@ -72,7 +72,7 @@ GUILD_CONFIG = {
             "AMOUNT_TO_THIRD_LVL": 12,
             "AMOUNT_TO_FIFTH_LVL": 16,
         },
-        "GAMES": {"CHANNEL": None, "ROULETTE": {"CHANCE": 60}},
+        "GAMES": {"CHANNELS": [None], "ROULETTE": {"CHANCE": 60}},
         "AUTOUPDATE": {
             "MESSAGES": {"PLACE_LIMIT": 10},
             "SCORES": {"PLACE_LIMIT": 20},
@@ -96,7 +96,7 @@ GUILD_CONFIG = {
             "LOGS_MESSAGE": {"CHANNEL": None},
             "ADMIN_CHANNEL": None,
         },
-        "EXPERIENCE": {"FACTOR": 5, "LEVELING": [{"ROLE": None, "AMOUNT": None}]},
+        "EXPERIENCE": {"FACTOR": 5, "LEVELING": [{"ROLE_ID": None, "AMOUNT": None}]},
     },
     "COUNTERS": {
         "LOSE_SCORES": 0,

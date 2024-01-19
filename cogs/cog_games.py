@@ -180,6 +180,11 @@ class BlackJack(commands.Cog):
                 "Данная функция отключена на сервере", ephemeral=True
             )
             return
+        elif interaction.channel.id not in settings["COGS_SETTINGS"]["GAMES"]["CHANNELS"]:
+            await interaction.response.send_message(
+                "Данная функция отключена в этом канале", ephemeral=True
+            )
+            return
 
         user = await DB.get_user({"ds_id": interaction.author.id})
 
@@ -387,6 +392,11 @@ class Roulette(commands.Cog):
         if settings is None:
             await interaction.response.send_message(
                 "Данная функция отключена на сервере", ephemeral=True
+            )
+            return
+        elif interaction.channel.id not in settings["COGS_SETTINGS"]["GAMES"]["CHANNELS"]:
+            await interaction.response.send_message(
+                "Данная функция отключена в этом канале", ephemeral=True
             )
             return
 

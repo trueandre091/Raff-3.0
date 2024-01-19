@@ -68,6 +68,20 @@ async def count_experience(message: disnake.Message, settings: dict):
             f"{message.author.mention}, поздравляю с {lvl2} уровнем <a:A_applecatrun:992319318425620542>"
         )
 
+        settings = settings["LEVELING"]
+        all_roles_id = []
+        role = None
+        for i in range(len(settings)):
+            all_roles_id.append(settings[i]["ROLE_ID"])
+            if lvl2 >= settings[i]["AMOUNT"] and lvl2 > role["AMOUNT"]:
+                role = settings[i]
+
+        await message.author.add_roles(message.guild.get_role(role["ROLE_ID"]))
+
+        all_roles_id.remove(role["ROLE_ID"])
+        for role_id in all_roles_id:
+            await message.author.remove_roles(message.guild.get_role(role_id))
+
 
 class ExperienceCommands(commands.Cog):
     """Commands to set nums of users' experience"""
@@ -102,17 +116,14 @@ class ExperienceCommands(commands.Cog):
         for member in members_list:
             member_id = int(member.strip("<@>"))
             member = guild.get_member(member_id)
-            user = await DB.get_user({"ds_id": member_id})
-            if user is None:
-                await DB.add_user(
-                    {
-                        "ds_id": member_id,
-                        "username": member.name,
-                        "experience": количество,
-                    }
-                )
-                members_list_values.append(количество)
-            else:
+            user = await DB.add_user(
+                {
+                    "ds_id": member_id,
+                    "username": member.name,
+                    "experience": количество,
+                }
+            )
+            if user:
                 await DB.update_user(
                     {
                         "ds_id": user.ds_id,
@@ -121,6 +132,8 @@ class ExperienceCommands(commands.Cog):
                     }
                 )
                 members_list_values.append(user.experience + количество)
+            else:
+                members_list_values.append(количество)
 
         members_dict = dict(zip(members_list, members_list_values))
         embed = disnake.Embed(
