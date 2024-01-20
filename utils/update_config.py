@@ -11,19 +11,21 @@ async def update_all_configs(config, guild_config):
 
     for key in config.keys():
         try:
-            if isinstance(config[key], dict):
+            if isinstance(config[key], dict) and key != "REACTIONS_THREADS":
                 await update_all_configs(
-                    config.get(key, "ISN't HERE"), guild_config.get(key, "ISN't HERE")
+                    config.get(key), guild_config.get(key)
                 )
             else:
-                if key == "ADDING_REACTIONS_THREADS_SETTINGS":
+                if key == "REACTIONS_THREADS":
                     config[key] = guild_config.get(key, dict())
 
                 elif key == "COLOR":
                     config[key] = guild_config.get(key)
 
-                config[key] = guild_config.get(key, config[key])
-                logger.info(f"Successfully updated {key}")
+                else:
+                    config[key] = guild_config.get(key)
+
+            logger.info(f"Successfully updated {key}")
         except Exception as e:
             logger.exception(f"Error when update config by key {key}", e)
             return False
