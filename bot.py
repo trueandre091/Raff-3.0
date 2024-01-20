@@ -4,6 +4,7 @@ from cogs.on_message_functions import *
 from cogs.cog_guilds_functions import guild_sets_check, GDB, encoder, dicts1, dicts
 from cogs.cog_experience import count_experience
 from DB.DataBase import GuildsDBase
+from DB.JSONEnc import JsonEncoder
 from loguru import logger
 
 logger.add(
@@ -58,11 +59,15 @@ async def on_message(message: disnake.Message):
 
 @bot.event
 async def on_guild_join(guild: disnake.Guild):
-    gdb = GuildsDBase()
+    gdb: GuildsDBase = GuildsDBase()
+    enc: JsonEncoder = JsonEncoder()
+    default_cfg = enc.get_default_cfg()
+    default_cfg["GUILD_ID"] = guild.id
     data = {
         "guild_id": guild.id,
         "guild_name": guild.name,
         "count_members": guild.member_count,
+        "guild_sets": enc.code_to_json(default_cfg)
     }
 
     for _ in range(5):
