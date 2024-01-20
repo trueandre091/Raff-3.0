@@ -7,7 +7,7 @@ from disnake.ui import Select, channel_select
 from disnake import SelectOption, ModalInteraction
 
 import datetime
-
+from bot import update
 from DB.DataBase import GuildsDBase
 from DB.JSONEnc import JsonEncoder
 from DB.config_default import GUILD_CONFIG
@@ -1865,7 +1865,9 @@ class GuildsManage(commands.Cog):
         }
 
     @commands.slash_command(
-        name="настройка_бота", description="Поменять настройки сервера"
+        name="настройка_бота",
+        description="Изменить настройки бота на сервере (обязательно)",
+        default_member_permissions=disnake.Permissions(administrator=True),
     )
     async def set_guild_settings(
         self, interaction: disnake.ApplicationCommandInteraction
@@ -1894,6 +1896,7 @@ class GuildsManage(commands.Cog):
 
     @commands.slash_command(
         name="текущие_настройки",
+        description="Показать текущие настройки бота на сервере",
         default_member_permissions=disnake.Permissions(administrator=True),
     )
     async def current_settings(self, interaction: disnake.ApplicationCommandInteraction):
@@ -1913,11 +1916,12 @@ class GuildsManage(commands.Cog):
                 ephemeral=True,
             )
 
-    @commands.slash_command(
-        name="add_to_db",
-        default_member_permissions=disnake.Permissions(administrator=True),
-    )
-    async def add_guild_to_db(self, interaction: disnake.ApplicationCommandInteraction):
+    @update.sub_command_group()
+    async def gdb(self, interaction: disnake.ApplicationCommandInteraction):
+        pass
+
+    @gdb.sub_command()
+    async def add(self, interaction: disnake.ApplicationCommandInteraction):
         if not is_admin(interaction):
             return
 
@@ -1934,13 +1938,8 @@ class GuildsManage(commands.Cog):
                 await interaction.response.send_message(f"Success {res}")
                 break
 
-    @commands.slash_command(
-        name="update_default_sets",
-        default_member_permissions=disnake.Permissions(administrator=True),
-    )
-    async def update_default_sets(
-        self, interaction: disnake.ApplicationCommandInteraction
-    ):
+    @gdb.sub_command()
+    async def default_sets(self, interaction: disnake.ApplicationCommandInteraction):
         if not is_admin(interaction):
             return
 

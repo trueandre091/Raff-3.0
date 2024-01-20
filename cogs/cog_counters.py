@@ -2,6 +2,7 @@ from os import getcwd
 import disnake
 from disnake.ext import commands
 from cogs.cog_guilds_functions import guild_sets_check, GDB
+from bot import set
 
 FOLDER = getcwd()
 
@@ -52,10 +53,10 @@ class CheckCommands(commands.Cog):
             embed=disnake.Embed.from_dict(embed_dict)
         )
 
-    @commands.slash_command(
+    @set.sub_command(
         description="Изменить статистику",
     )
-    async def set_counter(
+    async def counter(
         self,
         interaction: disnake.ApplicationCommandInteraction,
         ключ: str,

@@ -1,7 +1,7 @@
+import disnake
 import config as cfg
 from cogs.on_message_functions import *
 from cogs.cog_guilds_functions import guild_sets_check, GDB, dicts1, dicts
-from cogs.cog_experience import count_experience
 from DB.DataBase import GuildsDBase
 from DB.JSONEnc import JsonEncoder
 from loguru import logger
@@ -16,13 +16,46 @@ logger.add(
     diagnose=True,
 )
 
-
 bot = commands.Bot(
     command_prefix="none",
     help_command=None,
     intents=disnake.Intents.all(),
     chunk_guilds_at_startup=False,
 )
+
+
+@bot.slash_command(
+    default_member_permissions=disnake.Permissions(administrator=True),
+    description="Установить",
+)
+async def set(interaction: disnake.ApplicationCommandInteraction):
+    pass
+
+
+@bot.slash_command(
+    default_member_permissions=disnake.Permissions(administrator=True),
+    description="Прибавить",
+)
+async def add(interaction: disnake.ApplicationCommandInteraction):
+    pass
+
+
+@bot.slash_command(
+    default_member_permissions=disnake.Permissions(administrator=True),
+    description="Вычесть",
+)
+async def remove(interaction: disnake.ApplicationCommandInteraction):
+    pass
+
+
+@bot.slash_command(
+    default_member_permissions=disnake.Permissions(administrator=True),
+    description="Обновить",
+)
+async def update(interaction: disnake.ApplicationCommandInteraction):
+    pass
+
+
 bot.load_extension("cogs.cog_autoupdate")
 bot.load_extension("cogs.cog_counters")
 bot.load_extension("cogs.cog_events")

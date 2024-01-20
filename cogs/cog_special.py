@@ -1,11 +1,76 @@
 import disnake
 from disnake.ext import commands
 from datetime import datetime
+import math
 
 from DB.DataBaseOld import UserDBase
-from cogs.cog_guilds_functions import guild_sets_check
+from DB.models import Users
+from cogs.cog_guilds_functions import guild_sets_check, GDB
 
 DB = UserDBase()
+
+
+async def convert_ex_to_lvl(user: Users, factor: int = 5):
+    if user is None:
+        return 0
+
+    lvl = math.floor(math.pow(user.experience / factor, 1 / 3))
+
+    return lvl
+
+
+async def check_for_role(user, settings):
+    role = None
+    for role_set in settings["REWARDS"]:
+        if role_set["ROLE"] and role_set["AMOUNT"]:
+            if user.scores >= role_set["AMOUNT"]:
+                try:
+                    if user.scores > role["AMOUNT"]:
+                        role = role_set
+                except TypeError:
+                    role = role_set
+    return role
+
+
+async def top_create_embed(bot: commands.Bot, settings: dict, embed_dict: dict):
+    """Creating an embed of leaderboard of members by scores"""
+    guild = bot.get_guild(settings["GUILD_ID"])
+    settings = settings["COGS"]["SCORES"]
+
+    top = await GDB.get_top_users_by_scores(guild.id)
+    if top is None:
+        top = []
+
+    roles = {}
+    place = 0
+    for user in top:
+        member = guild.get_member(user.ds_id)
+        if member is None or user.scores == 0:
+            continue
+
+        embed_dict[
+            "description"
+        ] += f"`{place + 1}.` {member.mention} — `{user.scores} оч.`\n"
+
+        role_set = await check_for_role(user, settings)
+        if role_set:
+            if roles[str(role_set["ROLE"])]:
+                roles[str(role_set["ROLE"])].append(user.ds_id)
+            else:
+                roles[str(role_set["ROLE"])] = [user.ds_id]
+        place += 1
+
+    if roles:
+        embed_dict["description"] += "\n**Получат роли**"
+        for role, users in roles.items():
+            embed_dict["fields"].append(
+                {"name": f"{guild.get_role(role).name}:", "value": "", "inline": True}
+            )
+            for user in users:
+                member = guild.get_member(user.ds_id)
+                embed_dict["fields"][-1]["value"] += f"{member.mention} "
+
+    return embed_dict
 
 
 class OnSpecialEvents(commands.Cog):

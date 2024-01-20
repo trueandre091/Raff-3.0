@@ -3,64 +3,11 @@ import disnake
 from disnake.ext import commands
 
 from cogs import counter_functions
-from cogs.cog_experience import convert_ex_to_lvl
-from cogs.cog_guilds_functions import DB, GDB, guild_sets_check, is_none
+from cogs.cog_special import convert_ex_to_lvl, top_create_embed
+from cogs.cog_guilds_functions import DB, guild_sets_check, is_none
+from bot import set, add, remove
 
 FOLDER = getcwd()
-
-
-async def top_create_embed(bot: commands.Bot, settings: dict, embed_dict: dict):
-    """Creating an embed of leaderboard of members by scores"""
-    guild = bot.get_guild(settings["GUILD_ID"])
-    settings = settings["COGS"]["SCORES"]
-
-    top = await GDB.get_top_users_by_scores(guild.id)
-    if top is None:
-        top = []
-
-    roles = {}
-    place = 0
-    for user in top:
-        member = guild.get_member(user.ds_id)
-        if member is None or user.scores == 0:
-            continue
-
-        embed_dict[
-            "description"
-        ] += f"`{place + 1}.` {member.mention} — `{user.scores} оч.`\n"
-
-        role_set = await check_for_role(user, settings)
-        if role_set:
-            if roles[str(role_set["ROLE"])]:
-                roles[str(role_set["ROLE"])].append(user.ds_id)
-            else:
-                roles[str(role_set["ROLE"])] = [user.ds_id]
-        place += 1
-
-    if roles:
-        embed_dict["description"] += "\n**Получат роли**"
-        for role, users in roles.items():
-            embed_dict["fields"].append(
-                {"name": f"{guild.get_role(role).name}:", "value": "", "inline": True}
-            )
-            for user in users:
-                member = guild.get_member(user.ds_id)
-                embed_dict["fields"][-1]["value"] += f"{member.mention} "
-
-    return embed_dict
-
-
-async def check_for_role(user, settings):
-    role = None
-    for role_set in settings["REWARDS"]:
-        if role_set["ROLE"] and role_set["AMOUNT"]:
-            if user.scores >= role_set["AMOUNT"]:
-                try:
-                    if user.scores > role["AMOUNT"]:
-                        role = role_set
-                except TypeError:
-                    role = role_set
-    return role
 
 
 class ScoresOperations(commands.Cog):
@@ -69,11 +16,64 @@ class ScoresOperations(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.slash_command(
-        description="Вычесть очки у любого кол-ва участников (упомянуть через пробел)",
-        default_member_permissions=disnake.Permissions(administrator=True),
+    @add.sub_command(
+        description="Прибавить очки любому кол-ву участников (упомянуть через пробел)",
     )
-    async def remove(
+    async def scores(
+        self,
+        interaction: disnake.ApplicationCommandInteraction,
+        участники: str,
+        количество: int,
+    ):
+        """Adding to several members a certain amount of scores"""
+        settings = await guild_sets_check(interaction.guild.id, "GENERAL", "SCORES")
+        if await is_none(interaction, settings):
+            return
+
+        guild = interaction.guild
+        members_list = участники.split()
+        members_list_values = []
+
+        await counter_functions.count_added_scores(
+            количество * len(members_list), interaction.guild.id
+        )
+
+        for member in members_list:
+            member_id = int(member.strip("<@>"))
+            member = guild.get_member(member_id)
+            user = await DB.add_user(
+                ds_id=member_id, username=member.name, scores=количество
+            )
+            if user:
+                await DB.update_user(
+                    ds_id=user.ds_id,
+                    username=user.username,
+                    scores=user.scores + количество,
+                )
+                members_list_values.append(user.scores + количество)
+            else:
+                members_list_values.append(количество)
+
+        members_dict = dict(zip(members_list, members_list_values))
+        embed = disnake.Embed(
+            title=f"{количество} оч. было прибавлено к указанным участникам",
+            description="Настоящее количество очков у каждого:",
+            color=0x2B2D31,
+        )
+        for member, value in members_dict.items():
+            member_id = int(member.strip("<@>"))
+            user = await DB.get_user({"ds_id": member_id})
+            embed.add_field(
+                name=interaction.guild.get_member(member_id),
+                value=f"```{user.scores} оч.```",
+            )
+
+        await interaction.response.send_message(embed=embed)
+
+    @remove.sub_command(
+        description="Вычесть очки у любого кол-ва участников (упомянуть через пробел)",
+    )
+    async def scores(
         self,
         interaction: disnake.ApplicationCommandInteraction,
         участники: str,
@@ -127,66 +127,10 @@ class ScoresOperations(commands.Cog):
 
         await interaction.response.send_message(embed=embed)
 
-    @commands.slash_command(
-        description="Прибавить очки любому кол-ву участников (упомянуть через пробел)",
-        default_member_permissions=disnake.Permissions(administrator=True),
+    @set.sub_command(
+        description="Установить очки любому кол-ву участников (упомянуть через пробел)",
     )
-    async def add_any(
-        self,
-        interaction: disnake.ApplicationCommandInteraction,
-        участники: str,
-        количество: int,
-    ):
-        """Adding to several members a certain amount of scores"""
-        settings = await guild_sets_check(interaction.guild.id, "GENERAL", "SCORES")
-        if await is_none(interaction, settings):
-            return
-
-        guild = interaction.guild
-        members_list = участники.split()
-        members_list_values = []
-
-        await counter_functions.count_added_scores(
-            количество * len(members_list), interaction.guild.id
-        )
-
-        for member in members_list:
-            member_id = int(member.strip("<@>"))
-            member = guild.get_member(member_id)
-            user = await DB.add_user(
-                ds_id=member_id, username=member.name, scores=количество
-            )
-            if user:
-                await DB.update_user(
-                    ds_id=user.ds_id,
-                    username=user.username,
-                    scores=user.scores + количество,
-                )
-                members_list_values.append(user.scores + количество)
-            else:
-                members_list_values.append(количество)
-
-        members_dict = dict(zip(members_list, members_list_values))
-        embed = disnake.Embed(
-            title=f"{количество} оч. было прибавлено к указанным участникам",
-            description="Настоящее количество очков у каждого:",
-            color=0x2B2D31,
-        )
-        for member, value in members_dict.items():
-            member_id = int(member.strip("<@>"))
-            user = await DB.get_user({"ds_id": member_id})
-            embed.add_field(
-                name=interaction.guild.get_member(member_id),
-                value=f"```{user.scores} оч.```",
-            )
-
-        await interaction.response.send_message(embed=embed)
-
-    @commands.slash_command(
-        description="Установить определённое кол-во очков участнику",
-        default_member_permissions=disnake.Permissions(administrator=True),
-    )
-    async def set_one(
+    async def scores(
         self,
         interaction: disnake.ApplicationCommandInteraction,
         участник: disnake.Member,

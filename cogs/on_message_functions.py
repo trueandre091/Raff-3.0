@@ -1,6 +1,10 @@
-import disnake
+import math
+from random import randint
+
 from disnake.ext import commands
 from datetime import datetime
+
+from cogs.cog_special import convert_ex_to_lvl
 from cogs.counter_functions import *
 
 
@@ -139,3 +143,65 @@ async def order_command_check(
             )
             await channel.send(barmen_role, embed=embed)
             await message.delete()
+
+
+async def count_experience(message: disnake.Message, settings: dict):
+    if not settings["GENERAL"]["EXPERIENCE"] or message.author.bot:
+        return
+
+    settings = settings["COGS"]["EXPERIENCE"]
+
+    lvl1 = await convert_ex_to_lvl(await DB.get_user(ds_id=message.author.id))
+
+    flag = True
+    skip_first_flag = False
+    async for msg in message.channel.history(limit=50):
+        if (
+            message.created_at.minute == msg.created_at.minute
+            and msg.author == message.author
+            and skip_first_flag
+        ):
+            flag = False
+            break
+        skip_first_flag = True
+
+    if flag:
+        ex = randint(5, 10)
+
+        user = await DB.add_user(
+            ds_id=message.author.id,
+            username=message.author.name,
+            experience=ex,
+        )
+        if user:
+            await DB.update_user(
+                ds_id=user.ds_id,
+                username=user.username,
+                experience=user.experience + ex,
+            )
+
+    lvl2 = await convert_ex_to_lvl(await DB.get_user(ds_id=message.author.id))
+
+    if lvl1 != lvl2:
+        await message.reply(
+            f"{message.author.mention}, поздравляю с {lvl2} уровнем <a:A_applecatrun:992319318425620542>"
+        )
+
+        settings = settings["REWARDS"]
+        all_roles_id = []
+        role = None
+        for role_set in settings:
+            if role_set["ROLE"] and role_set["AMOUNT"]:
+                all_roles_id.append(role_set["ROLE_ID"])
+                if lvl2 >= role_set["AMOUNT"]:
+                    try:
+                        if lvl2 > role["AMOUNT"]:
+                            role = role_set
+                    except TypeError:
+                        role = role_set
+
+        await message.author.add_roles(message.guild.get_role(role["ROLE"]))
+
+        all_roles_id.remove(role["ROLE"])
+        for role_id in all_roles_id:
+            await message.author.remove_roles(message.guild.get_role(role_id))
