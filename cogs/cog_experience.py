@@ -3,11 +3,11 @@ from disnake.ext import commands
 from random import randint
 import math
 
-from cogs.cog_guilds_functions import guild_sets_check, DB
+from cogs.cog_guilds_functions import guild_sets_check, DB, is_none
 from DB.models import Users
 
 
-async def convert_ex_to_lvl(user: Users, factor: int):
+async def convert_ex_to_lvl(user: Users, factor: int = 5):
     if user is None:
         return 0
 
@@ -17,14 +17,12 @@ async def convert_ex_to_lvl(user: Users, factor: int):
 
 
 async def count_experience(message: disnake.Message, settings: dict):
-    if not settings["GENERAL_SETTINGS"]["EXPERIENCE"] or message.author.bot:
+    if not settings["GENERAL"]["EXPERIENCE"] or message.author.bot:
         return
 
-    settings = settings["COGS_SETTINGS"]["EXPERIENCE"]
+    settings = settings["COGS"]["EXPERIENCE"]
 
-    lvl1 = await convert_ex_to_lvl(
-        await DB.get_user({"ds_id": message.author.id}), settings["FACTOR"]
-    )
+    lvl1 = await convert_ex_to_lvl(await DB.get_user(ds_id=message.author.id))
 
     flag = True
     skip_first_flag = False
@@ -41,38 +39,30 @@ async def count_experience(message: disnake.Message, settings: dict):
     if flag:
         ex = randint(5, 10)
 
-        user = await DB.get_user({"ds_id": message.author.id})
-        if not user:
-            await DB.add_user(
-                {
-                    "ds_id": message.author.id,
-                    "username": message.author.name,
-                    "experience": ex,
-                }
-            )
-        else:
+        user = await DB.add_user(
+            ds_id=message.author.id,
+            username=message.author.name,
+            experience=ex,
+        )
+        if user:
             await DB.update_user(
-                {
-                    "ds_id": user.ds_id,
-                    "username": user.username,
-                    "experience": user.experience + ex,
-                }
+                ds_id=user.ds_id,
+                username=user.username,
+                experience=user.experience + ex,
             )
 
-    lvl2 = await convert_ex_to_lvl(
-        await DB.get_user({"ds_id": message.author.id}), settings["FACTOR"]
-    )
+    lvl2 = await convert_ex_to_lvl(await DB.get_user(ds_id=message.author.id))
 
     if lvl1 != lvl2:
         await message.reply(
             f"{message.author.mention}, поздравляю с {lvl2} уровнем <a:A_applecatrun:992319318425620542>"
         )
 
-        settings = settings["LEVELING"]
+        settings = settings["REWARDS"]
         all_roles_id = []
         role = None
         for role_set in settings:
-            if role_set["ROLE_ID"] and role_set["AMOUNT"]:
+            if role_set["ROLE"] and role_set["AMOUNT"]:
                 all_roles_id.append(role_set["ROLE_ID"])
                 if lvl2 >= role_set["AMOUNT"]:
                     try:
@@ -81,9 +71,9 @@ async def count_experience(message: disnake.Message, settings: dict):
                     except TypeError:
                         role = role_set
 
-        await message.author.add_roles(message.guild.get_role(role["ROLE_ID"]))
+        await message.author.add_roles(message.guild.get_role(role["ROLE"]))
 
-        all_roles_id.remove(role["ROLE_ID"])
+        all_roles_id.remove(role["ROLE"])
         for role_id in all_roles_id:
             await message.author.remove_roles(message.guild.get_role(role_id))
 
@@ -105,13 +95,8 @@ class ExperienceCommands(commands.Cog):
         количество: int,
     ):
         """Adding to several members a certain amount of experience"""
-        settings = await guild_sets_check(
-            interaction.guild.id, "GENERAL_SETTINGS", "EXPERIENCE"
-        )
-        if settings is None:
-            await interaction.response.send_message(
-                "Данная функция не включена на сервере", ephemeral=True
-            )
+        settings = await guild_sets_check(interaction.guild.id, "GENERAL", "EXPERIENCE")
+        if await is_none(interaction, settings):
             return
 
         guild = interaction.guild
@@ -122,19 +107,15 @@ class ExperienceCommands(commands.Cog):
             member_id = int(member.strip("<@>"))
             member = guild.get_member(member_id)
             user = await DB.add_user(
-                {
-                    "ds_id": member_id,
-                    "username": member.name,
-                    "experience": количество,
-                }
+                ds_id=member_id,
+                username=member.name,
+                experience=количество,
             )
             if user:
                 await DB.update_user(
-                    {
-                        "ds_id": user.ds_id,
-                        "username": user.username,
-                        "experience": user.experience + количество,
-                    }
+                    ds_id=user.ds_id,
+                    username=user.username,
+                    experience=user.experience + количество,
                 )
                 members_list_values.append(user.experience + количество)
             else:
@@ -167,13 +148,8 @@ class ExperienceCommands(commands.Cog):
         количество: int,
     ):
         """Adding to several members a certain amount of scores"""
-        guild = await guild_sets_check(
-            interaction.guild.id, "GENERAL_SETTINGS", "EXPERIENCE"
-        )
-        if guild is None:
-            await interaction.response.send_message(
-                "Данная функция не включена на сервере", ephemeral=True
-            )
+        settings = await guild_sets_check(interaction.guild.id, "GENERAL", "EXPERIENCE")
+        if await is_none(interaction, settings):
             return
 
         members_list = участники.split()
@@ -187,20 +163,16 @@ class ExperienceCommands(commands.Cog):
             else:
                 if количество >= user.experience:
                     await DB.update_user(
-                        {
-                            "ds_id": user.ds_id,
-                            "username": user.username,
-                            "experience": 0,
-                        }
+                        ds_id=user.ds_id,
+                        username=user.username,
+                        experience=0,
                     )
                     members_list_values.append(0)
                 else:
                     await DB.update_user(
-                        {
-                            "ds_id": user.ds_id,
-                            "username": user.username,
-                            "experience": user.experience - количество,
-                        }
+                        ds_id=user.ds_id,
+                        username=user.username,
+                        experience=user.experience - количество,
                     )
                     members_list_values.append(user.experience - количество)
 
@@ -239,12 +211,9 @@ class MessagesCommands(commands.Cog):
     ):
         """Setting to several members a certain amount of messages"""
         settings = await guild_sets_check(
-            interaction.guild.id, "GENERAL_SETTINGS", "AUTOUPDATE_MESSAGES", "MESSAGES"
+            interaction.guild.id, "GENERAL", "AUTOUPDATE", "MESSAGES"
         )
-        if settings is None:
-            await interaction.response.send_message(
-                "Данная функция не включена на сервере", ephemeral=True
-            )
+        if await is_none(interaction, settings):
             return
 
         guild = interaction.guild
@@ -255,19 +224,15 @@ class MessagesCommands(commands.Cog):
             member_id = int(member.strip("<@>"))
             member = guild.get_member(member_id)
             user = await DB.add_user(
-                {
-                    "ds_id": member.id,
-                    "username": member.name,
-                    "messages": количество,
-                }
+                ds_id=member.id,
+                username=member.name,
+                messages=количество,
             )
             if user:
                 await DB.update_user(
-                    {
-                        "ds_id": user.ds_id,
-                        "username": user.username,
-                        "messages": количество,
-                    }
+                    ds_id=user.ds_id,
+                    username=user.username,
+                    messages=количество,
                 )
             members_list_values.append(количество)
 

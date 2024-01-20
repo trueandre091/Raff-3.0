@@ -33,28 +33,28 @@ bot.load_extension("cogs.cog_requests")
 bot.load_extension("cogs.cog_scores")
 bot.load_extension("cogs.cog_special")
 bot.load_extension("cogs.cog_experience")
-bot.load_extension("cogs.cog_setguilds")
+# bot.load_extension("cogs.cog_setguilds")
 bot.load_extension("cogs.cog_guilds_functions")
 
 
 @bot.event
 async def on_message(message: disnake.Message):
     """On every sent message functions"""
-    guild = await guild_sets_check(message.guild.id)
-    if guild is None:
+    settings = await guild_sets_check(message.guild.id)
+    if settings is None:
         return
 
     await count_every_message(message)
 
-    await count_experience(message, guild)
+    await count_experience(message, settings)
 
-    await moderation(message, guild)
+    await moderation(message, settings)
 
-    await reactions_thread_check(message, guild)
+    await reactions_thread_check(message, settings)
 
-    await boosts_check(message, guild)
+    await boosts_check(message, settings)
 
-    await order_command_check(bot, message, guild)
+    await order_command_check(bot, message, settings)
 
 
 @bot.event

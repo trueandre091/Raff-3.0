@@ -12,7 +12,8 @@ logger.add(
     rotation="1 week",
     compression="zip",
     backtrace=True,
-    diagnose=True,)
+    diagnose=True,
+)
 
 
 ####################################   USERS TESTS   ############################################

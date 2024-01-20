@@ -80,7 +80,7 @@ class CheckCommands(commands.Cog):
 
         settings["COUNTERS"][ключ] = значение
 
-        await GDB.update_guild({"guild_id": interaction.guild.id, "guild_sets": settings})
+        await GDB.update_guild(guild_id=interaction.guild.id, guild_sets=settings)
         await interaction.response.send_message("Изменено")
 
 

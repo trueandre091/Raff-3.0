@@ -3,7 +3,7 @@ import disnake
 from disnake.ext import commands
 from random import randint, shuffle
 
-from cogs.cog_guilds_functions import guild_sets_check, DB
+from cogs.cog_guilds_functions import guild_sets_check, DB, is_none
 from cogs.counter_functions import count_lose_scores
 
 
@@ -173,20 +173,17 @@ class BlackJack(commands.Cog):
         self, interaction: disnake.ApplicationCommandInteraction, ставка: int = 0
     ):
         settings = await guild_sets_check(
-            interaction.guild.id, "GENERAL_SETTINGS", "GAMES", "BLACKJACK"
+            interaction.guild.id, "GENERAL", "GAMES", "BLACKJACK"
         )
-        if settings is None:
-            await interaction.response.send_message(
-                "Данная функция отключена на сервере", ephemeral=True
-            )
+        if await is_none(interaction, settings):
             return
-        elif interaction.channel.id not in settings["COGS_SETTINGS"]["GAMES"]["CHANNELS"]:
+        elif interaction.channel.id not in settings["COGS"]["GAMES"]["CHANNELS"]:
             await interaction.response.send_message(
                 "Данная функция отключена в этом канале", ephemeral=True
             )
             return
 
-        user = await DB.get_user({"ds_id": interaction.author.id})
+        user = await DB.get_user(ds_id=interaction.author.id)
 
         author = interaction.author.id
         if ставка:
@@ -387,22 +384,19 @@ class Roulette(commands.Cog):
         self, interaction: disnake.ApplicationCommandInteraction, ставка: int = 0
     ):
         settings = await guild_sets_check(
-            interaction.guild.id, "GENERAL_SETTINGS", "GAMES", "ROULETTE"
+            interaction.guild.id, "GENERAL", "GAMES", "ROULETTE"
         )
-        if settings is None:
-            await interaction.response.send_message(
-                "Данная функция отключена на сервере", ephemeral=True
-            )
+        if await is_none(interaction, settings):
             return
-        elif interaction.channel.id not in settings["COGS_SETTINGS"]["GAMES"]["CHANNELS"]:
+        elif interaction.channel.id not in settings["COGS"]["GAMES"]["CHANNELS"]:
             await interaction.response.send_message(
                 "Данная функция отключена в этом канале", ephemeral=True
             )
             return
 
-        settings = settings["COGS_SETTINGS"]["GAMES"]["ROULETTE"]
+        settings = settings["COGS"]["GAMES"]["ROULETTE"]
 
-        user = await DB.get_user({"ds_id": interaction.author.id})
+        user = await DB.get_user(ds_id=interaction.author.id)
 
         if user:
             if ставка > user.scores or ставка < 1:
@@ -416,35 +410,29 @@ class Roulette(commands.Cog):
                 lucky = randint(0, 100)
 
                 await DB.update_user(
-                    {
-                        "ds_id": user.ds_id,
-                        "username": user.username,
-                        "scores": user.scores - ставка,
-                    }
+                    ds_id=user.ds_id,
+                    username=user.username,
+                    scores=user.scores - ставка,
                 )
 
                 flag = 1
                 if lucky == 100:
                     flag = 3
                     await DB.update_user(
-                        {
-                            "ds_id": user.ds_id,
-                            "username": user.username,
-                            "scores": user.scores + ставка,
-                        }
+                        ds_id=user.ds_id,
+                        username=user.username,
+                        scores=user.scores + ставка,
                     )
                 elif lucky >= settings["CHANCE"]:
                     flag = 2
                     await DB.update_user(
-                        {
-                            "ds_id": user.ds_id,
-                            "username": user.username,
-                            "scores": user.scores + ставка * 2,
-                        }
+                        ds_id=user.ds_id,
+                        username=user.username,
+                        scores=user.scores + ставка * 2,
                     )
                 elif lucky == 0:
                     flag = 0
-                user = await DB.get_user({"ds_id": user.ds_id})
+                user = await DB.get_user(ds_id=user.ds_id)
 
                 embed_dict = {
                     "title": "",

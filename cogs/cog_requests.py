@@ -2,7 +2,13 @@ import disnake
 from disnake.ext import commands, tasks
 from disnake.ui import Button
 
-from cogs.cog_guilds_functions import guild_sets_check, find_guilds_by_param, encoder, GDB
+from cogs.cog_guilds_functions import (
+    guild_sets_check,
+    find_guilds_by_param,
+    encoder,
+    GDB,
+    is_none,
+)
 
 
 class Request:
@@ -31,17 +37,23 @@ class RequestsReminder(commands.Cog):
 
     @tasks.loop(hours=1)
     async def irresponsible_requests(self):
-        guilds = await find_guilds_by_param(self.bot, "GENERAL_SETTINGS", "REQUESTS")
+        guilds = await find_guilds_by_param(self.bot, "GENERAL", "REQUESTS")
 
         for settings in guilds:
             guild = self.bot.get_guild(settings["GUILD_ID"])
-            settings = settings["COGS_SETTINGS"]["REQUESTS"]
+            settings = settings["COGS"]["REQUESTS"]
 
-            admin_channel = settings["ADMIN_CHANNEL"]
-            channel_logs = settings["LOGS_MESSAGE"]["CHANNEL"]
+            reminder_channel = settings["CHANNELS"]["REMINDER"]
+            channel_logs = settings["CHANNELS"]["LOGS"]
 
-            channel = guild.get_channel(admin_channel) if admin_channel is not None else None
-            channel_logs = guild.get_channel(channel_logs) if channel_logs is not None else None
+            channel = (
+                guild.get_channel(reminder_channel)
+                if reminder_channel is not None
+                else None
+            )
+            channel_logs = (
+                guild.get_channel(channel_logs) if channel_logs is not None else None
+            )
 
             if channel is None or channel_logs is None:
                 continue
@@ -83,21 +95,16 @@ class SendMessage(commands.Cog):
         self, interaction: disnake.ApplicationCommandInteraction
     ):
         """Sending the message to make requests"""
-        settings = await guild_sets_check(
-            interaction.guild.id, "GENERAL_SETTINGS", "REQUESTS"
-        )
-        if settings is None:
-            await interaction.response.send_message(
-                "Данная функция отключена на сервере", ephemeral=True
-            )
+        settings = await guild_sets_check(interaction.guild.id, "GENERAL", "REQUESTS")
+        if await is_none(interaction, settings):
             return
 
-        settings = settings["COGS_SETTINGS"]["REQUESTS"]
+        settings = settings["COGS"]["REQUESTS"]
 
         embed = disnake.Embed(
-            title=settings["BUTTONS_MESSAGE"]["EMBED"]["TITLE"],
-            description=settings["BUTTONS_MESSAGE"]["EMBED"]["DESCRIPTION"],
-            color=settings["BUTTONS_MESSAGE"]["EMBED"]["COLOR"],
+            title=settings["MESSAGE"]["EMBED"]["TITLE"],
+            description=settings["MESSAGE"]["EMBED"]["DESCRIPTION"],
+            color=settings["MESSAGE"]["EMBED"]["COLOR"],
         )
 
         await interaction.channel.send(
@@ -113,38 +120,6 @@ class SendMessage(commands.Cog):
         )
 
         await interaction.response.send_message("Сообщение создано!", ephemeral=True)
-
-    @commands.slash_command(
-        description="Ответить на запрос участника",
-        default_member_permissions=disnake.Permissions(administrator=True),
-    )
-    async def ответ_администрации(
-        self,
-        interaction: disnake.ApplicationCommandInteraction,
-        запросивший: disnake.Member,
-        ответ: str,
-    ):
-        """Answering to the request (not relevant now)"""
-        settings = await guild_sets_check(
-            interaction.guild.id, "GENERAL_SETTINGS", "REQUESTS"
-        )
-        if settings is None:
-            await interaction.response.send_message(
-                "Данная функция отключена на сервере", ephemeral=True
-            )
-            return
-
-        text_f = (
-            "Если вас не устраивает ответ администрации или вы хотите поговорить с админом подробнее по этому "
-            "запросу - напишите ему в личные сообщения по нику выше"
-        )
-
-        embed = disnake.Embed(title="Ответ", description=ответ, color=0x2B2D31)
-        embed.add_field(name="Ответчик", value=interaction.author.mention)
-        embed.set_footer(text=text_f)
-
-        await запросивший.send(embed=embed)
-        await interaction.response.send_message("Ответ отправлен!", ephemeral=True)
 
 
 class Application1(disnake.ui.Modal):
@@ -175,14 +150,14 @@ class Application1(disnake.ui.Modal):
     async def callback(self, interaction: disnake.ModalInteraction):
         """Sending the messages on interaction with modal application"""
         guild = await GDB.get_guild({"guild_id": interaction.guild.id})
-        settings = encoder.code_from_json(guild.guild_sets)["COGS_SETTINGS"]["REQUESTS"]
+        settings = encoder.code_from_json(guild.guild_sets)["COGS"]["REQUESTS"]
 
         values = []
         for v in interaction.text_values.values():
             values.append(v)
 
         obj = Request(interaction.guild.id, interaction.author, values[0], values[1])
-        channel = self.bot.get_channel(settings["LOGS_MESSAGE"]["CHANNEL"])
+        channel = self.bot.get_channel(settings["CHANNELS"]["LOGS"])
 
         embed = disnake.Embed(
             title=f"Новое сообщение 📥",
@@ -194,7 +169,7 @@ class Application1(disnake.ui.Modal):
         )
 
         await interaction.response.send_message(
-            settings["BUTTONS_MESSAGE"]["CALLBACK"], ephemeral=True
+            settings["MESSAGE"]["CALLBACK"], ephemeral=True
         )
         await channel.send(
             embed=embed,
@@ -301,12 +276,9 @@ class RequestInteractions(commands.Cog):
         if interaction.type == disnake.InteractionType.component:
             if interaction.component.custom_id == "request":
                 settings = await guild_sets_check(
-                    interaction.guild.id, "GENERAL_SETTINGS", "REQUESTS"
+                    interaction.guild.id, "GENERAL", "REQUESTS"
                 )
-                if settings is None:
-                    await interaction.response.send_message(
-                        "Данная функция отключена на сервере", ephemeral=True
-                    )
+                if await is_none(interaction, settings):
                     return
 
                 modal = Application1(self.bot)
@@ -317,12 +289,9 @@ class RequestInteractions(commands.Cog):
 
             elif interaction.component.custom_id == "read":
                 settings = await guild_sets_check(
-                    interaction.guild.id, "GENERAL_SETTINGS", "REQUESTS"
+                    interaction.guild.id, "GENERAL", "REQUESTS"
                 )
-                if settings is None:
-                    await interaction.response.send_message(
-                        "Данная функция отключена на сервере", ephemeral=True
-                    )
+                if await is_none(interaction, settings):
                     return
 
                 for request in Request.list_of_objects:
@@ -348,12 +317,9 @@ class RequestInteractions(commands.Cog):
 
             elif interaction.component.custom_id == "unread":
                 settings = await guild_sets_check(
-                    interaction.guild.id, "GENERAL_SETTINGS", "REQUESTS"
+                    interaction.guild.id, "GENERAL", "REQUESTS"
                 )
-                if settings is None:
-                    await interaction.response.send_message(
-                        "Данная функция отключена на сервере", ephemeral=True
-                    )
+                if await is_none(interaction, settings):
                     return
 
                 for request in Request.list_of_objects:
@@ -386,12 +352,9 @@ class RequestInteractions(commands.Cog):
 
             elif interaction.component.custom_id == "deny":
                 settings = await guild_sets_check(
-                    interaction.guild.id, "GENERAL_SETTINGS", "REQUESTS"
+                    interaction.guild.id, "GENERAL", "REQUESTS"
                 )
-                if settings is None:
-                    await interaction.response.send_message(
-                        "Данная функция отключена на сервере", ephemeral=True
-                    )
+                if await is_none(interaction, settings):
                     return
 
                 button_yes = Button(
@@ -426,12 +389,9 @@ class RequestInteractions(commands.Cog):
 
             elif interaction.component.custom_id == "answer":
                 settings = await guild_sets_check(
-                    interaction.guild.id, "GENERAL_SETTINGS", "REQUESTS"
+                    interaction.guild.id, "GENERAL", "REQUESTS"
                 )
-                if settings is None:
-                    await interaction.response.send_message(
-                        "Данная функция отключена на сервере", ephemeral=True
-                    )
+                if await is_none(interaction, settings):
                     return
 
                 modal = Application2(self.bot)
