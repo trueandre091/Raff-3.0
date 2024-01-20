@@ -21,10 +21,10 @@ class DataBase:
             self.echo = echo_mode
 
             # FOR MAIN APP
-            # self.engine = create_engine("sqlite:///DB/DataBase.db", echo=self.echo)
+            self.engine = create_engine("sqlite:///DB/DataBase.db", echo=self.echo)
 
             # FOP TESTS
-            self.engine = create_engine("sqlite:///DataBase.db", echo=self.echo)
+            # self.engine = create_engine("sqlite:///DataBase.db", echo=self.echo)
 
             # FOR UTILS
             # self.engine = create_engine("sqlite:///../DB/DataBase.db", echo=self.echo)
@@ -45,7 +45,9 @@ class UserDBase(DataBase):
     You can choose echo mode by passing the echo_mode parameter
     """
 
-    async def add_user(self, data: Union[dict, list[dict]] = None, **kwargs) -> Union[Users, list[Users], None]:
+    async def add_user(
+        self, data: Union[dict, list[dict]]
+    ) -> Union[Users, list[Users], None]:
         """
         Adds a user to the database
 
@@ -58,8 +60,6 @@ class UserDBase(DataBase):
         Returns a User model object if the operation is successful,
         or nothing if there is an error
         """
-        if not data:
-            data = kwargs
 
         user_list = []
         is_dict = True if type(data) is dict else False
@@ -186,7 +186,9 @@ class UserDBase(DataBase):
                 if type(data) is list:
                     for ds_id in data:
                         user = (
-                            select(Users).options(selectinload(Users.guilds)).filter_by(ds_id=ds_id)
+                            select(Users)
+                            .options(selectinload(Users.guilds))
+                            .filter_by(ds_id=ds_id)
                         )
 
                         user = session.scalars(user).first()
@@ -232,7 +234,9 @@ class UserDBase(DataBase):
 
         return
 
-    async def get_user(self, data: Union[dict, list[dict]] = None, **kwargs) -> Union[Users, list[Users], None]:
+    async def get_user(
+        self, data: Union[dict, list[dict]]
+    ) -> Union[Users, list[Users], None]:
         """
         Calls staticmethod get_user_static
 
@@ -253,9 +257,6 @@ class UserDBase(DataBase):
             On error will return a None object.
         """
 
-        if data is None:
-            data = kwargs
-
         with self.Session() as session:
             user = self.get_user_static(session, data)
             if user:
@@ -264,7 +265,7 @@ class UserDBase(DataBase):
             return user
 
     async def get_user_with_guilds(
-        self, data: Union[dict, list[dict]] = None, **kwargs
+        self, data: Union[dict, list[dict]]
     ) -> Union[Users, list[Users], None]:
         """
         Calls staticmethod get_user_static_with_guilds
@@ -284,9 +285,6 @@ class UserDBase(DataBase):
             If a list was passed, it will return a list of user objects with guilds.
             On error will return a None object.
         """
-
-        if data is None:
-            data = kwargs
 
         with self.Session() as session:
             user = self.get_user_static_with_guilds(session, data)
@@ -328,7 +326,9 @@ class UserDBase(DataBase):
             except Exception as e:
                 logger.exception("Something went wrong when get all users with guilds", e)
 
-    async def update_user(self, data: Union[dict, list[dict]] = None, **kwargs) -> Union[Users, list[Users], None]:
+    async def update_user(
+        self, data: Union[dict, list[dict]]
+    ) -> Union[Users, list[Users], None]:
         """
         Updates user from database. Use get_user_static for getting user.
 
@@ -344,9 +344,6 @@ class UserDBase(DataBase):
         or None if there is an error
         """
 
-        if data is None:
-            data = kwargs
-
         is_dict = True if type(data) is dict else False
 
         if is_dict:
@@ -359,10 +356,14 @@ class UserDBase(DataBase):
                     for user in users:
                         if data["ds_id"] == user.ds_id:
                             user.username = (
-                                user.username if data.get("username") is None else data["username"]
+                                user.username
+                                if data.get("username") is None
+                                else data["username"]
                             )
                             user.scores = (
-                                user.scores if data.get("scores") is None else data["scores"]
+                                user.scores
+                                if data.get("scores") is None
+                                else data["scores"]
                             )
                             user.experience = (
                                 user.experience
@@ -370,7 +371,9 @@ class UserDBase(DataBase):
                                 else data["experience"]
                             )
                             user.messages = (
-                                user.messages if data.get("messages") is None else data["messages"]
+                                user.messages
+                                if data.get("messages") is None
+                                else data["messages"]
                             )
 
                 session.commit()
@@ -436,7 +439,9 @@ class GuildsDBase(DataBase):
     You can choose echo mode by passing the echo_mode parameter
     """
 
-    async def add_guild(self, data: Union[dict, list[dict]] = None, **kwargs) -> Union[Guilds, list[Guilds], None]:
+    async def add_guild(
+        self, data: Union[dict, list[dict]]
+    ) -> Union[Guilds, list[Guilds], None]:
         """
         Adds a guild to the database
 
@@ -450,10 +455,6 @@ class GuildsDBase(DataBase):
         Returns a Guild model object if the operation is successful,
         or nothing if there is an error
         """
-
-        if data is None:
-            data = kwargs
-
         guilds_list = []
         is_dict = True if type(data) is dict else False
 
@@ -584,7 +585,9 @@ class GuildsDBase(DataBase):
 
                         guild = session.scalars(guild).first()
                         if not guild:
-                            logger.error("Something went wrong when get guild for relationship")
+                            logger.error(
+                                "Something went wrong when get guild for relationship"
+                            )
                             return
 
                         guild_list.append(guild)
@@ -599,7 +602,9 @@ class GuildsDBase(DataBase):
 
                         guild = session.scalars(guild).first()
                         if not guild:
-                            logger.error("Can't find guild with users by discord id in database")
+                            logger.error(
+                                "Can't find guild with users by discord id in database"
+                            )
                             return
 
                         guild_list.append(guild)
@@ -613,7 +618,9 @@ class GuildsDBase(DataBase):
 
                         guild = session.scalars(guild).first()
                         if not guild:
-                            logger.error("Can't find guild with users by guild name in database")
+                            logger.error(
+                                "Can't find guild with users by guild name in database"
+                            )
                             return
 
                         guild_list.append(guild)
@@ -625,7 +632,9 @@ class GuildsDBase(DataBase):
 
         return
 
-    async def get_guild(self, data: Union[dict, list[dict]] = None, **kwargs) -> Union[Guilds, list[Guilds], None]:
+    async def get_guild(
+        self, data: Union[dict, list[dict]]
+    ) -> Union[Guilds, list[Guilds], None]:
         """
         Calls staticmethod get_guild_static
 
@@ -645,10 +654,6 @@ class GuildsDBase(DataBase):
             If a list was passed, it will return a list of guilds objects.
             On error will return a None object.
         """
-
-        if data is None:
-            data = kwargs
-
         with self.Session() as session:
             guild = self.get_guild_static(session, data)
             if guild:
@@ -657,7 +662,7 @@ class GuildsDBase(DataBase):
             return guild
 
     async def get_guild_with_users(
-        self, data: Union[dict, list[dict]] = None, **kwargs
+        self, data: Union[dict, list[dict]]
     ) -> Union[Guilds, list[Guilds], None]:
         """
         Calls staticmethod get_guild_static_with_users
@@ -677,10 +682,6 @@ class GuildsDBase(DataBase):
             If a list was passed, it will return a list of guilds objects with users.
             On error will return a None object.
         """
-
-        if data is None:
-            data = kwargs
-
         with self.Session() as session:
             guild = self.get_guild_static_with_users(session, data)
             if guild:
@@ -722,7 +723,7 @@ class GuildsDBase(DataBase):
                 logger.error("Something went wrong when get all guilds with users\n", e)
 
     async def update_guild(
-        self, data: Union[dict, list[dict]] = None, **kwargs
+        self, data: Union[dict, list[dict]]
     ) -> Union[Guilds, list[Guilds], None]:
         """
         Updates guild from database. Use get_guild_static for getting user.
@@ -738,9 +739,6 @@ class GuildsDBase(DataBase):
         Returns a guild model object if the operation is successful,
         or None if there is an error
         """
-
-        if data is None:
-            data = kwargs
 
         guilds_list = []
         is_dict = True if type(data) is dict else False
@@ -798,7 +796,9 @@ class GuildsDBase(DataBase):
         with self.Session() as session:
             try:
                 guilds = (
-                    select(Guilds).options(selectinload(Guilds.users)).filter_by(guild_id=guild_id)
+                    select(Guilds)
+                    .options(selectinload(Guilds.users))
+                    .filter_by(guild_id=guild_id)
                 )
 
                 res = session.scalars(guilds).first()
@@ -818,7 +818,9 @@ class GuildsDBase(DataBase):
                 return sorted_res
 
             except Exception as e:
-                logger.error("Something went wrong when get users top in guild by scores\n", e)
+                logger.error(
+                    "Something went wrong when get users top in guild by scores\n", e
+                )
 
         return
 
@@ -835,7 +837,9 @@ class GuildsDBase(DataBase):
         with self.Session() as session:
             try:
                 guilds = (
-                    select(Guilds).options(selectinload(Guilds.users)).filter_by(guild_id=guild_id)
+                    select(Guilds)
+                    .options(selectinload(Guilds.users))
+                    .filter_by(guild_id=guild_id)
                 )
 
                 res = session.scalars(guilds).first()
@@ -879,7 +883,7 @@ class RelationshipsDBase(DataBase):
         self.guilds_db = GuildsDBase(echo_mode)
         self.users_db = UserDBase(echo_mode)
 
-    async def add_relationship(self, data: Union[dict, list[dict]] = None, **kwargs) -> Union[True, None]:
+    async def add_relationship(self, data: Union[dict, list[dict]]) -> Union[True, None]:
         """
         Adds a relationship between the user and the guild
 
@@ -891,9 +895,6 @@ class RelationshipsDBase(DataBase):
 
         Returns True if operation was successful and None if there was an error
         """
-
-        if data is None:
-            data = kwargs
 
         is_dict = True if type(data) is dict else False
 
@@ -932,7 +933,7 @@ class RelationshipsDBase(DataBase):
 
         return
 
-    async def delete_relationship(self, data: Union[dict, list[dict]] = None, **kwargs) -> Union[True, None]:
+    async def delete_relationship(self, data) -> Union[True, None]:
         """
         Deletes a relationship between the user and the guild
 
@@ -944,9 +945,6 @@ class RelationshipsDBase(DataBase):
 
         Returns True if operation was successful and None if there was an error
         """
-
-        if data is None:
-            data = kwargs
 
         is_dict = True if type(data) is dict else False
 

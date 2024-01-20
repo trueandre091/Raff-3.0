@@ -16,4 +16,4 @@ class JsonEncoder:
 
     @staticmethod
     def get_default_cfg():
-        return json.dumps(GUILD_CONFIG)
+        return GUILD_CONFIG
