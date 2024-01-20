@@ -37,56 +37,6 @@ bot.load_extension("cogs.cog_guilds_functions")
 
 
 @bot.event
-async def on_member_join(member: disnake.Member):
-    """Greeting newbies when they come"""
-    settings = await guild_sets_check(member.guild.id, "GENERAL_SETTINGS", "WELCOME")
-    if settings is None:
-        return
-    settings = settings["WELCOME_SETTINGS"]
-
-    channel = bot.get_channel(settings["CHANNEL"])
-    variables = {
-        "member.mention": member.mention,
-        "member.name": member.name,
-        "member.nick": member.nick,
-        "member": member,
-    }
-    embed_dict = {
-        "title": settings["EMBED"]["TITLE"].format(**variables),
-        "description": settings["EMBED"]["DESCRIPTION"].format(**variables),
-        "image": {"url": settings["BACKGROUND_IMAGE"]},
-        "thumbnail": {},
-        "color": settings["EMBED"]["COLOR"],
-        "timestamp": str(datetime.now()),
-    }
-    try:
-        embed_dict["thumbnail"]["url"] = member.avatar.url
-    except AttributeError:
-        embed_dict["thumbnail"]["url"] = settings["AVATAR_IF_ERROR"]
-
-    await channel.send(embed=disnake.Embed.from_dict(embed_dict))
-
-
-@bot.event
-async def on_member_remove(member: disnake.Member):
-    """Farewell to members when they leave"""
-    settings = await guild_sets_check(member.guild.id, "GENERAL_SETTINGS", "FAREWELL")
-    if settings is None:
-        return
-    settings = settings["FAREWELL_SETTINGS"]
-
-    channel = bot.get_channel(settings["CHANNEL"])
-    variables = {
-        "member.mention": member.mention,
-        "member.name": member.name,
-        "member.nick": member.nick,
-        "member": member,
-    }
-
-    await channel.send(settings["MESSAGE"].format(**variables))
-
-
-@bot.event
 async def on_message(message: disnake.Message):
     """On every sent message functions"""
     guild = await guild_sets_check(message.guild.id)
@@ -124,7 +74,6 @@ async def on_guild_join(guild: disnake.Guild):
 @bot.event
 async def on_ready():
     """Bot writes in console when it starts"""
-    # print(f"Bot {bot.user} is ready to work!")
     logger.info(f"Bot {bot.user} is ready to work!")
     # await GDB.update_guild({"guild_id": 785312593614209055, "guild_sets": dicts})
 
