@@ -1,7 +1,7 @@
 import disnake
 from disnake.ext import commands
 from datetime import datetime
-from cogs import counter_functions
+from cogs.counter_functions import *
 
 
 async def moderation(message: disnake.Message, settings: dict):
@@ -15,38 +15,19 @@ async def moderation(message: disnake.Message, settings: dict):
 
 async def gif_moderation(message: disnake.Message, settings: dict):
     """Gif moderation"""
+    flag = False
     if message.attachments:
         if "gif" in message.attachments[-1].url:
-            channel = message.channel
-
-            flag = False
-            skip_first_flag = False
-            async for msg in channel.history(limit=settings["MESSAGES_FOR_GIF"] + 1):
-                if skip_first_flag:
-                    if msg.attachments:
-                        if "gif" in msg.attachments[0].url:
-                            flag = True
-                            break
-                    if "gif" in msg.content:
-                        flag = True
-                        break
-                skip_first_flag = True
-
-            if flag:
-                await counter_functions.count_failed_gif_counter()
-
-                await message.reply(
-                    f"{message.author.mention}, гифки можно отправлять раз в {settings['MESSAGES_FOR_GIF']} сообщений",
-                    delete_after=5,
-                )
-                await message.delete()
-
+            flag = True
     elif "gif" in message.content:
+        flag = True
+
+    if flag:
         channel = message.channel
 
         flag = False
         skip_first_flag = False
-        async for msg in channel.history(limit=settings["MESSAGES_FOR_GIF"] + 1):
+        async for msg in channel.history(limit=settings["DELAY"] + 1):
             if skip_first_flag:
                 if msg.attachments:
                     if "gif" in msg.attachments[0].url:
@@ -58,10 +39,10 @@ async def gif_moderation(message: disnake.Message, settings: dict):
             skip_first_flag = True
 
         if flag:
-            await counter_functions.count_failed_gif_counter()
+            await count_failed_gif_counter()
 
             await message.reply(
-                f"{message.author.mention}, гифки можно отправлять раз в {settings['MESSAGES_FOR_GIF']} сообщений",
+                f"{message.author.mention}, гифки можно отправлять раз в {settings['DELAY']} сообщений",
                 delete_after=5,
             )
             await message.delete()
@@ -117,9 +98,7 @@ async def boosts_check(message: disnake.Message, settings: dict) -> None:
                 skip_first_flag = False
 
             if flag:
-                await counter_functions.count_users_boosts(
-                    message.interaction.user.id, message.guild.id
-                )
+                await count_users_boosts(message.interaction.user.id, message.guild.id)
 
 
 async def order_command_check(
@@ -141,7 +120,7 @@ async def order_command_check(
             )
 
         else:
-            await counter_functions.count_orders_counter(message.guild.id)
+            await count_orders_counter(message.guild.id)
 
             barmen_role = f"<@&{settings['ROLE']}>"
             embed = disnake.Embed(

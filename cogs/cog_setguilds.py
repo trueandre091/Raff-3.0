@@ -38,7 +38,9 @@ async def get_channel_by_id(
         if len(data) != 0:
             for id in data:
                 if id is not None:
-                    channel: disnake.TextChannel = await interaction.guild.fetch_channel(id)
+                    channel: disnake.TextChannel = await interaction.guild.fetch_channel(
+                        id
+                    )
                     channels.append(channel.name)
                 else:
                     return "не задан"
@@ -110,13 +112,19 @@ async def toggle_set_easy(self, interaction: disnake.MessageInteraction):
         switch_to = True
 
     key0 = "GENERAL"
-    if type(self.keys[str(fn_num)]) is list:
-        key1 = self.keys[str(fn_num)][0]
-        key2 = self.keys[str(fn_num)][1]
-        self.parent[str(interaction.guild.id)].settings[key0][key1][key2] = switch_to
-    else:
-        key1 = self.keys[str(fn_num)]
-        self.parent[str(interaction.guild.id)].settings[key0][key1] = switch_to
+    try:
+        if type(self.keys[str(fn_num)]) is list:
+            key1 = self.keys[str(fn_num)][0]
+            key2 = self.keys[str(fn_num)][1]
+            self.parent[str(interaction.guild.id)].settings[key0][key1][key2] = switch_to
+        else:
+            key1 = self.keys[str(fn_num)]
+            self.parent[str(interaction.guild.id)].settings[key0][key1] = switch_to
+    except KeyError:
+        await interaction.response.send_message(
+            "Сообщение устарело", ephemeral=True, delete_after=5
+        )
+
     res = await self.gdb.update_guild(
         {
             "guild_id": interaction.guild.id,
@@ -154,7 +162,9 @@ async def toggle_set(self, interaction: disnake.MessageInteraction, switch_to: b
     else:
         self.settings["GENERAL"][self.toggle] = switch_to
 
-    res = await self.gdb.update_guild(guild_id=interaction.guild.id, guild_sets=self.settings)
+    res = await self.gdb.update_guild(
+        guild_id=interaction.guild.id, guild_sets=self.settings
+    )
     if res:
         if switch_to:
             await interaction.response.send_message(
@@ -331,7 +341,9 @@ class GuildSetsGeneralView:
                     Button(
                         label=f"{place}",
                         custom_id=f"fn_{place}",
-                        style=disnake.ButtonStyle.green if value else disnake.ButtonStyle.red,
+                        style=disnake.ButtonStyle.green
+                        if value
+                        else disnake.ButtonStyle.red,
                     )
                 )
                 place += 1
@@ -343,7 +355,9 @@ class GuildSetsGeneralView:
                         Button(
                             label=f"{place}",
                             custom_id=f"fn_{place}",
-                            style=disnake.ButtonStyle.green if v else disnake.ButtonStyle.red,
+                            style=disnake.ButtonStyle.green
+                            if v
+                            else disnake.ButtonStyle.red,
                         )
                     )
                     place += 1
@@ -431,7 +445,8 @@ class GuildSetsHomeScreenView(View):
         self.parent.settings = enc.get_default_cfg()
         self.parent.settings["GUILD_ID"] = interaction.guild.id
         res = await self.gdb.update_guild(
-            guild_id=interaction.guild.id, guild_sets=enc.code_to_json(self.parent.settings)
+            guild_id=interaction.guild.id,
+            guild_sets=enc.code_to_json(self.parent.settings),
         )
         if res:
             await interaction.response.send_message(
@@ -468,7 +483,9 @@ class GuildSetsGreetView(View):
         self.w_settings["CHANNEL"] = values[0].id if values is not None else None
         await update_sets(self, interaction)
 
-        logger.debug(f"Channel for greetings for guild {interaction.guild.name} was updated")
+        logger.debug(
+            f"Channel for greetings for guild {interaction.guild.name} was updated"
+        )
 
     @button(label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger)
     async def to_back_callback(self, btn: Button, interaction: disnake.Interaction):
@@ -480,7 +497,9 @@ class GuildSetsGreetView(View):
         await GuildSettings.create_general_view(self.parent)
 
     @button(label="Настроить")
-    async def open_greet_set_callback(self, btn: Button, interaction: disnake.Interaction):
+    async def open_greet_set_callback(
+        self, btn: Button, interaction: disnake.Interaction
+    ):
         do_nothing(btn)
         if not await is_admin(interaction):
             return
@@ -495,7 +514,9 @@ class GuildSetsGreetView(View):
 
         await toggle_set(self, interaction, True)
 
-        logger.debug(f"Set WELCOME for guild {interaction.guild.name} was switched to True")
+        logger.debug(
+            f"Set WELCOME for guild {interaction.guild.name} was switched to True"
+        )
 
     @button(label="Выкл", style=disnake.ButtonStyle.danger)
     async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
@@ -505,7 +526,9 @@ class GuildSetsGreetView(View):
 
         await toggle_set(self, interaction, switch_to=False)
 
-        logger.debug(f"Set WELCOME for guild {interaction.guild.name} was switched to False")
+        logger.debug(
+            f"Set WELCOME for guild {interaction.guild.name} was switched to False"
+        )
 
 
 class GreetModal(Modal):
@@ -559,9 +582,15 @@ class GreetModal(Modal):
 
         self.w_settings["EMBED"]["TITLE"] = interaction.text_values["title"]
         self.w_settings["EMBED"]["DESCRIPTION"] = interaction.text_values["description"]
-        self.w_settings["EMBED"]["AVATAR_IF_ERROR"] = interaction.text_values["url_to_ava"]
-        self.w_settings["EMBED"]["BACKGROUND_IMAGE"] = interaction.text_values["background_image"]
-        self.w_settings["EMBED"]["EMBED"]["COLOR"] = int(interaction.text_values["color"], 16)
+        self.w_settings["EMBED"]["AVATAR_IF_ERROR"] = interaction.text_values[
+            "url_to_ava"
+        ]
+        self.w_settings["EMBED"]["BACKGROUND_IMAGE"] = interaction.text_values[
+            "background_image"
+        ]
+        self.w_settings["EMBED"]["EMBED"]["COLOR"] = int(
+            interaction.text_values["color"], 16
+        )
 
         await update_sets(self, interaction)
 
@@ -601,7 +630,9 @@ class GuildSetsFarewellView(View):
         await GuildSettings.create_general_view(self.parent)
 
     @button(label="Настроить")
-    async def open_farewell_set_callback(self, btn: Button, interaction: disnake.Interaction):
+    async def open_farewell_set_callback(
+        self, btn: Button, interaction: disnake.Interaction
+    ):
         do_nothing(btn)
         if not await is_admin(interaction):
             return
@@ -616,7 +647,9 @@ class GuildSetsFarewellView(View):
 
         await toggle_set(self, interaction, switch_to=True)
 
-        logger.debug(f"Set FAREWELL for guild {interaction.guild.name} was switched to True")
+        logger.debug(
+            f"Set FAREWELL for guild {interaction.guild.name} was switched to True"
+        )
 
     @button(label="Выкл", style=disnake.ButtonStyle.danger)
     async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
@@ -626,7 +659,9 @@ class GuildSetsFarewellView(View):
 
         await toggle_set(self, interaction, switch_to=False)
 
-        logger.debug(f"Set FAREWELL for guild {interaction.guild.name} was switched to False")
+        logger.debug(
+            f"Set FAREWELL for guild {interaction.guild.name} was switched to False"
+        )
 
 
 class FarewellModal(Modal):
@@ -672,7 +707,9 @@ class GuildSetsFeedbackView(View):
         placeholder="Куда отправлять запросы?",
         min_values=0,
     )
-    async def admin_select_callback(self, selectMenu: Select, interaction: disnake.Interaction):
+    async def admin_select_callback(
+        self, selectMenu: Select, interaction: disnake.Interaction
+    ):
         if not await is_admin(interaction):
             return
 
@@ -687,13 +724,17 @@ class GuildSetsFeedbackView(View):
         placeholder="Где будем напоминать?",
         min_values=0,
     )
-    async def logs_select_callback(self, selectMenu: Select, interaction: disnake.Interaction):
+    async def logs_select_callback(
+        self, selectMenu: Select, interaction: disnake.Interaction
+    ):
         if not await is_admin(interaction):
             return
 
         values = selectMenu.values
 
-        self.w_settings["CHANNELS"]["REMINDER"] = values[0].id if values is not None else None
+        self.w_settings["CHANNELS"]["REMINDER"] = (
+            values[0].id if values is not None else None
+        )
 
         await update_sets(self, interaction)
 
@@ -707,7 +748,9 @@ class GuildSetsFeedbackView(View):
         await GuildSettings.create_general_view(self.parent)
 
     @button(label="Настроить")
-    async def open_feedback_set_callback(self, btn: Button, interaction: disnake.Interaction):
+    async def open_feedback_set_callback(
+        self, btn: Button, interaction: disnake.Interaction
+    ):
         do_nothing(btn)
         if not await is_admin(interaction):
             return
@@ -722,7 +765,9 @@ class GuildSetsFeedbackView(View):
 
         await toggle_set(self, interaction, switch_to=True)
 
-        logger.debug(f"Set FEEDBACK for guild {interaction.guild.name} was switched to True")
+        logger.debug(
+            f"Set FEEDBACK for guild {interaction.guild.name} was switched to True"
+        )
 
     @button(label="Выкл", style=disnake.ButtonStyle.danger)
     async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
@@ -732,7 +777,9 @@ class GuildSetsFeedbackView(View):
 
         await toggle_set(self, interaction, switch_to=False)
 
-        logger.debug(f"Set FEEDBACK for guild {interaction.guild.name} was switched to False")
+        logger.debug(
+            f"Set FEEDBACK for guild {interaction.guild.name} was switched to False"
+        )
 
 
 class FeedbackModal(Modal):
@@ -777,8 +824,12 @@ class FeedbackModal(Modal):
             return
 
         self.w_settings["MESSAGE"]["EMBED"]["TITLE"] = interaction.text_values["title"]
-        self.w_settings["MESSAGE"]["EMBED"]["DESCRIPTION"] = interaction.text_values["description"]
-        self.w_settings["MESSAGE"]["EMBED"]["COLOR"] = int(interaction.text_values["color"], 16)
+        self.w_settings["MESSAGE"]["EMBED"]["DESCRIPTION"] = interaction.text_values[
+            "description"
+        ]
+        self.w_settings["MESSAGE"]["EMBED"]["COLOR"] = int(
+            interaction.text_values["color"], 16
+        )
         self.w_settings["MESSAGE"]["CALLBACK"] = interaction.text_values["set_callback"]
 
         await update_sets(self, interaction)
@@ -810,7 +861,9 @@ class GuildSetsScoresExpView(View):
 
         await toggle_set(self, interaction, switch_to=True)
 
-        logger.debug(f"Set SCORES and EXP for guild {interaction.guild.name} was switched to True")
+        logger.debug(
+            f"Set SCORES and EXP for guild {interaction.guild.name} was switched to True"
+        )
 
     @button(label="Выкл", style=disnake.ButtonStyle.danger)
     async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
@@ -820,7 +873,9 @@ class GuildSetsScoresExpView(View):
 
         await toggle_set(self, interaction, switch_to=False)
 
-        logger.debug(f"Set SCORES and EXP for guild {interaction.guild.name} was switched to False")
+        logger.debug(
+            f"Set SCORES and EXP for guild {interaction.guild.name} was switched to False"
+        )
 
 
 class GuildSetsGamesView(View):
@@ -841,7 +896,9 @@ class GuildSetsGamesView(View):
         min_values=0,
         max_values=25,
     )
-    async def channel_select_callback(self, selectMenu: Select, interaction: disnake.Interaction):
+    async def channel_select_callback(
+        self, selectMenu: Select, interaction: disnake.Interaction
+    ):
         if not await is_admin(interaction):
             return
 
@@ -918,7 +975,9 @@ class GuildSetsGamesView(View):
 
         await toggle_set(self, interaction, switch_to=False)
 
-        logger.debug(f"Set GAMES for guild {interaction.guild.name} was switched to False")
+        logger.debug(
+            f"Set GAMES for guild {interaction.guild.name} was switched to False"
+        )
 
 
 class SetBlackJackView(View):
@@ -947,7 +1006,9 @@ class SetBlackJackView(View):
 
         await toggle_set(self, interaction, switch_to=True)
 
-        logger.debug(f"Set BLACKJACK for guild {interaction.guild.name} was switched to True")
+        logger.debug(
+            f"Set BLACKJACK for guild {interaction.guild.name} was switched to True"
+        )
 
     @button(label="Выкл", style=disnake.ButtonStyle.danger)
     async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
@@ -957,7 +1018,9 @@ class SetBlackJackView(View):
 
         await toggle_set(self, interaction, switch_to=False)
 
-        logger.debug(f"Set BLACKJACK for guild {interaction.guild.name} was switched to False")
+        logger.debug(
+            f"Set BLACKJACK for guild {interaction.guild.name} was switched to False"
+        )
 
 
 class SetRouletteView(View):
@@ -986,7 +1049,9 @@ class SetRouletteView(View):
 
         await toggle_set(self, interaction, switch_to=True)
 
-        logger.debug(f"Set ROULETTE for guild {interaction.guild.name} was switched to True")
+        logger.debug(
+            f"Set ROULETTE for guild {interaction.guild.name} was switched to True"
+        )
 
     @button(label="Выкл", style=disnake.ButtonStyle.danger)
     async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
@@ -996,7 +1061,9 @@ class SetRouletteView(View):
 
         await toggle_set(self, interaction, switch_to=False)
 
-        logger.debug(f"Set ROULETTE for guild {interaction.guild.name} was switched to False")
+        logger.debug(
+            f"Set ROULETTE for guild {interaction.guild.name} was switched to False"
+        )
 
 
 class GuildSetNearestEventsView(View):
@@ -1036,7 +1103,9 @@ class GuildSetNearestEventsView(View):
         await GuildSettings.create_general_view(self.parent)
 
     @button(label="Настроить")
-    async def open_farewell_set_callback(self, btn: Button, interaction: disnake.Interaction):
+    async def open_farewell_set_callback(
+        self, btn: Button, interaction: disnake.Interaction
+    ):
         do_nothing(btn)
         if not await is_admin(interaction):
             return
@@ -1051,7 +1120,9 @@ class GuildSetNearestEventsView(View):
 
         await toggle_set(self, interaction, switch_to=True)
 
-        logger.debug(f"Set NEAREST_EVENTS for guild {interaction.guild.name} was switched to True")
+        logger.debug(
+            f"Set NEAREST_EVENTS for guild {interaction.guild.name} was switched to True"
+        )
 
     @button(label="Выкл", style=disnake.ButtonStyle.danger)
     async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
@@ -1061,7 +1132,9 @@ class GuildSetNearestEventsView(View):
 
         await toggle_set(self, interaction, switch_to=False)
 
-        logger.debug(f"Set NEAREST_EVENTS for guild {interaction.guild.name} was switched to False")
+        logger.debug(
+            f"Set NEAREST_EVENTS for guild {interaction.guild.name} was switched to False"
+        )
 
 
 class NearestEventModal(Modal):
@@ -1134,7 +1207,9 @@ class GuildSetModerationView(View):
         await GuildSettings.create_general_view(self.parent)
 
     @button(label="Настроить")
-    async def open_farewell_set_callback(self, btn: Button, interaction: disnake.Interaction):
+    async def open_farewell_set_callback(
+        self, btn: Button, interaction: disnake.Interaction
+    ):
         do_nothing(btn)
         if not await is_admin(interaction):
             return
@@ -1149,7 +1224,9 @@ class GuildSetModerationView(View):
 
         await toggle_set(self, interaction, switch_to=True)
 
-        logger.debug(f"Set MODERATION for guild {interaction.guild.name} was switched to True")
+        logger.debug(
+            f"Set MODERATION for guild {interaction.guild.name} was switched to True"
+        )
 
     @button(label="Выкл", style=disnake.ButtonStyle.danger)
     async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
@@ -1159,7 +1236,9 @@ class GuildSetModerationView(View):
 
         await toggle_set(self, interaction, switch_to=False)
 
-        logger.debug(f"Set MODERATION for guild {interaction.guild.name} was switched to False")
+        logger.debug(
+            f"Set MODERATION for guild {interaction.guild.name} was switched to False"
+        )
 
 
 class ModerationModal(Modal):
@@ -1183,9 +1262,7 @@ class ModerationModal(Modal):
         if not await is_admin(interaction):
             return
 
-        self.w_settings["GIF"]["DELAY"] = int(
-            interaction.text_values["messages_for_gif"]
-        )
+        self.w_settings["GIF"]["DELAY"] = int(interaction.text_values["messages_for_gif"])
 
         await update_sets(self, interaction)
 
@@ -1199,7 +1276,9 @@ class GuildSetReactionsThreadsView:
         self.toggle = "REACTIONS_THREADS"
         self.view_manager = View()
 
-        self.home_screen_btn = Button(label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger)
+        self.home_screen_btn = Button(
+            label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger
+        )
 
         self.add_option_btn = Button(label="+", style=disnake.ButtonStyle.green)
 
@@ -1297,7 +1376,9 @@ class OptionThreadView(View):
         await GuildSettings.create_auto_reactions_threads_view(self.parent)
 
     @button(label="Настроить")
-    async def open_reaction_set_callback(self, btn: Button, interaction: disnake.Interaction):
+    async def open_reaction_set_callback(
+        self, btn: Button, interaction: disnake.Interaction
+    ):
         do_nothing(btn)
         if not await is_admin(interaction):
             return
@@ -1307,7 +1388,9 @@ class OptionThreadView(View):
                 "Сначала выбери канал", delete_after=1, ephemeral=True
             )
         else:
-            await interaction.response.send_modal(OptionThreadModal(self.parent, self.option))
+            await interaction.response.send_modal(
+                OptionThreadModal(self.parent, self.option)
+            )
 
     @button(label="Вкл", style=disnake.ButtonStyle.green)
     async def enable_callback(self, btn: Button, interaction: disnake.Interaction):
@@ -1346,7 +1429,9 @@ class OptionThreadView(View):
             )
 
     @button(label="Удалить", style=disnake.ButtonStyle.danger)
-    async def open_farewell_set_callback(self, btn: Button, interaction: disnake.Interaction):
+    async def open_farewell_set_callback(
+        self, btn: Button, interaction: disnake.Interaction
+    ):
         do_nothing(btn)
         if not await is_admin(interaction):
             return
@@ -1731,12 +1816,17 @@ async def create_all_sets_embed(data, interaction):
         channels_name = await get_channel_by_id(
             interaction, [*data["REACTIONS_THREADS"].keys()]
         )
-        channels_name = [channels_name] if isinstance(channels_name, str) else channels_name
+        channels_name = (
+            [channels_name] if isinstance(channels_name, str) else channels_name
+        )
         channels_id = [*data["REACTIONS_THREADS"].keys()]
 
         for i in range(len(channels_id)):
             ADDING_REACTIONS_THREADS["value"] = (
-                ADDING_REACTIONS_THREADS.get("value", "") + channels_name[i] + ": " + "включено"
+                ADDING_REACTIONS_THREADS.get("value", "")
+                + channels_name[i]
+                + ": "
+                + "включено"
                 if data["REACTIONS_THREADS"][channels_id[i]]["THREAD"]
                 else "выключено"
             )
@@ -1774,8 +1864,12 @@ class GuildsManage(commands.Cog):
             "16": "EVENT_REWARDING",
         }
 
-    @commands.slash_command(name="настройка_бота", description="Поменять настройки сервера")
-    async def set_guild_settings(self, interaction: disnake.ApplicationCommandInteraction):
+    @commands.slash_command(
+        name="настройка_бота", description="Поменять настройки сервера"
+    )
+    async def set_guild_settings(
+        self, interaction: disnake.ApplicationCommandInteraction
+    ):
         if not await is_admin(interaction):
             return
 
@@ -1798,7 +1892,10 @@ class GuildsManage(commands.Cog):
         else:
             await interaction.response.send_message("Что-то пошло не так :(")
 
-    @commands.slash_command(name="текущие_настройки")
+    @commands.slash_command(
+        name="текущие_настройки",
+        default_member_permissions=disnake.Permissions(administrator=True),
+    )
     async def current_settings(self, interaction: disnake.ApplicationCommandInteraction):
         if not await is_admin(interaction):
             return
@@ -1809,13 +1906,17 @@ class GuildsManage(commands.Cog):
         if guild:
             await interaction.response.send_message(
                 embed=disnake.Embed.from_dict(
-                    await create_all_sets_embed(enc.code_from_json(guild.guild_sets), interaction)
+                    await create_all_sets_embed(
+                        enc.code_from_json(guild.guild_sets), interaction
+                    )
                 ),
                 ephemeral=True,
             )
 
-    @commands.slash_command(name="add_to_db")
-    @commands.is_owner()
+    @commands.slash_command(
+        name="add_to_db",
+        default_member_permissions=disnake.Permissions(administrator=True),
+    )
     async def add_guild_to_db(self, interaction: disnake.ApplicationCommandInteraction):
         if not is_admin(interaction):
             return
@@ -1833,9 +1934,13 @@ class GuildsManage(commands.Cog):
                 await interaction.response.send_message(f"Success {res}")
                 break
 
-    @commands.slash_command(name="update_default_sets")
-    @commands.is_owner()
-    async def update_default_sets(self, interaction: disnake.ApplicationCommandInteraction):
+    @commands.slash_command(
+        name="update_default_sets",
+        default_member_permissions=disnake.Permissions(administrator=True),
+    )
+    async def update_default_sets(
+        self, interaction: disnake.ApplicationCommandInteraction
+    ):
         if not is_admin(interaction):
             return
 
@@ -1863,15 +1968,21 @@ class GuildsManage(commands.Cog):
                 value = interaction.values[0]
                 if value == "greetings":
                     await stud_interaction(interaction)
-                    await GuildSettings.create_welcome_view(self.parent[str(interaction.guild.id)])
+                    await GuildSettings.create_welcome_view(
+                        self.parent[str(interaction.guild.id)]
+                    )
 
                 elif value == "farewell":
                     await stud_interaction(interaction)
-                    await GuildSettings.create_farewell_view(self.parent[str(interaction.guild.id)])
+                    await GuildSettings.create_farewell_view(
+                        self.parent[str(interaction.guild.id)]
+                    )
 
                 elif value == "feedback":
                     await stud_interaction(interaction)
-                    await GuildSettings.create_feedback_view(self.parent[str(interaction.guild.id)])
+                    await GuildSettings.create_feedback_view(
+                        self.parent[str(interaction.guild.id)]
+                    )
 
                 elif value == "scores_exp":
                     await stud_interaction(interaction)
@@ -1881,7 +1992,9 @@ class GuildsManage(commands.Cog):
 
                 elif value == "games":
                     await stud_interaction(interaction)
-                    await GuildSettings.create_games_view(self.parent[str(interaction.guild.id)])
+                    await GuildSettings.create_games_view(
+                        self.parent[str(interaction.guild.id)]
+                    )
 
                 elif value == "nearest_events":
                     await stud_interaction(interaction)
@@ -1908,7 +2021,9 @@ class GuildsManage(commands.Cog):
                 await toggle_set_easy(self, interaction)
 
             if "back" in interaction.component.custom_id:
-                await GuildSettings.create_home_view(self.parent[str(interaction.guild.id)])
+                await GuildSettings.create_home_view(
+                    self.parent[str(interaction.guild.id)]
+                )
 
 
 def setup(bot: commands.Bot):
