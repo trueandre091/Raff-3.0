@@ -5,7 +5,7 @@ from disnake.ui import View, button, select, Button, Modal, TextInput
 from disnake.ui import Select, channel_select
 from disnake import SelectOption, ModalInteraction
 import datetime
-from DB.DataBase import GuildsDBase
+from DB.DataBaseOld import GuildsDBase
 from DB.JSONEnc import JsonEncoder
 import random
 from DB.config_default import GUILD_CONFIG
@@ -1006,7 +1006,7 @@ class GuildSetsGamesView(View):
         else:
             channels_id = None
 
-        self.s_settings["CHANNEL"] = channels_id
+        self.s_settings["CHANNELS"] = channels_id
         self.w_settings["GAMES"] = self.s_settings
 
         await update_sets(self, interaction)
@@ -1339,7 +1339,7 @@ class GuildSetModerationView(View):
         else:
             channels_id = None
 
-        self.w_settings["CHANNEL"] = channels_id
+        self.w_settings["CHANNELS"] = channels_id
 
         await update_sets(self, interaction)
 

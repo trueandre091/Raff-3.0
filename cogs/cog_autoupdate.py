@@ -24,8 +24,8 @@ class AutoUpdateMessagesTop(commands.Cog):
         if int(today.weekday()) == 0 and 0 <= int(today.strftime("%H")) <= 12:
             guilds = await find_guilds_by_param(
                 self.bot,
-                "GENERAL_SETTINGS",
-                "AUTOUPDATE_MESSAGES",
+                "GENERAL",
+                "AUTOUPDATE",
                 "MESSAGES",
                 encode=False,
             )
@@ -38,13 +38,11 @@ class AutoUpdateMessagesTop(commands.Cog):
                         user.ds_id for user in top[0:3]
                     ]
 
-                    await GDB.update_guild(
-                        {"guild_id": guild.guild_id, "guild_sets": settings}
-                    )
+                    await GDB.update_guild(guild_id=guild.guild_id, guild_sets=settings)
 
                 users = guild.users
                 for user in users:
-                    await DB.update_user({"ds_id": user.ds_id, "messages": 0})
+                    await DB.update_user(ds_id=user.ds_id, messages=0)
 
     @reset_aup_top.before_loop
     async def before(self):
@@ -52,14 +50,10 @@ class AutoUpdateMessagesTop(commands.Cog):
 
     @tasks.loop(seconds=45)
     async def aup_top(self):
-        guilds = await find_guilds_by_param(
-            self.bot, "GENERAL_SETTINGS", "AUTOUPDATE_MESSAGES", "MESSAGES"
-        )
+        guilds = await find_guilds_by_param(self.bot, "GENERAL", "AUTOUPDATE", "MESSAGES")
 
         for settings in guilds:
-            channel = self.bot.get_channel(
-                settings["COGS_SETTINGS"]["AUTOUPDATE"]["CHANNEL"]
-            )
+            channel = self.bot.get_channel(settings["COGS"]["AUTOUPDATE"]["CHANNEL"])
             guild = self.bot.get_guild(settings["GUILD_ID"])
             if channel is None:
                 continue
@@ -84,10 +78,7 @@ class AutoUpdateMessagesTop(commands.Cog):
 
             place = 1
             for user in top:
-                if (
-                    place
-                    <= settings["COGS_SETTINGS"]["AUTOUPDATE"]["MESSAGES"]["PLACE_LIMIT"]
-                ):
+                if place <= settings["COGS"]["AUTOUPDATE"]["MESSAGES"]["LIMIT"]:
                     member = guild.get_member(user.ds_id)
                     if member is None or user.messages == 0:
                         continue
@@ -131,14 +122,10 @@ class AutoUpdateScoresTop(commands.Cog):
 
     @tasks.loop(minutes=1)
     async def aup_top(self):
-        guilds = await find_guilds_by_param(
-            self.bot, "GENERAL_SETTINGS", "AUTOUPDATE_MESSAGES", "SCORES"
-        )
+        guilds = await find_guilds_by_param(self.bot, "GENERAL", "AUTOUPDATE", "SCORES")
 
         for settings in guilds:
-            channel = self.bot.get_channel(
-                settings["COGS_SETTINGS"]["AUTOUPDATE"]["CHANNEL"]
-            )
+            channel = self.bot.get_channel(settings["COGS"]["AUTOUPDATE"]["CHANNEL"])
             if channel is None:
                 continue
 

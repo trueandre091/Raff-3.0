@@ -11,7 +11,7 @@ async def count_orders_counter(guild_id: int) -> None:
     settings = await guild_sets_check(guild_id)
     settings["COUNTERS"]["ORDERS"] += 1
 
-    await GDB.update_guild({"guild_id": guild_id, "guild_sets": settings})
+    await GDB.update_guild(guild_id=guild_id, guild_sets=settings)
 
 
 async def count_failed_gif_counter() -> None:
@@ -30,32 +30,28 @@ async def count_number_of_events_counter(guild_id: int) -> None:
     settings = await guild_sets_check(guild_id)
     settings["COUNTERS"]["NUMBER_OF_EVENTS"] += 1
 
-    await GDB.update_guild({"guild_id": guild_id, "guild_sets": settings})
+    await GDB.update_guild(guild_id=guild_id, guild_sets=settings)
 
 
 async def count_lose_scores(scores: int, guild_id: int):
     settings = await guild_sets_check(guild_id)
     settings["COUNTERS"]["LOSE_SCORES"] += scores
 
-    await GDB.update_guild({"guild_id": guild_id, "guild_sets": settings})
+    await GDB.update_guild(guild_id=guild_id, guild_sets=settings)
 
 
 async def count_every_message(message: disnake.Message) -> None:
     """Counting every users' messages to database"""
     if not message.author.bot:
         author_id = message.author.id
-        user = await DB.get_user({"ds_id": author_id})
+        user = await DB.get_user(ds_id=author_id)
         if user is None:
-            await DB.add_user(
-                {"ds_id": author_id, "username": message.author.name, "messages": 1}
-            )
+            await DB.add_user(ds_id=author_id, username=message.author.name, messages=1)
         else:
             await DB.update_user(
-                {
-                    "ds_id": author_id,
-                    "username": message.author.name,
-                    "messages": user.messages + 1,
-                }
+                ds_id=author_id,
+                username=message.author.name,
+                messages=user.messages + 1,
             )
 
 
@@ -67,7 +63,7 @@ async def count_users_boosts(author_id: int, guild_id: int) -> None:
     else:
         settings["COUNTERS"]["BOOSTS"][str(author_id)] = 1
 
-    await GDB.update_guild({"guild_id": guild_id, "guild_sets": settings})
+    await GDB.update_guild(guild_id=guild_id, guild_sets=settings)
 
 
 async def count_added_scores(scores: int, guild_id: int) -> None:
@@ -75,7 +71,7 @@ async def count_added_scores(scores: int, guild_id: int) -> None:
     settings = await guild_sets_check(guild_id)
     settings["COUNTERS"]["ADDED_SCORES"] += scores
 
-    await GDB.update_guild({"guild_id": guild_id, "guild_sets": settings})
+    await GDB.update_guild(guild_id=guild_id, guild_sets=settings)
 
 
 async def count_removed_scores(scores: int, guild_id: int) -> None:
@@ -83,4 +79,4 @@ async def count_removed_scores(scores: int, guild_id: int) -> None:
     settings = await guild_sets_check(guild_id)
     settings["COUNTERS"]["REMOVED_SCORES"] += scores
 
-    await GDB.update_guild({"guild_id": guild_id, "guild_sets": settings})
+    await GDB.update_guild(guild_id=guild_id, guild_sets=settings)

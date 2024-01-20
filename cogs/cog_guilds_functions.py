@@ -16,7 +16,7 @@ async def guild_sets_check(
     checking_set_3: str = None,
 ) -> dict:
     """Checking if guild exists in DB or if certain functions are turned on guild"""
-    guild = await GDB.get_guild({"guild_id": guild_id})
+    guild = await GDB.get_guild(guild_id=guild_id)
     if guild:
         guild = encoder.code_from_json(guild.guild_sets)
         if checking_set_1 and checking_set_2 and checking_set_3:
@@ -42,10 +42,10 @@ async def find_guilds_by_param(
     """Finding servers by certain parameter, returns a list"""
     list_of_guilds = []
     for guild in bot.guilds:
-        list_of_guilds.append({"guild_id": guild.id})
+        list_of_guilds.append(guild.id)
     list_temp = []
     for guild in list_of_guilds:
-        list_temp.append(await GDB.get_guild_with_users(guild))
+        list_temp.append(await GDB.get_guild_with_users(guild_id=guild))
     if list_temp is None:
         return []
 
@@ -79,6 +79,14 @@ async def find_guilds_by_param(
     return list_res
 
 
+async def is_none(interaction, settings):
+    if settings is None:
+        await interaction.response.send_message(
+            "Данная функция отключена на сервере", ephemeral=True
+        )
+        return True
+
+
 class AutoRelationshipsAdding(commands.Cog):
     """Task, that checks for new members and adds them to RDB if they are every 5 minutes"""
 
@@ -93,26 +101,22 @@ class AutoRelationshipsAdding(commands.Cog):
             return
 
         for guild in self.bot.guilds:
-            rdb_guild = await GDB.get_guild_with_users({"guild_id": guild.id})
+            rdb_guild = await GDB.get_guild_with_users(guild_id=guild.id)
             if rdb_guild is None:
                 continue
 
             for user in users:
                 if guild.get_member(user.ds_id):
                     await RDB.add_relationship(
-                        {
-                            "users": [{"ds_id": user.ds_id}],
-                            "guilds": [{"guild_id": guild.id}],
-                        }
+                        users=[{"ds_id": user.ds_id}],
+                        guilds=[{"guild_id": guild.id}],
                     )
 
             for user in rdb_guild.users:
                 if guild.get_member(user.ds_id) is None:
                     await RDB.delete_relationship(
-                        {
-                            "users": [{"ds_id": user.ds_id}],
-                            "guilds": [{"guild_id": guild.id}],
-                        }
+                        users=[{"ds_id": user.ds_id}],
+                        guilds=[{"guild_id": guild.id}],
                     )
 
     @auto_relations_adding.before_loop

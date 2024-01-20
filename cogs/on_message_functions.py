@@ -6,8 +6,11 @@ from cogs import counter_functions
 
 async def moderation(message: disnake.Message, settings: dict):
     """Moderation functions"""
-    if settings["GENERAL_SETTINGS"]["MODERATION"]["GIF"]:
-        await gif_moderation(message, settings["MODERATION_SETTINGS"]["GIF"])
+    if message.channel.id not in settings["COGS"]["MODERATION"]["CHANNELS"]:
+        return
+
+    if settings["GENERAL"]["MODERATION"]["GIF"]:
+        await gif_moderation(message, settings["COGS"]["MODERATION"]["GIF"])
 
 
 async def gif_moderation(message: disnake.Message, settings: dict):
@@ -66,10 +69,10 @@ async def gif_moderation(message: disnake.Message, settings: dict):
 
 async def reactions_thread_check(message: disnake.Message, settings: dict) -> None:
     """Adding reactions and(or) a thread to a message in the certain channels"""
-    if not settings["GENERAL_SETTINGS"]["ADDING_REACTIONS_THREADS"]:
+    if not settings["GENERAL"]["REACTIONS_THREADS"]:
         return
 
-    settings = settings["ADDING_REACTIONS_THREADS_SETTINGS"]
+    settings = settings["REACTIONS_THREADS"]
 
     if str(message.channel.id) in settings:
         channel_id = message.channel.id
@@ -90,16 +93,16 @@ async def reactions_thread_check(message: disnake.Message, settings: dict) -> No
 async def boosts_check(message: disnake.Message, settings: dict) -> None:
     """Checking if it's a boost (and counting number of them through separate function if so)"""
     if (
-        not settings["GENERAL_SETTINGS"]["COUNTING_BOOSTS"]
-        or not settings["BOOSTS_COUNTING_SETTINGS"]["BOOST_BOTS"]
-        or settings["BOOSTS_COUNTING_SETTINGS"]["REMINDER"] is None
+        not settings["GENERAL"]["BOOSTS"]
+        or not settings["BOOSTS"]["BOTS"]
+        or settings["BOOSTS"]["REMINDER"] is None
     ):
         return
 
-    settings = settings["BOOSTS_COUNTING_SETTINGS"]
+    settings = settings["BOOSTS"]
 
-    if message.author.id in settings["BOOST_BOTS"].values():
-        if message.author.id == settings["BOOST_BOTS"]["SD.C Monitoring"]:
+    if message.author.id in settings["BOTS"].values():
+        if message.author.id == settings["BOTS"]["SD.C Monitoring"]:
             flag = True
             skip_first_flag = False
             async for msg in message.channel.history(limit=50):
@@ -126,7 +129,7 @@ async def order_command_check(
     if message.guild.id != 785312593614209055:
         return
 
-    settings = settings["COGS_SETTINGS"]["ORDERS"]
+    settings = settings["COGS"]["ORDERS"]
 
     if "/заказ " in message.content:
         channel = bot.get_channel(settings["CHANNEL"])
@@ -140,7 +143,7 @@ async def order_command_check(
         else:
             await counter_functions.count_orders_counter(message.guild.id)
 
-            barmen_role = f"<@&{settings['BARMEN_ROLE']}>"
+            barmen_role = f"<@&{settings['ROLE']}>"
             embed = disnake.Embed(
                 title="Новый заказ 📥",
                 description=f"{message.author.mention}\n{message.content.strip('/заказ ')}",

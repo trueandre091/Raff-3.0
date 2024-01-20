@@ -21,7 +21,7 @@ class DataBase:
             self.echo = echo_mode
 
             # FOR MAIN APP
-            self.engine = create_engine("sqlite:///DB/DataBase.db", echo=self.echo)
+            # self.engine = create_engine("sqlite:///DB/DataBase.db", echo=self.echo)
 
             # FOP TESTS
             # self.engine = create_engine("sqlite:///DataBase.db", echo=self.echo)
@@ -29,8 +29,8 @@ class DataBase:
             # FOR UTILS
             # self.engine = create_engine("sqlite:///../DB/DataBase.db", echo=self.echo)
 
-            self.Session = sessionmaker(self.engine)
-            logger.debug("Engine was successfully created")
+            # self.Session = sessionmaker(self.engine)
+            # logger.debug("Engine was successfully created")
         except Exception as e:
             logger.exception("Error creating engine or session", e)
             return

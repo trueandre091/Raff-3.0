@@ -1,11 +1,8 @@
 import datetime as dt
-from os import getcwd
 import disnake
 from disnake.ext import commands, tasks
 
 from cogs.cog_guilds_functions import guild_sets_check, DB
-
-FOLDER = getcwd()
 
 
 async def creating_message_with_nearest_events(
@@ -51,20 +48,16 @@ class AutoSendingMessage(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_scheduled_event_create(self, event):
-        settings = await guild_sets_check(
-            event.guild.id, "GENERAL_SETTINGS", "NEAREST_EVENTS"
-        )
+        settings = await guild_sets_check(event.guild.id, "GENERAL", "NEAREST_EVENTS")
         if settings is None:
             return
 
-        channel = self.bot.get_channel(
-            settings["COGS_SETTINGS"]["NEAREST_EVENTS"]["CHANNEL"]
-        )
+        channel = self.bot.get_channel(settings["COGS"]["NEAREST_EVENTS"]["CHANNEL"])
 
         await delete_previous_message(channel)
         await channel.send(
             await creating_message_with_nearest_events(
-                event, settings["COGS_SETTINGS"]["NEAREST_EVENTS"]["CATEGORIES"]
+                event, settings["COGS"]["NEAREST_EVENTS"]["CATEGORIES"]
             )
         )
 
@@ -76,14 +69,12 @@ class AutoSendingMessage(commands.Cog):
         if settings is None:
             return
 
-        channel = self.bot.get_channel(
-            settings["COGS_SETTINGS"]["NEAREST_EVENTS"]["CHANNEL"]
-        )
+        channel = self.bot.get_channel(settings["COGS"]["NEAREST_EVENTS"]["CHANNEL"])
 
         await delete_previous_message(channel)
         await channel.send(
             await creating_message_with_nearest_events(
-                event, settings["COGS_SETTINGS"]["NEAREST_EVENTS"]["CATEGORIES"]
+                event, settings["COGS"]["NEAREST_EVENTS"]["CATEGORIES"]
             )
         )
 
@@ -91,20 +82,16 @@ class AutoSendingMessage(commands.Cog):
     async def on_guild_scheduled_event_update(
         self, before: disnake.GuildScheduledEvent, after: disnake.GuildScheduledEvent
     ):
-        settings = await guild_sets_check(
-            after.guild.id, "GENERAL_SETTINGS", "NEAREST_EVENTS"
-        )
+        settings = await guild_sets_check(after.guild.id, "GENERAL", "NEAREST_EVENTS")
         if settings is None:
             return
 
-        channel = self.bot.get_channel(
-            settings["COGS_SETTINGS"]["NEAREST_EVENTS"]["CHANNEL"]
-        )
+        channel = self.bot.get_channel(settings["COGS"]["NEAREST_EVENTS"]["CHANNEL"])
 
         await delete_previous_message(channel)
         await channel.send(
             await creating_message_with_nearest_events(
-                after, settings["COGS_SETTINGS"]["NEAREST_EVENTS"]["CATEGORIES"]
+                after, settings["COGS"]["NEAREST_EVENTS"]["CATEGORIES"]
             )
         )
 
@@ -257,7 +244,7 @@ class UserOnEvent:
         if event_check is None:
             if self.minutes >= self.settings["TIME"]:
                 member = self.guild.get_member(self.ds_id)
-                logs_channel = self.guild.get_channel(self.settings["LOGS_CHANNEL"])
+                logs_channel = self.guild.get_channel(self.settings["CHANNEL"])
 
                 await create_message(member, self.minutes, logs_channel)
 
@@ -291,13 +278,13 @@ class AutoScoresAdding(commands.Cog):
     ):
         settings = await guild_sets_check(
             member.guild.id,
-            "GENERAL_SETTINGS",
-            "AUTO_ADDING_SCORES_FOR_TIME_IN_VOICE_CHANNEL",
+            "GENERAL",
+            "EVENT_REWARDING",
         )
         if not settings:
             return
-        settings = settings["COGS_SETTINGS"]["SPECIAL"]["EVENTS"]
-        channels = settings["CHANNELS"]
+        settings = settings["COGS"]["SPECIAL"]["EVENT_REWARDING"]
+        channels = settings["VOICES"]
 
         if before.channel != after.channel:
             if after.channel is None:
@@ -325,8 +312,8 @@ class AutoScoresAdding(commands.Cog):
             if interaction.component.custom_id == "accept_members":
                 settings = await guild_sets_check(
                     interaction.guild.id,
-                    "GENERAL_SETTINGS",
-                    "AUTO_ADDING_SCORES_FOR_TIME_IN_VOICE_CHANNEL",
+                    "GENERALS",
+                    "EVENT_REWARDING",
                 )
                 if settings is None:
                     await interaction.response.send_message(
@@ -341,7 +328,7 @@ class AutoScoresAdding(commands.Cog):
                     )
                     return
 
-                settings = settings["COGS_SETTINGS"]["SPECIAL"]["EVENTS"]
+                settings = settings["COGS"]["SPECIAL"]["EVENT_REWARDING"]
 
                 fields = interaction.message.embeds[-1].to_dict()["fields"]
                 for field in fields:
@@ -354,16 +341,16 @@ class AutoScoresAdding(commands.Cog):
                     scores = 1
                     if settings["ROLES"]:
                         for roles_set in settings["ROLES"]:
-                            if roles_set["ROLES_ID"] == "everyone":
-                                default_scores = roles_set["SCORES"]
+                            if roles_set["ROLES"] == "everyone":
+                                default_scores = roles_set["AMOUNT"]
                                 continue
 
                             roles_need = []
-                            for role_id in roles_set["ROLES_ID"]:
+                            for role_id in roles_set["ROLES"]:
                                 roles_need.append(interaction.guild.get_role(role_id))
 
                             if [x for x in roles_need if x in member.roles]:
-                                scores = roles_set["SCORES"]
+                                scores = roles_set["AMOUNT"]
                                 flag = False
 
                         if flag:
@@ -371,19 +358,15 @@ class AutoScoresAdding(commands.Cog):
 
                         print(member, scores)
                         user = await DB.add_user(
-                            {
-                                "ds_id": member.id,
-                                "username": member.name,
-                                "scores": scores,
-                            }
+                            ds_id=member.id,
+                            username=member.name,
+                            scores=scores,
                         )
                         if user:
                             await DB.update_user(
-                                {
-                                    "ds_id": user.ds_id,
-                                    "username": user.username,
-                                    "scores": user.scores + scores,
-                                }
+                                ds_id=user.ds_id,
+                                username=user.username,
+                                scores=user.scores + scores,
                             )
 
                 await interaction.response.send_message(f"Очки выданы", ephemeral=True)

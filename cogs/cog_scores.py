@@ -1,14 +1,10 @@
-import datetime
-import json
 from os import getcwd
 import disnake
 from disnake.ext import commands
-from json import load, dump
-from datetime import date
 
 from cogs import counter_functions
 from cogs.cog_experience import convert_ex_to_lvl
-from cogs.cog_guilds_functions import DB, GDB, RDB, guild_sets_check
+from cogs.cog_guilds_functions import DB, GDB, guild_sets_check, is_none
 
 FOLDER = getcwd()
 
@@ -16,18 +12,13 @@ FOLDER = getcwd()
 async def top_create_embed(bot: commands.Bot, settings: dict, embed_dict: dict):
     """Creating an embed of leaderboard of members by scores"""
     guild = bot.get_guild(settings["GUILD_ID"])
-    settings = settings["COGS_SETTINGS"]["SCORES"]
+    settings = settings["COGS"]["SCORES"]
 
     top = await GDB.get_top_users_by_scores(guild.id)
     if top is None:
         top = []
 
-    first_lvl_members, third_lvl_members, fifth_lvl_members = [], [], []
-    amount1 = settings["AMOUNT_TO_FIRST_LVL"]
-    amount2 = settings["AMOUNT_TO_THIRD_LVL"]
-    amount3 = settings["AMOUNT_TO_FIFTH_LVL"]
-
-    flag1, flag2, flag3 = False, False, False
+    roles = {}
     place = 0
     for user in top:
         member = guild.get_member(user.ds_id)
@@ -37,46 +28,39 @@ async def top_create_embed(bot: commands.Bot, settings: dict, embed_dict: dict):
         embed_dict[
             "description"
         ] += f"`{place + 1}.` {member.mention} — `{user.scores} оч.`\n"
-        if amount1 <= user.scores < amount2:
-            flag1 = True
-            first_lvl_members.append(user)
-        elif amount2 <= user.scores < amount3:
-            flag2 = True
-            third_lvl_members.append(user)
-        elif user.scores >= amount3:
-            flag3 = True
-            fifth_lvl_members.append(user)
+
+        role_set = await check_for_role(user, settings)
+        if role_set:
+            if roles[str(role_set["ROLE"])]:
+                roles[str(role_set["ROLE"])].append(user.ds_id)
+            else:
+                roles[str(role_set["ROLE"])] = [user.ds_id]
         place += 1
 
-    if flag1 or flag2 or flag3:
+    if roles:
         embed_dict["description"] += "\n**Получат роли**"
-        index_of_field = 0
-        if flag1:
+        for role, users in roles.items():
             embed_dict["fields"].append(
-                {"name": "1-го уровня:", "value": "", "inline": True}
+                {"name": f"{guild.get_role(role).name}:", "value": "", "inline": True}
             )
-            for user in first_lvl_members:
+            for user in users:
                 member = guild.get_member(user.ds_id)
-                embed_dict["fields"][index_of_field]["value"] += f"{member.mention} "
-            index_of_field += 1
-        if flag2:
-            embed_dict["fields"].append(
-                {"name": "3-го уровня:", "value": "", "inline": True}
-            )
-            for user in third_lvl_members:
-                member = guild.get_member(user.ds_id)
-                embed_dict["fields"][index_of_field]["value"] += f"{member.mention} "
-            index_of_field += 1
-        if flag3:
-            embed_dict["fields"].append(
-                {"name": "5-го уровня:", "value": "", "inline": True}
-            )
-            for user in fifth_lvl_members:
-                member = guild.get_member(user.ds_id)
-                embed_dict["fields"][index_of_field]["value"] += f"{member.mention} "
-            index_of_field += 1
+                embed_dict["fields"][-1]["value"] += f"{member.mention} "
 
     return embed_dict
+
+
+async def check_for_role(user, settings):
+    role = None
+    for role_set in settings["REWARDS"]:
+        if role_set["ROLE"] and role_set["AMOUNT"]:
+            if user.scores >= role_set["AMOUNT"]:
+                try:
+                    if user.scores > role["AMOUNT"]:
+                        role = role_set
+                except TypeError:
+                    role = role_set
+    return role
 
 
 class ScoresOperations(commands.Cog):
@@ -86,95 +70,18 @@ class ScoresOperations(commands.Cog):
         self.bot = bot
 
     @commands.slash_command(
-        description="Прибавить очки 1 участнику",
-        default_member_permissions=disnake.Permissions(administrator=True),
-    )
-    async def add_one(
-        self,
-        interaction: disnake.ApplicationCommandInteraction,
-        участник: disnake.Member,
-        количество: int,
-    ):
-        """Adding to a member a certain amount of scores"""
-        settings = await guild_sets_check(
-            interaction.guild.id, "GENERAL_SETTINGS", "SCORES"
-        )
-        if settings is None:
-            await interaction.response.send_message(
-                "Данная функция отключена на сервере", ephemeral=True
-            )
-            return
-
-        await counter_functions.count_added_scores(количество, interaction.guild.id)
-
-        user = await DB.add_user(
-            {"ds_id": участник.id, "username": участник.name, "scores": количество}
-        )
-        if user:
-            await DB.update_user(
-                {
-                    "ds_id": user.ds_id,
-                    "username": user.username,
-                    "scores": user.scores + количество,
-                }
-            )
-
-        user = await DB.get_user({"ds_id": участник.id})
-        await interaction.response.send_message(f"Теперь у {участник} {user.scores} оч.")
-
-    @commands.slash_command(
-        description="Вычесть очки у 1 участника",
-        default_member_permissions=disnake.Permissions(administrator=True),
-    )
-    async def remove_one(
-        self,
-        interaction: disnake.ApplicationCommandInteraction,
-        участник: disnake.Member,
-        количество: int,
-    ):
-        """Removing from a member a certain amount of scores"""
-        await counter_functions.count_removed_scores(количество, interaction.guild.id)
-
-        user = await DB.get_user({"ds_id": участник.id})
-        if not user:
-            await interaction.response.send_message(
-                f"У {участник} и так ничего нет... куда меньше..."
-            )
-        else:
-            if количество >= user.scores:
-                await DB.update_user(
-                    {"ds_id": user.ds_id, "username": user.username, "scores": 0}
-                )
-            else:
-                await DB.update_user(
-                    {
-                        "ds_id": участник.id,
-                        "username": участник.name,
-                        "scores": user.scores - количество,
-                    }
-                )
-
-        user = await DB.get_user({"disc_id": участник.id})
-        await interaction.response.send_message(f"Теперь у {участник} {user.scores} оч.")
-
-    @commands.slash_command(
         description="Вычесть очки у любого кол-ва участников (упомянуть через пробел)",
         default_member_permissions=disnake.Permissions(administrator=True),
     )
-    async def remove_any(
+    async def remove(
         self,
         interaction: disnake.ApplicationCommandInteraction,
         участники: str,
         количество: int,
     ):
         """Removing from several members a certain amount of scores"""
-        settings = await guild_sets_check(
-            interaction.guild.id, "GENERAL_SETTINGS", "SCORES"
-        )
-        if settings is None:
-            await interaction.response.send_message(
-                "Данная функция отключена на сервере", ephemeral=True
-            )
+        settings = await guild_sets_check(interaction.guild.id, "GENERAL", "SCORES")
+        if await is_none(interaction, settings):
             return
 
         guild = interaction.guild
@@ -188,25 +95,21 @@ class ScoresOperations(commands.Cog):
         for member in members_list:
             member_id = int(member.strip("<@>"))
             member = guild.get_member(member_id)
-            user = await DB.get_user({"ds_id": member_id})
+            user = await DB.get_user(ds_id=member_id)
             if not user:
-                await DB.update_user(
-                    {"ds_id": member.id, "username": member.name, "scores": 0}
-                )
+                await DB.update_user(ds_id=member.id, username=member.name, scores=0)
                 members_list_values.append(0)
             else:
                 if количество >= user.scores:
                     await DB.update_user(
-                        {"ds_id": user.ds_id, "username": user.username, "scores": 0}
+                        ds_id=user.ds_id, username=user.username, scores=0
                     )
                     members_list_values.append(0)
                 else:
                     await DB.update_user(
-                        {
-                            "ds_id": user.ds_id,
-                            "username": user.username,
-                            "scores": user.scores - количество,
-                        }
+                        ds_id=user.ds_id,
+                        username=user.username,
+                        scores=user.scores - количество,
                     )
                     members_list_values.append(user.scores - количество)
 
@@ -235,13 +138,8 @@ class ScoresOperations(commands.Cog):
         количество: int,
     ):
         """Adding to several members a certain amount of scores"""
-        settings = await guild_sets_check(
-            interaction.guild.id, "GENERAL_SETTINGS", "SCORES"
-        )
-        if settings is None:
-            await interaction.response.send_message(
-                "Данная функция отключена на сервере", ephemeral=True
-            )
+        settings = await guild_sets_check(interaction.guild.id, "GENERAL", "SCORES")
+        if await is_none(interaction, settings):
             return
 
         guild = interaction.guild
@@ -256,15 +154,13 @@ class ScoresOperations(commands.Cog):
             member_id = int(member.strip("<@>"))
             member = guild.get_member(member_id)
             user = await DB.add_user(
-                {"ds_id": member_id, "username": member.name, "scores": количество}
+                ds_id=member_id, username=member.name, scores=количество
             )
             if user:
                 await DB.update_user(
-                    {
-                        "ds_id": user.ds_id,
-                        "username": user.username,
-                        "scores": user.scores + количество,
-                    }
+                    ds_id=user.ds_id,
+                    username=user.username,
+                    scores=user.scores + количество,
                 )
                 members_list_values.append(user.scores + количество)
             else:
@@ -297,35 +193,28 @@ class ScoresOperations(commands.Cog):
         количество: int,
     ):
         """Setting for a member a certain amount of scores"""
-        settings = await guild_sets_check(
-            interaction.guild.id, "GENERAL_SETTINGS", "SCORES"
-        )
-        if settings is None:
-            await interaction.response.send_message(
-                "Данная функция отключена на сервере", ephemeral=True
-            )
+        settings = await guild_sets_check(interaction.guild.id, "GENERAL", "SCORES")
+        if await is_none(interaction, settings):
             return
 
         user = await DB.add_user(
-            {"ds_id": участник.id, "username": участник.name, "scores": количество}
+            ds_id=участник.id, username=участник.name, scores=количество
         )
         if user:
             await DB.update_user(
-                {"ds_id": участник.id, "username": участник.name, "scores": количество}
+                ds_id=участник.id, username=участник.name, scores=количество
             )
 
         await interaction.response.send_message(f"У {участник} теперь {количество}")
 
 
-async def convert(user, settings, embed_dict):
+async def convert(user, embed_dict):
     if user is None:
         embed_dict["fields"][0]["value"] = f"```0 оч.```"
         embed_dict["fields"][1]["value"] = f"```0 лвл.```"
     else:
         embed_dict["fields"][0]["value"] = f"```{user.scores} оч.```"
-        embed_dict["fields"][1][
-            "value"
-        ] = f"```{await convert_ex_to_lvl(user, settings['FACTOR'])} лвл.```"
+        embed_dict["fields"][1]["value"] = f"```{await convert_ex_to_lvl(user)} лвл.```"
 
 
 class SpecialScoresCommands(commands.Cog):
@@ -343,16 +232,9 @@ class SpecialScoresCommands(commands.Cog):
         участник: disnake.Member = None,
     ):
         """Showing user's or a somebody's amount of scores"""
-        settings = await guild_sets_check(
-            interaction.guild.id, "GENERAL_SETTINGS", "SCORES"
-        )
-        if settings is None:
-            await interaction.response.send_message(
-                "Данная функция отключена на сервере", ephemeral=True
-            )
+        settings = await guild_sets_check(interaction.guild.id, "GENERAL", "SCORES")
+        if await is_none(interaction, settings):
             return
-
-        settings = settings["COGS_SETTINGS"]
 
         embed_dict = {
             "fields": [
@@ -374,16 +256,16 @@ class SpecialScoresCommands(commands.Cog):
                 embed_dict["thumbnail"]["url"] = участник.avatar.url
             except AttributeError:
                 embed_dict["thumbnail"]["url"] = "https://i.postimg.cc/CMsM38p8/1.png"
-            user = await DB.get_user({"ds_id": участник.id})
-            await convert(user, settings["EXPERIENCE"], embed_dict)
+            user = await DB.get_user(ds_id=участник.id)
+            await convert(user, embed_dict)
         else:
             embed_dict["title"] = interaction.author.name
             try:
                 embed_dict["thumbnail"]["url"] = interaction.author.avatar.url
             except AttributeError:
                 embed_dict["thumbnail"]["url"] = "https://i.postimg.cc/CMsM38p8/1.png"
-            user = await DB.get_user({"ds_id": interaction.author.id})
-            await convert(user, settings["EXPERIENCE"], embed_dict)
+            user = await DB.get_user(ds_id=interaction.author.id)
+            await convert(user, embed_dict)
 
         await interaction.response.send_message(embed=disnake.Embed.from_dict(embed_dict))
 
@@ -391,16 +273,11 @@ class SpecialScoresCommands(commands.Cog):
     @commands.slash_command(description="Таблица лидеров по очкам")
     async def топ(self, interaction: disnake.ApplicationCommandInteraction):
         """Sending a leaderboard of members by points"""
-        settings = await guild_sets_check(
-            interaction.guild.id, "GENERAL_SETTINGS", "SCORES"
-        )
-        if settings is None:
-            await interaction.response.send_message(
-                "Данная функция отключена на сервере", ephemeral=True
-            )
+        settings = await guild_sets_check(interaction.guild.id, "GENERAL", "SCORES")
+        if await is_none(interaction, settings):
             return
 
-        await interaction.response.send_message("...")
+        await interaction.response.send_message("Секунду...")
 
         embed_dict = {
             "title": "Таблица лидеров по очкам: 📊",
@@ -430,116 +307,104 @@ class SpecialScoresCommands(commands.Cog):
                 "Нужно немного подождать...", delete_after=5, ephemeral=True
             )
 
-    @commands.slash_command(
-        description="Сброс всех очков (пароль)",
-        default_member_permissions=disnake.Permissions(administrator=True),
-    )
-    async def reset(
-        self, interaction: disnake.ApplicationCommandInteraction, пароль: int
-    ):
-        """Resetting scores database and making backup"""
-        settings = await guild_sets_check(
-            interaction.guild.id, "GENERAL_SETTINGS", "SCORES"
-        )
-        if settings is None:
-            await interaction.response.send_message(
-                "Данная функция отключена на сервере", ephemeral=True
-            )
-            return
-
-        if пароль == settings["GENERAL_SETTINGS"]["PASSWORD"]:
-            top = await DB.get_top_users_by_scores()
-            top_dict = {}
-            for user in top:
-                top_dict[str(user.ds_id)] = [user.username, user.scores]
-                await DB.update_user(
-                    {"ds_id": user.ds_id, "username": user.username, "scores": 0}
-                )
-
-            with open(
-                f"{FOLDER}/data/backups/backup_{date.today()}.json",
-                "w",
-                encoding="utf-8",
-            ) as f:
-                dump(top_dict, f)
-            await interaction.response.send_message(
-                f"База данных сброшена, бэкап создан `{date.today()}`"
-            )
-
-        else:
-            await interaction.response.send_message(
-                "Неверный пароль... Ты вор, сука?", delete_after=30
-            )
-
-    @commands.slash_command(
-        description="Вернуть сброшенные данные по бекапу (пароль)",
-        default_member_permissions=disnake.Permissions(administrator=True),
-    )
-    async def load_backup(
-        self,
-        interaction: disnake.ApplicationCommandInteraction,
-        пароль: int,
-        backup_date=None,
-    ):
-        settings = await guild_sets_check(
-            interaction.guild.id, "GENERAL_SETTINGS", "SCORES"
-        )
-        if settings is None:
-            await interaction.response.send_message(
-                "Данная функция отключена на сервере", ephemeral=True
-            )
-            return
-
-        if пароль == settings["GENERAL_SETTINGS"]["PASSWORD"]:
-            if backup_date is None:
-                for i in range(100):
-                    day = datetime.timedelta(i)
-                    try:
-                        with open(
-                            f"{FOLDER}/data/backups/backup_{date.today() - day}.json",
-                            "r",
-                            encoding="utf-8",
-                        ) as f:
-                            data = load(f)
-                    except json.JSONDecodeError:
-                        pass
-                    else:
-                        break
-            else:
-                try:
-                    with open(
-                        f"{FOLDER}/data/backups/backup_{backup_date}.json",
-                        "r",
-                        encoding="utf-8",
-                    ) as f:
-                        data = load(f)
-                except json.JSONDecodeError:
-                    await interaction.response.send_message(
-                        "Бэкап не найден", ephemeral=True
-                    )
-                    return
-
-            for ds_id, other in data.items():
-                user = await DB.get_user({"ds_id": int(ds_id)})
-                if not user:
-                    await DB.add_user(
-                        {"ds_id": ds_id, "username": other[0], "scores": other[1]}
-                    )
-                else:
-                    await DB.update_user(
-                        {
-                            "ds_id": user.ds_id,
-                            "username": user.username,
-                            "scores": other[1],
-                        }
-                    )
-
-            await interaction.response.send_message("Бекап загружен", ephemeral=True)
-
-        else:
-            await interaction.response.send_message(
-                "Неверный пароль... Ты вор, сука?", delete_after=30
-            )
+    # @commands.slash_command(
+    #     description="Сброс всех очков (пароль)",
+    #     default_member_permissions=disnake.Permissions(administrator=True),
+    # )
+    # async def reset(
+    #     self, interaction: disnake.ApplicationCommandInteraction, пароль: int
+    # ):
+    #     """Resetting scores database and making backup"""
+    #     settings = await guild_sets_check(interaction.guild.id, "GENERAL", "SCORES")
+    #     if is_none(interaction, settings):
+    #         return
+    #
+    #     if пароль == settings["GENERAL"]["PASSWORD"]:
+    #         top = await DB.get_top_users_by_scores()
+    #         top_dict = {}
+    #         for user in top:
+    #             top_dict[str(user.ds_id)] = [user.username, user.scores]
+    #             await DB.update_user(ds_id=user.ds_id, username=user.username, scores=0)
+    #
+    #         with open(
+    #             f"{FOLDER}/data/backups/backup_{date.today()}.json",
+    #             "w",
+    #             encoding="utf-8",
+    #         ) as f:
+    #             dump(top_dict, f)
+    #         await interaction.response.send_message(
+    #             f"База данных сброшена, бэкап создан `{date.today()}`"
+    #         )
+    #
+    #     else:
+    #         await interaction.response.send_message(
+    #             "Неверный пароль... Ты вор?", delete_after=30
+    #         )
+    #
+    # @commands.slash_command(
+    #     description="Вернуть сброшенные данные по бекапу (пароль)",
+    #     default_member_permissions=disnake.Permissions(administrator=True),
+    # )
+    # async def load_backup(
+    #     self,
+    #     interaction: disnake.ApplicationCommandInteraction,
+    #     пароль: int,
+    #     backup_date=None,
+    # ):
+    #     settings = await guild_sets_check(interaction.guild.id, "GENERAL", "SCORES")
+    #     if is_none(interaction, settings):
+    #         return
+    #
+    #     if пароль == settings["GENERAL_SETTINGS"]["PASSWORD"]:
+    #         if backup_date is None:
+    #             for i in range(100):
+    #                 day = datetime.timedelta(i)
+    #                 try:
+    #                     with open(
+    #                         f"{FOLDER}/data/backups/backup_{date.today() - day}.json",
+    #                         "r",
+    #                         encoding="utf-8",
+    #                     ) as f:
+    #                         data = load(f)
+    #                 except json.JSONDecodeError:
+    #                     pass
+    #                 else:
+    #                     break
+    #         else:
+    #             try:
+    #                 with open(
+    #                     f"{FOLDER}/data/backups/backup_{backup_date}.json",
+    #                     "r",
+    #                     encoding="utf-8",
+    #                 ) as f:
+    #                     data = load(f)
+    #             except json.JSONDecodeError:
+    #                 await interaction.response.send_message(
+    #                     "Бэкап не найден", ephemeral=True
+    #                 )
+    #                 return
+    #
+    #         for ds_id, other in data.items():
+    #             user = await DB.get_user({"ds_id": int(ds_id)})
+    #             if not user:
+    #                 await DB.add_user(
+    #                     {"ds_id": ds_id, "username": other[0], "scores": other[1]}
+    #                 )
+    #             else:
+    #                 await DB.update_user(
+    #                     {
+    #                         "ds_id": user.ds_id,
+    #                         "username": user.username,
+    #                         "scores": other[1],
+    #                     }
+    #                 )
+    #
+    #         await interaction.response.send_message("Бекап загружен", ephemeral=True)
+    #
+    #     else:
+    #         await interaction.response.send_message(
+    #             "Неверный пароль... Ты вор, сука?", delete_after=30
+    #         )
 
 
 def setup(bot: commands.Bot):
