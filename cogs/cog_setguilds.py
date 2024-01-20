@@ -250,7 +250,7 @@ class GuildSettings:
 
     async def create_auto_reactions_threads_view(self):
         options = await get_channel_by_id(
-            self.interaction, [*self.settings["ADDING_REACTIONS_THREADS_SETTINGS"].keys()]
+            self.interaction, [*self.settings["COGS"]["REACTIONS_THREADS"].keys()]
         )
         await GuildSetReactionsThreadsView(self, options).send_view()
 
@@ -364,6 +364,7 @@ class GuildSetsHomeScreenView(View):
         self.parent = parent
         self.settings: dict = parent.settings
         self.gdb: GuildsDBase = parent.gdb
+        self.enc: JsonEncoder = parent.enc
 
     # @select(
     #     custom_id="home_screen",
@@ -426,11 +427,11 @@ class GuildSetsHomeScreenView(View):
         if not await is_admin(interaction):
             return
 
-        enc = self.parent.enc
-        self.settings = enc.get_default_cfg()
-        self.settings["GUILD_ID"] = interaction.guild.id
+        enc = self.enc
+        self.parent.settings = enc.get_default_cfg()
+        self.parent.settings["GUILD_ID"] = interaction.guild.id
         res = await self.gdb.update_guild(
-            guild_id=interaction.guild.id, guild_sets=enc.code_to_json(self.settings)
+            guild_id=interaction.guild.id, guild_sets=enc.code_to_json(self.parent.settings)
         )
         if res:
             await interaction.response.send_message(
@@ -827,7 +828,7 @@ class GuildSetsGamesView(View):
         super().__init__()
         self.parent = parent
         self.settings: dict = parent.settings
-        self.w_settings: dict = parent.settings["GAMES"]
+        self.w_settings: dict = parent.settings["COGS"]["GAMES"]
         self.route: str = "GAMES"
         self.s_toggle = "ALL_GAMES"
         self.toggle: str = "GAMES"
@@ -1003,7 +1004,7 @@ class GuildSetNearestEventsView(View):
         super().__init__()
         self.parent = parent
         self.settings: dict = parent.settings
-        self.w_settings: dict = parent.settings["NEAREST_EVENTS"]
+        self.w_settings: dict = parent.settings["COGS"]["NEAREST_EVENTS"]
         self.route: str = "NEAREST_EVENTS"
         self.toggle: str = "NEAREST_EVENTS"
         self.gdb: GuildsDBase = parent.gdb
@@ -1095,8 +1096,8 @@ class GuildSetModerationView(View):
         super().__init__()
         self.parent = parent
         self.settings = parent.settings
-        self.w_settings: dict = parent.settings["MODERATION_SETTINGS"]
-        self.route: str = "MODERATION_SETTINGS"
+        self.w_settings: dict = parent.settings["COGS"]["MODERATION"]
+        self.route: str = "MODERATION"
         self.toggle = "MODERATION"
         self.s_toggle = "GIF"
         self.gdb = self.parent.gdb
@@ -1165,8 +1166,8 @@ class ModerationModal(Modal):
     def __init__(self, parent):
         self.parent = parent
         self.settings = parent.settings
-        self.w_settings: dict = parent.settings["MODERATION_SETTINGS"]
-        self.route: str = "MODERATION_SETTINGS"
+        self.w_settings: dict = parent.settings["COGS"]["MODERATION"]
+        self.route: str = "MODERATION"
         self.gdb = self.parent.gdb
         components = [
             TextInput(
@@ -1194,7 +1195,7 @@ class GuildSetReactionsThreadsView:
         self.parent = parent
         self.options = options
         self.settings = parent.settings
-        self.channels_id = [*self.settings["REACTIONS_THREADS"].keys()]
+        self.channels_id = [*self.settings["COGS"]["REACTIONS_THREADS"].keys()]
         self.toggle = "REACTIONS_THREADS"
         self.view_manager = View()
 
@@ -1260,7 +1261,7 @@ class OptionThreadView(View):
         self.parent = parent
         self.option = option
         self.settings = parent.settings
-        self.w_settings: dict = parent.settings["REACTIONS_THREADS"]
+        self.w_settings: dict = parent.settings["COGS"]["REACTIONS_THREADS"]
         self.route: str = "REACTIONS_THREADS"
         self.gdb = self.parent.gdb
 
@@ -1361,7 +1362,7 @@ class OptionThreadModal(Modal):
         self.parent = parent
         self.option = option
         self.settings = parent.settings
-        self.w_settings: dict = parent.settings["REACTIONS_THREADS"]
+        self.w_settings: dict = parent.settings["COGS"]["REACTIONS_THREADS"]
         self.route: str = "REACTIONS_THREADS"
         self.gdb = self.parent.gdb
         components = [
@@ -1786,7 +1787,7 @@ class GuildsManage(commands.Cog):
             "guild_id": interaction.guild.id,
             "guild_name": interaction.guild.name,
             "count_members": interaction.guild.member_count,
-            "guild_sets": default_config,
+            "guild_sets": enc.code_to_json(default_config),
         }
         guild = await db.add_guild(data)
         if guild:
