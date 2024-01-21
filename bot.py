@@ -1,7 +1,7 @@
 import disnake
 import config as cfg
 from cogs.on_message_functions import *
-from cogs.cog_guilds_functions import guild_sets_check, GDB, dicts1, dicts
+from cogs.cog_guilds_functions import guild_sets_check, GDB, dicts, dicts1
 from DB.DataBase import GuildsDBase
 from DB.JSONEnc import JsonEncoder
 from loguru import logger
@@ -59,7 +59,7 @@ async def update(interaction: disnake.ApplicationCommandInteraction):
 @bot.slash_command(
     name="настройка", default_member_permissions=disnake.Permissions(administrator=True)
 )
-async def settings_command(interaction: disnake.ApplicationCommandInteraction):
+async def settings(interaction: disnake.ApplicationCommandInteraction):
     pass
 
 
@@ -123,6 +123,7 @@ async def on_ready():
     """Bot writes in console when it starts"""
     logger.info(f"Bot {bot.user} is ready to work!")
     # await GDB.update_guild(guild_id=785312593614209055, guild_sets=dicts)
+    # await GDB.update_guild(guild_id=1189637072030531695, guild_sets=dicts1)
 
 
 bot.run(cfg.TOKEN)

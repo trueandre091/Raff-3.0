@@ -130,74 +130,108 @@ def setup(bot: commands.Bot):
 
 dicts = {
     "GUILD_ID": 785312593614209055,
-    "GENERAL_SETTINGS": {
+    "GENERAL": {
         "PASSWORD": 152364,
         "WELCOME": False,
         "FAREWELL": False,
         "MODERATION": {"GIF": False},
-        "AUTOUPDATE_MESSAGES": {"MESSAGES": False, "SCORES": False},
+        "AUTOUPDATE": {"MESSAGES": False, "SCORES": False},
         "NEAREST_EVENTS": False,
         "EXPERIENCE": False,
-        "GAMES": {"BLACKJACK": False, "ROULETTE": False},
+        "GAMES": {"ALL_GAMES": False, "BLACKJACK": False, "ROULETTE": False},
         "ORDERS": False,
         "REQUESTS": False,
         "SCORES": False,
-        "COUNTING_BOOSTS": False,
-        "ADDING_REACTIONS_THREADS": False,
-        "AUTO_ADDING_ROLES": False,
-        "AUTO_ADDING_SCORES_FOR_TIME_IN_VOICE_CHANNEL": False,
+        "BOOSTS": False,
+        "REACTIONS_THREADS": False,
+        "ROLES": False,
+        "EVENT_REWARDING": False,
     },
-    "TIMERS": {
-        "CHANNEL": 785312596546813974,
-        "MESSAGE": "По любым вопросам --> <#992788044514082876> <:B_andre2:1053723610197524530>",
-    },
-    "WELCOME_SETTINGS": {
-        "CHANNEL": 785312596059226114,
-        "EMBED": {
-            # возможно использование переменных: {member.mention}, {member}
-            "TITLE": "Добро пожаловать на Homey Temple!  💌",
-            # возможно использование переменных: {member.mention}, {member}
-            "DESCRIPTION": "{member.mention}, приветствуею тебя на сервере!\nПриходи на ближайшие мероприятия, если будет время <#1160687361269694505> 🌼",
-            "COLOR": 0x2B2D31,
+    ###########################################################
+    "COGS": {
+        "WELCOME": {
+            "CHANNEL": None,
+            "EMBED": {
+                "TITLE": "Добро пожаловать на сервер Homey Temple!  💌",
+                "DESCRIPTION": "{member.mention}, приветствуею тебя на сервере!\nПриходи на ближайшие мероприятия, если будет время <#1160687361269694505> 🌼",
+                "IMAGE": "https://i.postimg.cc/25znZVnG/DALLE-2023-02-22-19-01-33-a-spring-flowery-background-1.png",
+                "AVATAR_IF_ERROR": "https://im.wampi.ru/2023/11/02/Bez_nazvania1_20211210115049.png",
+                "COLOR": 0x2B2D31,
+            },
         },
-        "AVATAR_IF_ERROR": "https://im.wampi.ru/2023/11/02/Bez_nazvania1_20211210115049.png",
-        "BACKGROUND_IMAGE": "https://i.postimg.cc/25znZVnG/DALLE-2023-02-22-19-01-33-a-spring-flowery-background-1.png",
-    },
-    "FAREWELL_SETTINGS": {
-        "CHANNEL": 785313517481099274,
-        # возможно использование переменных: {member.mention}, {member.nick}, {member.name}, {member}
-        "MESSAGE": "{member.mention} / {member.name} / {member.nick} ушёл.",
-    },
-    "ADDING_REACTIONS_THREADS_SETTINGS": {
-        "858731672677515294": {"REACTIONS": [], "THREAD": True},
-        "785312596546813976": {
-            "REACTIONS": [
-                "<:B_00like:1001544330613375026>",
-                "<:B_00likenot:1001544295532204082>",
+        "FAREWELL": {
+            "CHANNEL": None,
+            "MESSAGE": "{member.mention} / {member.name} / {member.nick} ушёл с сервера!",
+        },
+        "REACTIONS_THREADS": {
+            "858731672677515294": {"REACTIONS": [], "THREAD": True},
+            "785312596546813976": {
+                "REACTIONS": [
+                    "<:B_00like:1001544330613375026>",
+                    "<:B_00likenot:1001544295532204082>",
+                ],
+                "THREAD": True,
+            },
+            "1160687361269694505": {
+                "REACTIONS": [
+                    "<:B_00like:1001544330613375026>",
+                    "<:B_00likenot:1001544295532204082>",
+                    "✅",
+                ],
+                "THREAD": False,
+            },
+        },
+        "MODERATION": {"CHANNELS": [], "GIF": {"DELAY": 10}},
+        "SCORES": {
+            "REWARDS": [
+                {"ROLE": 996015029495271505, "AMOUNT": 8},
+                {"ROLE": 996014817410293812, "AMOUNT": 12},
+                {"ROLE": 840523873447706624, "AMOUNT": 18},
             ],
-            "THREAD": True,
         },
-        "1160687361269694505": {
-            "REACTIONS": [
-                "<:B_00like:1001544330613375026>",
-                "<:B_00likenot:1001544295532204082>",
-                "✅",
+        "EXPERIENCE": {
+            "REWARDS": [
+                {"ROLE": 785933016207720538, "AMOUNT": 1},
+                {"ROLE": 785934178351972401, "AMOUNT": 5},
+                {"ROLE": 785934175164432426, "AMOUNT": 10},
+                {"ROLE": 785935023550759013, "AMOUNT": 20},
+                {"ROLE": 785935030953705544, "AMOUNT": 30},
+                {"ROLE": 785936131539730453, "AMOUNT": 40},
+                {"ROLE": 785936148974272543, "AMOUNT": 45},
+                {"ROLE": 785938004391886859, "AMOUNT": 50},
+                {"ROLE": 840514241970569236, "AMOUNT": 55},
+                {"ROLE": 840514253600325632, "AMOUNT": 60},
+                {"ROLE": 840515445320581139, "AMOUNT": 65},
+                {"ROLE": 840515310770847745, "AMOUNT": 70},
             ],
-            "THREAD": False,
         },
-    },
-    "MODERATION_SETTINGS": {"GIF": {"MESSAGES_FOR_GIF": 15}},
-    "BOOSTS_COUNTING_SETTINGS": {
-        "BOOST_BOTS": {
-            "DSMonitoring": 575776004233232386,
-            "SD.C Monitoring": 464272403766444044,
+        "AUTOUPDATE": {
+            "CHANNEL": None,
+            "MESSAGES": {"LIMIT": 10},
+            "SCORES": {"LIMIT": 20},
         },
-        "REMINDER": 478321260481478677,
-    },
-    "COGS_SETTINGS": {
+        "REQUESTS": {
+            "MESSAGE": {
+                "EMBED": {
+                    "TITLE": "Служба поддержки 📟",
+                    "DESCRIPTION": "При помощи кнопок к сообщению вы можете сделать запрос по любому поводу у администрации, нажав на соответствующую кнопку ниже",
+                    "COLOR": 0x2B2D31,
+                },
+                "CALLBACK": "Запрос успешно отправлен! <a:A_heart1:993383076363239444>\nЖдите ответ от администрации, он будет отправлен вам в личные сообщения",
+            },
+            "CHANNELS": {
+                "LOGS": None,
+                "REMINDER": None,
+            },
+        },
+        "NEAREST_EVENTS": {
+            "CHANNEL": None,
+            "CATEGORIES": ["Еженедельный ивент"],
+        },
+        "GAMES": {"CHANNELS": [], "ROULETTE": {"CHANCE": 60}},
         "SPECIAL": {
-            "ROLES": {
-                "BOOSTS": {
+            "ROLES": [
+                {
                     "ROLES_HAVE": [
                         1056169412585066536,
                         1028040256903188530,
@@ -207,78 +241,53 @@ dicts = {
                         785875027085492245,
                     ],
                     "ROLES_GET": [1056171848552939581],
-                }
-            },
-            "EVENTS": {
-                "TIME": 1,
-                "CHANNELS": [
+                },
+            ],
+            "EVENT_REWARDING": {
+                "CHANNEL": 981593893567070298,
+                "TIME": 10,
+                "VOICES": [
                     858737175439736873,
                     1186721973242429480,
                     1046504818249846845,
                     1010586706677866626,
                 ],
-                "LOGS_CHANNEL": 981593893567070298,
                 "ROLES": [
-                    {"ROLES_ID": [1028040256903188530, 1056169408487247952], "SCORES": 2},
-                    {"ROLES_ID": [1056169387872227370, 1071772832599650324], "SCORES": 3},
-                    {"ROLES_ID": "everyone", "SCORES": 1},
+                    {"ROLES": [1028040256903188530, 1056169408487247952], "AMOUNT": 2},
+                    {"ROLES": [1056169387872227370, 1071772832599650324], "AMOUNT": 3},
+                    {"ROLES": "everyone", "AMOUNT": 1},
                 ],
             },
         },
-        "SCORES": {
-            "AMOUNT_TO_FIRST_LVL": 8,
-            "AMOUNT_TO_THIRD_LVL": 12,
-            "AMOUNT_TO_FIFTH_LVL": 20,
-        },
-        "GAMES": {"ROULETTE": {"CHANCE": 60}, "BLACKJACK": True},
-        "AUTOUPDATE": {
-            "MESSAGES": {"PLACE_LIMIT": 10, "PREVIOUS_BESTS_LIMIT": 3},
-            "SCORES": {},
-            "CHANNEL": 994881716307116073,
-        },
-        "NEAREST_EVENTS": {
-            "CHANNEL": 1160687361269694505,
-            "CATEGORIES": ["Еженедельный"],
-        },
-        "ORDERS": {"CHANNEL": 829075875013591101, "BARMEN_ROLE": 829082636705595433},
-        "REQUESTS": {
-            "BUTTONS_MESSAGE": {
-                "CHANNEL": 992788044514082876,
-                "EMBED": {
-                    "TITLE": "Служба поддержки 📟",
-                    "DESCRIPTION": "При помощи кнопок к сообщению вы можете сделать запрос по любому поводу у администрации и оставить отзыв о качестве поддержки, нажав на соответствующие кнопки ниже",
-                    "COLOR": 0x2B2D31,
-                },
-                "CALLBACK": "Запрос успешно отправлен! <a:A_heart1:993383076363239444>\n`Ждите ответ от администрации, он будет отправлен вам в личные сообщения`",
+        "ORDERS": {"CHANNEL": 829075875013591101, "ROLE": 829082636705595433},
+        "BOOSTS_COUNTING": {
+            "BOTS": {
+                "DSMonitoring": 575776004233232386,
+                "SD.C Monitoring": 464272403766444044,
             },
-            "LOGS_MESSAGE": {"CHANNEL": 981593893567070298},
-            "ADMIN_CHANNEL": 981593763988275210,
-        },
-        "EXPERIENCE": {
-            "FACTOR": 5,
-            "LEVELING": [
-                {"ROLE_ID": 785933016207720538, "AMOUNT": 1},
-                {"ROLE_ID": 785934178351972401, "AMOUNT": 5},
-                {"ROLE_ID": 785934175164432426, "AMOUNT": 10},
-                {"ROLE_ID": 785935023550759013, "AMOUNT": 20},
-                {"ROLE_ID": 785935030953705544, "AMOUNT": 30},
-                {"ROLE_ID": 785936131539730453, "AMOUNT": 40},
-                {"ROLE_ID": 785936148974272543, "AMOUNT": 45},
-                {"ROLE_ID": 785938004391886859, "AMOUNT": 50},
-                {"ROLE_ID": 840514241970569236, "AMOUNT": 55},
-                {"ROLE_ID": 840514253600325632, "AMOUNT": 60},
-                {"ROLE_ID": 840515445320581139, "AMOUNT": 65},
-                {"ROLE_ID": 840515310770847745, "AMOUNT": 70},
-            ],
+            "REMINDER": 478321260481478677,
         },
     },
+    ###########################################################
     "COUNTERS": {
         "LOSE_SCORES": 0,
-        "MESSAGES_PREVIOUS_BESTS": [],
-        "BOOSTS": {},
-        "ORDERS": 0,
-        "ADDED_SCORES": 0,
-        "REMOVED_SCORES": 0,
+        "MESSAGES_PREVIOUS_BESTS": [
+            840856788283031552,
+            1184510335391109202,
+            960881081836503070,
+        ],
+        "BOOSTS": {
+            "995006088959250623": 101,
+            "942161848768278571": 11,
+            "960881081836503070": 2,
+            "885838857076097045": 3,
+            "787727057341251605": 1,
+            "851319763576815616": 2,
+            "1184510335391109202": 2,
+        },
+        "ORDERS": 3,
+        "ADDED_SCORES": 64,
+        "REMOVED_SCORES": 56,
         "MAX_NUMBER_AT_EVENT": 0,
         "NUMBER_OF_EVENTS": 0,
         "TOTAL_SCORES": 0,
@@ -286,6 +295,123 @@ dicts = {
 }
 
 dicts1 = {
+    "GUILD_ID": 1189637072030531695,
+    "GENERAL": {
+        "PASSWORD": 111111,
+        "WELCOME": False,
+        "FAREWELL": False,
+        "MODERATION": {"GIF": False},
+        "AUTOUPDATE": {"MESSAGES": False, "SCORES": False},
+        "NEAREST_EVENTS": False,
+        "EXPERIENCE": False,
+        "GAMES": {"ALL_GAMES": False, "BLACKJACK": False, "ROULETTE": False},
+        "ORDERS": False,
+        "REQUESTS": False,
+        "SCORES": False,
+        "BOOSTS": False,
+        "REACTIONS_THREADS": False,
+        "ROLES": False,
+        "EVENT_REWARDING": False,
+    },
+    ###########################################################
+    "COGS": {
+        "WELCOME": {
+            "CHANNEL": None,
+            "EMBED": {
+                "TITLE": "Добро пожаловать на сервер! 💌",
+                "DESCRIPTION": "{member.mention}, приветствую тебя на сервере! 🌼",
+                "IMAGE": "https://i.postimg.cc/25znZVnG/DALLE-2023-02-22-19-01-33-a-spring-flowery-background-1.png",
+                "AVATAR_IF_ERROR": "https://im.wampi.ru/2023/11/02/Bez_nazvania1_20211210115049.png",
+                "COLOR": 0x2B2D31,
+            },
+        },
+        "FAREWELL": {
+            "CHANNEL": None,
+            "MESSAGE": "{member.mention} / {member.name} / {member.nick} ушёл с сервера!",
+        },
+        "REACTIONS_THREADS": {
+            "1189981495658565632": {
+                "REACTIONS": ["<:23d4a3c46fea7f81:1193904492861718629>"],
+                "THREAD": False,
+            },
+        },
+        "MODERATION": {"CHANNELS": [], "GIF": {"DELAY": 10}},
+        "SCORES": {
+            "REWARDS": [
+                {"ROLE": 1198738747156615309, "AMOUNT": 8},
+                {"ROLE": 1198738761186553959, "AMOUNT": 12},
+                {"ROLE": 1198738770267218070, "AMOUNT": 18},
+            ],
+        },
+        "EXPERIENCE": {
+            "REWARDS": [
+                {"ROLE": 1198738747156615309, "AMOUNT": 1},
+                {"ROLE": 1198738761186553959, "AMOUNT": 5},
+                {"ROLE": 1198738770267218070, "AMOUNT": 10},
+            ],
+        },
+        "AUTOUPDATE": {
+            "CHANNEL": None,
+            "MESSAGES": {"LIMIT": 10},
+            "SCORES": {"LIMIT": 20},
+        },
+        "REQUESTS": {
+            "MESSAGE": {
+                "EMBED": {
+                    "TITLE": "Служба поддержки 📟",
+                    "DESCRIPTION": "При помощи кнопок к сообщению вы можете сделать запрос по любому поводу у администрации, нажав на соответствующую кнопку ниже",
+                    "COLOR": 0x2B2D31,
+                },
+                "CALLBACK": "Запрос успешно отправлен! <a:A_heart1:993383076363239444>\nЖдите ответ от администрации, он будет отправлен вам в личные сообщения",
+            },
+            "CHANNELS": {
+                "LOGS": None,
+                "REMINDER": None,
+            },
+        },
+        "NEAREST_EVENTS": {
+            "CHANNEL": None,
+            "CATEGORIES": ["Еженедельный ивент"],
+        },
+        "GAMES": {"CHANNELS": [], "ROULETTE": {"CHANCE": 60}},
+        "SPECIAL": {
+            "ROLES": [],
+            "EVENT_REWARDING": {
+                "CHANNEL": 1189981495658565632,
+                "TIME": 1,
+                "VOICES": [
+                    1189637072487723081,
+                ],
+                "ROLES": [
+                    {"ROLES": [1198738761186553959], "AMOUNT": 123},
+                    {"ROLES": "everyone", "AMOUNT": 100},
+                ],
+            },
+        },
+        "ORDERS": {"CHANNEL": 1189981495658565632, "ROLE": 1198738747156615309},
+        "BOOSTS_COUNTING": {
+            "BOTS": {
+                "DSMonitoring": 575776004233232386,
+                "SD.C Monitoring": 464272403766444044,
+            },
+            "REMINDER": 478321260481478677,
+        },
+    },
+    ###########################################################
+    "COUNTERS": {
+        "LOSE_SCORES": 0,
+        "MESSAGES_PREVIOUS_BESTS": [],
+        "BOOSTS": {},
+        "ORDERS": 3,
+        "ADDED_SCORES": 64,
+        "REMOVED_SCORES": 56,
+        "MAX_NUMBER_AT_EVENT": 0,
+        "NUMBER_OF_EVENTS": 0,
+        "TOTAL_SCORES": 0,
+    },
+}
+
+dicts1_old = {
     "GUILD_ID": 1189637072030531695,
     "GENERAL_SETTINGS": {
         "PASSWORD": 111111,

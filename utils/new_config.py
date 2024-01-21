@@ -24,7 +24,7 @@ GUILD_CONFIG = {
             "EMBED": {
                 "TITLE": "Добро пожаловать на сервер!  💌",
                 "DESCRIPTION": "{member.mention}, рады тебя видеть на нашем сервере!\n",
-                "BACKGROUND_IMAGE": "https://i.postimg.cc/25znZVnG/DALLE-2023-02-22-19-01-33-a-spring-flowery-background-1.png",
+                "IMAGE": "https://i.postimg.cc/25znZVnG/DALLE-2023-02-22-19-01-33-a-spring-flowery-background-1.png",
                 "AVATAR_IF_ERROR": "https://im.wampi.ru/2023/11/02/Bez_nazvania1_20211210115049.png",
                 "COLOR": 0x2B2D31,
             },
@@ -72,19 +72,19 @@ GUILD_CONFIG = {
         },
         "GAMES": {"CHANNELS": [], "ROULETTE": {"CHANCE": 60}},
         "SPECIAL": {
-            "ROLES": {
-                # "BOOSTS": {
+            "ROLES": [
+                # {
                 #     "ROLES_HAVE": [None],
                 #     "ROLES_GET": [None],
                 # }
-            },
+            ],
             "EVENT_REWARDING": {
                 "CHANNEL": None,
                 "TIME": 10,
                 "VOICES": [],
                 "ROLES": [
                     # {"ROLES": [], "SCORES": None},
-                    {"ROLES": "everyone", "SCORES": 1},
+                    {"ROLES": "everyone", "AMOUNT": 1},
                 ],
             },
         },

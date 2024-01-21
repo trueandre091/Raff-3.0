@@ -78,14 +78,17 @@ class AutoUpdateMessagesTop(commands.Cog):
 
             place = 1
             for user in top:
-                if place <= settings["COGS"]["AUTOUPDATE"]["MESSAGES"]["LIMIT"]:
-                    member = guild.get_member(user.ds_id)
-                    if member is None or user.messages == 0:
-                        continue
-                    embed_dict[
-                        "description"
-                    ] += f"`{place}.` {member.mention} - `{user.messages}`\n"
-                    place += 1
+                if place > settings["COGS"]["AUTOUPDATE"]["MESSAGES"]["LIMIT"]:
+                    break
+
+                member = guild.get_member(user.ds_id)
+                if member is None or user.messages == 0:
+                    continue
+
+                embed_dict[
+                    "description"
+                ] += f"`{place}.` {member.mention} - `{user.messages}`\n"
+                place += 1
 
             if settings["COUNTERS"]["MESSAGES_PREVIOUS_BESTS"]:
                 embed_dict["description"] += "\n**Топ 3 предыдущей недели:**\n"

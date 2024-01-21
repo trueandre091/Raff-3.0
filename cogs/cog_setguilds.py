@@ -7,7 +7,7 @@ from disnake.ui import Select, channel_select
 from disnake import SelectOption, ModalInteraction
 
 import datetime
-from bot import update, settings_command
+from bot import update, settings
 from DB.DataBase import GuildsDBase
 from DB.JSONEnc import JsonEncoder
 from DB.config_default import GUILD_CONFIG
@@ -585,12 +585,8 @@ class GreetModal(Modal):
         self.w_settings["EMBED"]["AVATAR_IF_ERROR"] = interaction.text_values[
             "url_to_ava"
         ]
-        self.w_settings["EMBED"]["IMAGE"] = interaction.text_values[
-            "background_image"
-        ]
-        self.w_settings["EMBED"]["COLOR"] = int(
-            interaction.text_values["color"], 16
-        )
+        self.w_settings["EMBED"]["IMAGE"] = interaction.text_values["background_image"]
+        self.w_settings["EMBED"]["COLOR"] = int(interaction.text_values["color"], 16)
 
         await update_sets(self, interaction)
 
@@ -1772,8 +1768,8 @@ async def create_all_sets_embed(data, interaction):
             {
                 "name": "Прощание",
                 "value": f"Статус: {'включено' if data['GENERAL']['FAREWELL'] else 'выключено'}\n"
-                f"Канал: {await get_channel_by_id(interaction, data['FAREWELL']['CHANNEL'])}\n"
-                f"Сообщение: {data['FAREWELL']['MESSAGE']}\n",
+                f"Канал: {await get_channel_by_id(interaction, data['COGS']['FAREWELL']['CHANNEL'])}\n"
+                f"Сообщение: {data['COGS']['FAREWELL']['MESSAGE']}\n",
             },
             {
                 "name": "Обратная связь",
@@ -1795,7 +1791,7 @@ async def create_all_sets_embed(data, interaction):
                 "value": f"Все игры: {'включено' if data['GENERAL']['GAMES']['ALL_GAMES'] else 'выключено'}\n"
                 f"Блэкджек: {'включено' if data['GENERAL']['GAMES']['BLACKJACK'] else 'выключено'}\n"
                 f"Рулетка: {'включено' if data['GENERAL']['GAMES']['ROULETTE'] else 'выключено'}\n"
-                f"Канал: {await get_channel_by_id(interaction, COGS['GAMES']['CHANNEL'])}\n",
+                f"Канал: {await get_channel_by_id(interaction, COGS['GAMES']['CHANNELS'])}\n",
             },
             {
                 "name": "Ближайшие события",
@@ -1806,33 +1802,29 @@ async def create_all_sets_embed(data, interaction):
             {
                 "name": "Модерация",
                 "value": f"Статус: {'включено' if data['GENERAL']['MODERATION']['GIF'] else 'выключено'}\n"
-                f"Каналы: {await get_channel_by_id(interaction, COGS['MODERATION']['CHANNEL'])}\n"
+                f"Каналы: {await get_channel_by_id(interaction, COGS['MODERATION']['CHANNELS'])}\n"
                 f"Сообщений до GIF: {COGS['MODERATION']['GIF']['DELAY']}",
             },
         ],
     }
 
     if len(COGS["REACTIONS_THREADS"].keys()) != 0:
-        ADDING_REACTIONS_THREADS = {"name": "Автореакции и автоветки"}
+        REACTIONS_THREADS = {"name": "Автореакции и автоветки"}
         channels_name = await get_channel_by_id(
-            interaction, [*data["REACTIONS_THREADS"].keys()]
+            interaction, [*data["COGS"]["REACTIONS_THREADS"].keys()]
         )
         channels_name = (
-            [channels_name] if isinstance(channels_name, str) else channels_name
+            channels_name.split() if isinstance(channels_name, str) else channels_name
         )
-        channels_id = [*data["REACTIONS_THREADS"].keys()]
-
+        channels_id = [*data["COGS"]["REACTIONS_THREADS"].keys()]
         for i in range(len(channels_id)):
-            ADDING_REACTIONS_THREADS["value"] = (
-                ADDING_REACTIONS_THREADS.get("value", "")
-                + channels_name[i]
-                + ": "
-                + "включено"
-                if data["REACTIONS_THREADS"][channels_id[i]]["THREAD"]
+            REACTIONS_THREADS["value"] = (
+                REACTIONS_THREADS.get("value", "") + channels_name[i] + ": " + "включено"
+                if data["COGS"]["REACTIONS_THREADS"][channels_id[i]]["THREAD"]
                 else "выключено"
             )
 
-        embed["fields"].append(ADDING_REACTIONS_THREADS)
+        embed["fields"].append(REACTIONS_THREADS)
 
     return embed
 
@@ -1865,7 +1857,7 @@ class GuildsManage(commands.Cog):
             "16": "EVENT_REWARDING",
         }
 
-    @settings_command.sub_command(
+    @settings.sub_command(
         name="бота",
         description="Изменить настройки бота на сервере (обязательно)",
     )
@@ -1894,7 +1886,7 @@ class GuildsManage(commands.Cog):
         else:
             await interaction.response.send_message("Что-то пошло не так :(")
 
-    @settings_command.sub_command(
+    @settings.sub_command(
         name="текущая",
         description="Показать текущие настройки бота на сервере",
     )
@@ -1903,7 +1895,7 @@ class GuildsManage(commands.Cog):
             return
 
         gdb: GuildsDBase = GuildsDBase()
-        guild: Guilds = await gdb.get_guild({"guild_id": interaction.guild.id})
+        guild: Guilds = await gdb.get_guild(guild_id=interaction.guild.id)
         enc: JsonEncoder = JsonEncoder()
         if guild:
             await interaction.response.send_message(

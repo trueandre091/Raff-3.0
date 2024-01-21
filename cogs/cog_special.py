@@ -35,6 +35,7 @@ async def check_for_role(user, settings):
 async def top_create_embed(bot: commands.Bot, settings: dict, embed_dict: dict):
     """Creating an embed of leaderboard of members by scores"""
     guild = bot.get_guild(settings["GUILD_ID"])
+    limit = settings["COGS"]["AUTOUPDATE"]["SCORES"]["LIMIT"]
     settings = settings["COGS"]["SCORES"]
 
     top = await GDB.get_top_users_by_scores(guild.id)
@@ -42,19 +43,21 @@ async def top_create_embed(bot: commands.Bot, settings: dict, embed_dict: dict):
         top = []
 
     roles = {}
-    place = 0
+    place = 1
     for user in top:
+        if place > limit:
+            break
         member = guild.get_member(user.ds_id)
         if member is None or user.scores == 0:
             continue
 
         embed_dict[
             "description"
-        ] += f"`{place + 1}.` {member.mention} — `{user.scores} оч.`\n"
+        ] += f"`{place}.` {member.mention} — `{user.scores} оч.`\n"
 
         role_set = await check_for_role(user, settings)
         if role_set:
-            if roles[str(role_set["ROLE"])]:
+            if str(role_set["ROLE"]) in roles:
                 roles[str(role_set["ROLE"])].append(user.ds_id)
             else:
                 roles[str(role_set["ROLE"])] = [user.ds_id]
@@ -64,10 +67,14 @@ async def top_create_embed(bot: commands.Bot, settings: dict, embed_dict: dict):
         embed_dict["description"] += "\n**Получат роли**"
         for role, users in roles.items():
             embed_dict["fields"].append(
-                {"name": f"{guild.get_role(role).name}:", "value": "", "inline": True}
+                {
+                    "name": f"{guild.get_role(int(role)).name}:",
+                    "value": "",
+                    "inline": True,
+                }
             )
             for user in users:
-                member = guild.get_member(user.ds_id)
+                member = guild.get_member(user)
                 embed_dict["fields"][-1]["value"] += f"{member.mention} "
 
     return embed_dict

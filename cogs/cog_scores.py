@@ -228,14 +228,8 @@ class SpecialScoresCommands(commands.Cog):
             "description": "",
             "fields": [],
             "color": 0x2B2D31,
-            "footer": {
-                "text": interaction.guild.name,
-            },
         }
-        try:
-            embed_dict["footer"]["icon_url"] = interaction.guild.icon.url
-        except AttributeError:
-            embed_dict["footer"]["icon_url"] = "https://i.postimg.cc/CMsM38p8/1.png"
+
         embed_dict = await top_create_embed(self.bot, settings, embed_dict)
 
         await interaction.edit_original_response(

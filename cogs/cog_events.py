@@ -312,7 +312,7 @@ class AutoScoresAdding(commands.Cog):
             if interaction.component.custom_id == "accept_members":
                 settings = await guild_sets_check(
                     interaction.guild.id,
-                    "GENERALS",
+                    "GENERAL",
                     "EVENT_REWARDING",
                 )
                 if settings is None:
