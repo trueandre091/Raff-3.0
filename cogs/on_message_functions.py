@@ -10,6 +10,9 @@ from cogs.counter_functions import *
 
 async def moderation(message: disnake.Message, settings: dict):
     """Moderation functions"""
+    if settings["COGS"]["MODERATION"]["CHANNELS"] is None:
+        return
+
     if message.channel.id not in settings["COGS"]["MODERATION"]["CHANNELS"]:
         return
 
