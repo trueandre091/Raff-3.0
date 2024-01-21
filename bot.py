@@ -56,6 +56,13 @@ async def update(interaction: disnake.ApplicationCommandInteraction):
     pass
 
 
+@bot.slash_command(
+    name="настройка", default_member_permissions=disnake.Permissions(administrator=True)
+)
+async def settings_command(interaction: disnake.ApplicationCommandInteraction):
+    pass
+
+
 bot.load_extension("cogs.cog_autoupdate")
 bot.load_extension("cogs.cog_counters")
 bot.load_extension("cogs.cog_events")
@@ -105,7 +112,10 @@ async def on_guild_join(guild: disnake.Guild):
     for _ in range(5):
         res = await gdb.add_guild(data)
         if res:
+            logger.info(f"Bot join to {guild.name} guild!")
             break
+        else:
+            logger.error(f"Error adding  guild {guild.name} to database")
 
 
 @bot.event

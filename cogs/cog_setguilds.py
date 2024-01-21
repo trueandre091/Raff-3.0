@@ -7,7 +7,7 @@ from disnake.ui import Select, channel_select
 from disnake import SelectOption, ModalInteraction
 
 import datetime
-from bot import update
+from bot import update, settings_command
 from DB.DataBase import GuildsDBase
 from DB.JSONEnc import JsonEncoder
 from DB.config_default import GUILD_CONFIG
@@ -103,7 +103,7 @@ async def update_sets(self, interaction, switch_to=None):
         )
 
 
-async def toggle_set_easy(self, interaction: disnake.MessageInteraction):
+async def toggle_set_easy(self, interaction: disnake.Interaction):
     fn_num = int(str(interaction.component.custom_id).strip("fn_"))
     switch_to = True
     if "success" in str(interaction.component.style):
@@ -151,7 +151,7 @@ async def toggle_set_easy(self, interaction: disnake.MessageInteraction):
         )
 
 
-async def toggle_set(self, interaction: disnake.MessageInteraction, switch_to: bool):
+async def toggle_set(self, interaction: disnake.Interaction, switch_to: bool):
     if hasattr(self, "s_toggle"):
         self.settings["GENERAL"][self.toggle][self.s_toggle] = switch_to
 
@@ -427,7 +427,7 @@ class GuildSetsHomeScreenView(View):
     #         await GuildSettings.create_auto_reactions_threads_view(self.parent)
 
     @button(label="Начать", style=disnake.ButtonStyle.gray)
-    async def start_callback(self, btn: Button, interaction: disnake.MessageInteraction):
+    async def start_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction):
             return
@@ -563,7 +563,7 @@ class GreetModal(Modal):
             ),
             TextInput(
                 label="Фоновая картинка",
-                value=self.w_settings["EMBED"]["BACKGROUND_IMAGE"],
+                value=self.w_settings["EMBED"]["IMAGE"],
                 required=False,
                 custom_id="background_image",
             ),
@@ -585,10 +585,10 @@ class GreetModal(Modal):
         self.w_settings["EMBED"]["AVATAR_IF_ERROR"] = interaction.text_values[
             "url_to_ava"
         ]
-        self.w_settings["EMBED"]["BACKGROUND_IMAGE"] = interaction.text_values[
+        self.w_settings["EMBED"]["IMAGE"] = interaction.text_values[
             "background_image"
         ]
-        self.w_settings["EMBED"]["EMBED"]["COLOR"] = int(
+        self.w_settings["EMBED"]["COLOR"] = int(
             interaction.text_values["color"], 16
         )
 
@@ -1284,6 +1284,8 @@ class GuildSetReactionsThreadsView:
 
         self.view_manager.add_item(self.home_screen_btn)
         self.view_manager.add_item(self.add_option_btn)
+        self.home_screen_btn.callback = self.home_screen_callback
+        self.add_option_btn.callback = self.add_option_callback
 
         if self.options != "не задан":
             self.options = self.options.split(" ")
@@ -1295,17 +1297,14 @@ class GuildSetReactionsThreadsView:
             self.view_manager.add_item(btn)
             btn.callback = self.option_callback
 
-        self.home_screen_btn.callback = self.home_screen_callback
-        self.add_option_btn.callback = self.add_option_callback
-
-    async def home_screen_callback(self, interaction: disnake.MessageInteraction):
+    async def home_screen_callback(self, interaction: disnake.Interaction):
         if not await is_admin(interaction):
             return
 
         await stud_interaction(interaction)
         await GuildSettings.create_general_view(self.parent)
 
-    async def add_option_callback(self, interaction: disnake.MessageInteraction):
+    async def add_option_callback(self, interaction: disnake.Interaction):
         if not await is_admin(interaction):
             return
 
@@ -1321,7 +1320,7 @@ class GuildSetReactionsThreadsView:
             view=self.view_manager,
         )
 
-    async def option_callback(self, interaction: disnake.MessageInteraction):
+    async def option_callback(self, interaction: disnake.Interaction):
         if not await is_admin(interaction):
             return
 
@@ -1363,6 +1362,8 @@ class OptionThreadView(View):
 
         values = selectMenu.values
         self.option = values[0].id
+
+        self.parent.settings["COGS"]["REACTIONS_THREADS"] = self.w_settings
 
         await update_sets(self, interaction)
 
@@ -1766,7 +1767,7 @@ async def create_all_sets_embed(data, interaction):
                 f"Сообщение: {COGS['WELCOME']['EMBED']['DESCRIPTION']}\n"
                 f"Цвет: {hex(COGS['WELCOME']['EMBED']['COLOR'])}\n"
                 f"Автар для пользователей без него: {COGS['WELCOME']['EMBED']['AVATAR_IF_ERROR']}\n"
-                f"Картинка: {COGS['WELCOME']['EMBED']['BACKGROUND_IMAGE']}\n",
+                f"Картинка: {COGS['WELCOME']['EMBED']['IMAGE']}\n",
             },
             {
                 "name": "Прощание",
@@ -1864,10 +1865,9 @@ class GuildsManage(commands.Cog):
             "16": "EVENT_REWARDING",
         }
 
-    @commands.slash_command(
-        name="настройка_бота",
+    @settings_command.sub_command(
+        name="бота",
         description="Изменить настройки бота на сервере (обязательно)",
-        default_member_permissions=disnake.Permissions(administrator=True),
     )
     async def set_guild_settings(
         self, interaction: disnake.ApplicationCommandInteraction
@@ -1894,10 +1894,9 @@ class GuildsManage(commands.Cog):
         else:
             await interaction.response.send_message("Что-то пошло не так :(")
 
-    @commands.slash_command(
-        name="текущие_настройки",
+    @settings_command.sub_command(
+        name="текущая",
         description="Показать текущие настройки бота на сервере",
-        default_member_permissions=disnake.Permissions(administrator=True),
     )
     async def current_settings(self, interaction: disnake.ApplicationCommandInteraction):
         if not await is_admin(interaction):
