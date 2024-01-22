@@ -89,7 +89,7 @@ async def on_message(message: disnake.Message):
 
     await moderation(message, settings)
 
-    await reactions_thread_check(message, settings)
+    await reactions_threads_check(message, settings)
 
     await boosts_check(message, settings)
 

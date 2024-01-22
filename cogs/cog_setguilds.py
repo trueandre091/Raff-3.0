@@ -1289,8 +1289,8 @@ class GuildSetReactionsThreadsView:
 
         for i in range(len(self.channels_id)):
             btn = Button(label=self.options[i], custom_id=self.channels_id[i])
-            self.view_manager.add_item(btn)
             btn.callback = self.option_callback
+            self.view_manager.add_item(btn)
 
     async def home_screen_callback(self, interaction: disnake.Interaction):
         if not await is_admin(interaction):
@@ -1321,6 +1321,7 @@ class GuildSetReactionsThreadsView:
 
         option = interaction.component.custom_id
         channel = interaction.component.label
+        print(option, channel)
         await stud_interaction(interaction)
         await self.parent.interaction.edit_original_response(
             embed=disnake.Embed.from_dict(create_option_embed(channel)),
