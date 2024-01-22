@@ -42,8 +42,7 @@ async def get_channel_by_id(
                         id
                     )
                     channels.append(channel.name)
-                else:
-                    return "не задан"
+                    
         else:
             return "не задан"
 
@@ -1284,7 +1283,7 @@ class GuildSetReactionsThreadsView:
         self.add_option_btn.callback = self.add_option_callback
 
         if self.options != "не задан":
-            self.options = self.options.split(" ")
+            self.options = self.options.split(", ")
         else:
             self.options = []
 
@@ -1357,7 +1356,7 @@ class OptionThreadView(View):
             self.w_settings[selectMenu.values[0].id] = self.w_settings.pop(self.option)
 
         values = selectMenu.values
-        self.option = values[0].id
+        self.option = values[0].id if values is not None else None
 
         self.parent.settings["COGS"]["REACTIONS_THREADS"] = self.w_settings
 
