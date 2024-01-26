@@ -3,7 +3,7 @@ from loguru import logger
 import disnake
 from disnake.ext import commands
 from disnake.ui import View, button, select, Button, Modal, TextInput
-from disnake.ui import Select, channel_select
+from disnake.ui import Select, channel_select, role_select
 from disnake import SelectOption, ModalInteraction
 
 import datetime
@@ -14,8 +14,6 @@ from DB.config_default import GUILD_CONFIG
 from DB.models import Guilds
 
 import random
-
-from typing import Union
 
 
 async def is_admin(interaction: disnake.Interaction) -> bool:
@@ -29,7 +27,7 @@ async def is_admin(interaction: disnake.Interaction) -> bool:
 
 
 async def get_channel_by_id(
-    interaction: disnake.ApplicationCommandInteraction, data: Union[int, list[int]]
+    interaction: disnake.ApplicationCommandInteraction, data: int | list[int]
 ) -> str:
     if isinstance(data, int):
         return await interaction.guild.fetch_channel(data)
@@ -176,9 +174,9 @@ async def toggle_set(self, interaction: disnake.Interaction, switch_to: bool):
 
 
 class GuildSettings:
-    def __init__(self, interaction: disnake.Interaction, settings):
+    def __init__(self, interaction: disnake.Interaction, guild_sets):
         self.interaction: disnake.Interaction = interaction
-        self.settings: dict = settings
+        self.settings: dict = guild_sets
         self.gdb: GuildsDBase = GuildsDBase()
         self.enc: JsonEncoder = JsonEncoder()
 
@@ -209,6 +207,12 @@ class GuildSettings:
         await self.interaction.edit_original_response(
             embed=disnake.Embed.from_dict(create_farewell_embed()),
             view=GuildSetsFarewellView(self),
+        )
+
+    async def create_feedback_view(self):
+        await self.interaction.edit_original_response(
+            embed=disnake.Embed.from_dict(create_feedback_embed()),
+            view=GuildSetsFeedbackView(self),
         )
 
     async def create_autoupdate_view(self):
@@ -277,6 +281,9 @@ class GuildSettings:
         )
         await GuildSetReactionsThreadsView(self, options).send_view()
 
+    async def create_autoroles_view(self):
+        await AutoRolesSetsView(self).send_view(),
+
 
 class GuildSetsGeneralView:
     def __init__(self, parent):
@@ -305,9 +312,9 @@ class GuildSetsGeneralView:
                         value="farewell",
                     ),
                     SelectOption(
-                        label="AUTOUPDATE",
-                        description="тут надо чёт написать",
-                        emoji="🏧",
+                        label="Таблицы лидеров с автоматическим обновлением",
+                        description="Быстрый способ оценить своё место в рейтинге",
+                        emoji="📊",
                         value="autoupdate",
                     ),
                     SelectOption(
@@ -316,12 +323,12 @@ class GuildSetsGeneralView:
                         emoji="📟",
                         value="feedback",
                     ),
-                    SelectOption(
-                        label="Система очков и Система опыта",
-                        description="Удобные системы оценивания участников",
-                        emoji="📀",
-                        value="scores_exp",
-                    ),
+                    # SelectOption(
+                    #     label="Система очков и Система опыта",
+                    #     description="Удобные системы оценивания участников",
+                    #     emoji="📀",
+                    #     value="scores_exp",
+                    # ),
                     SelectOption(
                         label="Игры",
                         description="Включение и настройка игр",
@@ -335,16 +342,16 @@ class GuildSetsGeneralView:
                         value="nearest_events",
                     ),
                     SelectOption(
-                        label="EXP",
-                        description="тут надо чёт написать",
-                        emoji="🏧",
-                        value="experience"
+                        label="Система опыта",
+                        description="Удобная система оценки активности участников",
+                        emoji="⌛",
+                        value="experience",
                     ),
                     SelectOption(
-                        label="SCORES",
-                        description="тут надо чёт написать",
-                        emoji="🪙",
-                        value="scores"
+                        label="Система очков",
+                        description="Удобная система поощрения участников за их активность",
+                        emoji="⚖️",
+                        value="scores",
                     ),
                     SelectOption(
                         label="Модерация",
@@ -357,6 +364,9 @@ class GuildSetsGeneralView:
                         description="Автоматическое создание реакций и веток к сообщениям",
                         emoji="♾️",
                         value="adding_reactions_threads",
+                    ),
+                    SelectOption(
+                        label="Автороли", description="напиши чёнить", emoji="🏧", value="roles"
                     ),
                 ],
             )
@@ -710,7 +720,7 @@ class AutoupdateSetsView(View):
 
     @channel_select(
         channel_types=[disnake.ChannelType.text, disnake.ChannelType.news],
-        placeholder="тут надо чёт написать",
+        placeholder="Где будут сообщения?",
         min_values=0,
     )
     async def admin_select_callback(self, selectMenu: Select, interaction: disnake.Interaction):
@@ -724,16 +734,22 @@ class AutoupdateSetsView(View):
         await update_sets(self, interaction)
 
     @select(
-        placeholder="ЗаготовОчка",
+        placeholder="Выбери для отдельной настройки",
         custom_id="autoupdate_select",
         min_values=1,
         max_values=1,
         options=[
             SelectOption(
-                label="Очки", description="тут надо чёт написать", emoji="🪙", value="scores"
+                label="Очки",
+                description="Таблица лидеров по очкам за месяц",
+                emoji="⚖️",
+                value="scores",
             ),
             SelectOption(
-                label="Сообщения", description="тут надо чёт написать", emoji="💬", value="messages"
+                label="Сообщения",
+                description="Таблица лидеров по сообщениям за неделю",
+                emoji="💬",
+                value="messages",
             ),
         ],
     )
@@ -784,13 +800,13 @@ class ScoresUpdateSetsView(View):
         await stud_interaction(interaction)
         await GuildSettings.create_autoupdate_view(self.parent)
 
-    # @button(label="Настроить")
-    # async def open_farewell_set_callback(self, btn: Button, interaction: disnake.Interaction):
-    #     do_nothing(btn)
-    #     if not await is_admin(interaction):
-    #         return
-    #
-    #     await interaction.response.send_modal(FarewellModal(self.parent))
+    @button(label="Настроить")
+    async def open_farewell_set_callback(self, btn: Button, interaction: disnake.Interaction):
+        do_nothing(btn)
+        if not await is_admin(interaction):
+            return
+
+        await interaction.response.send_modal(AutoUpdateModal(self.parent, "scores"))
 
     @button(label="Вкл", style=disnake.ButtonStyle.green)
     async def enable_callback(self, btn: Button, interaction: disnake.Interaction):
@@ -838,6 +854,14 @@ class MessagesUpdateSetsView(View):
         await stud_interaction(interaction)
         await GuildSettings.create_autoupdate_view(self.parent)
 
+    @button(label="Настроить")
+    async def open_farewell_set_callback(self, btn: Button, interaction: disnake.Interaction):
+        do_nothing(btn)
+        if not await is_admin(interaction):
+            return
+
+        await interaction.response.send_modal(AutoUpdateModal(self.parent, "messages"))
+
     @button(label="Вкл", style=disnake.ButtonStyle.green)
     async def enable_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
@@ -861,6 +885,51 @@ class MessagesUpdateSetsView(View):
         logger.debug(
             f"Set AUTOUPDATE SCORES for guild {interaction.guild.name} was switched to False"
         )
+
+
+class AutoUpdateModal(Modal):
+    def __init__(self, parent, type_modal):
+        self.parent = parent
+        self.settings = parent.settings
+        self.w_settings: dict = parent.settings["COGS"]["AUTOUPDATE"]
+        self.route: str = "AUTOUPDATE"
+        self.gdb = self.parent.gdb
+
+        self.type_modal: str = type_modal
+
+        if type_modal == "scores":
+            self.modal_title = "Очки"
+            self.components = [
+                TextInput(
+                    style=disnake.TextInputStyle.short,
+                    value=self.w_settings["SCORES"]["LIMIT"],
+                    label="тута чёто напиши",
+                    custom_id="scores",
+                ),
+            ]
+        elif type_modal == "messages":
+            self.modal_title = "Сообщения"
+            self.components = [
+                TextInput(
+                    style=disnake.TextInputStyle.short,
+                    value=self.w_settings["MESSAGES"]["LIMIT"],
+                    label="тута чёто напиши",
+                    custom_id="messages",
+                ),
+            ]
+
+        super().__init__(title=self.modal_title, components=self.components)
+
+    async def callback(self, interaction: ModalInteraction):
+        if not await is_admin(interaction):
+            return
+
+        if interaction.custom_id == "scores":
+            self.w_settings["SCORES"]["LIMIT"] = interaction.text_values["scores"]
+        elif interaction.custom_id == "messages":
+            self.w_settings["MESSAGES"]["LIMIT"] = interaction.text_values["messages"]
+
+        await update_sets(self, interaction)
 
 
 class GuildSetsFeedbackView(View):
@@ -1434,6 +1503,233 @@ class ModerationModal(Modal):
         await update_sets(self, interaction)
 
 
+class AutoRolesSetsView:
+    def __init__(self, parent):
+        super().__init__()
+        self.parent = parent
+        self.settings: dict = parent.settings
+        self.w_settings: dict = self.settings["COGS"]["SPECIAL"]
+        self.toggle: str = "ROLES"
+        self.gdb: GuildsDBase = parent.gdb
+        self.enc: JsonEncoder = parent.enc
+
+        self.view_manager = View()
+        self.home_screen_btn = Button(label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger)
+        self.add_option_btn = Button(label="+", style=disnake.ButtonStyle.green)
+
+        self.home_screen_btn.callback = self.home_screen_callback
+        self.add_option_btn.callback = self.add_option_callback
+
+        self.view_manager.add_item(self.home_screen_btn)
+        self.view_manager.add_item(self.add_option_btn)
+
+        index = 0
+
+        for i in self.w_settings["ROLES"]:
+            if i["TITLE"] is None:
+                btn = Button(label=index, custom_id=index)
+                index += 1
+            else:
+                btn = Button(label=i["TITLE"], custom_id=i["TITLE"])
+                
+            btn.callback = self.role_btn_callback
+            self.view_manager.add_item(btn)
+
+    async def send_view(self):
+        await self.parent.interaction.edit_original_response(
+            embed=disnake.Embed.from_dict(create_roles_embed()),
+            view=self.view_manager,
+        )
+
+    async def home_screen_callback(self, interaction: disnake.Interaction):
+        if not await is_admin(interaction):
+            return
+
+        await stud_interaction(interaction)
+        await GuildSettings.create_general_view(self.parent)
+
+    async def add_option_callback(self, interaction: disnake.Interaction):
+        if not await is_admin(interaction):
+            return
+
+        await stud_interaction(interaction)
+        await self.parent.interaction.edit_original_response(
+            embed=disnake.Embed.from_dict(create_roles_option_embed()),
+            view=RolesOptionSetsView(self.parent),
+        )
+
+    async def role_btn_callback(self, interaction: disnake.Interaction):
+        if not await is_admin(interaction):
+            return
+
+        await stud_interaction(interaction)
+
+        id = interaction.component.custom_id
+        for option in self.w_settings["ROLES"]:
+            if option["TITLE"] == id:
+                await self.parent.interaction.edit_original_response(
+                    embed=disnake.Embed.from_dict(create_roles_option_embed()),
+                    view=RolesOptionSetsView(self.parent, option=option),
+                )
+
+
+class RolesOptionSetsView(View):
+    def __init__(self, parent, option=None):
+        super().__init__()
+        self.parent = parent
+        self.option = option
+        self.settings = parent.settings
+        self.w_settings: dict = parent.settings["COGS"]["SPECIAL"]
+        self.route: str = "SPECIAL"
+        self.gdb = self.parent.gdb
+
+    @role_select(
+        placeholder="тута чёта нада",
+        custom_id="roles_have",
+        min_values=1,
+    )
+    async def roles_have_callback(
+        self, selectMenu: Select, interaction: disnake.ApplicationCommandInteraction
+    ):
+        if not await is_admin(interaction):
+            return
+
+        if self.option is None:
+            self.w_settings[selectMenu.values[0].id] = {
+                "ROLES_HAVE": [None],
+                "ROLES_GET": [None],
+                "TITLE": None,
+            }
+        else:
+            self.w_settings[selectMenu.values[0].id] = self.w_settings.pop(self.option)
+
+        values = selectMenu.values
+        self.option = values[0].id if values is not None else None
+
+        self.parent.settings["COGS"]["REACTIONS_THREADS"] = self.w_settings
+
+        await update_sets(self, interaction)
+
+    @role_select(
+        placeholder="тута чёта нада",
+        custom_id="roles_get",
+        min_values=1,
+    )
+    async def roles_get_callback(
+        self, selectMenu: Select, interaction: disnake.ApplicationCommandInteraction
+    ):
+        if not await is_admin(interaction):
+            return
+
+        if self.option is None:
+            self.w_settings[selectMenu.values[0].id] = {"REACTIONS": [], "THREAD": False}
+        else:
+            self.w_settings[selectMenu.values[0].id] = self.w_settings.pop(self.option)
+
+        values = selectMenu.values
+        self.option = values[0].id if values is not None else None
+
+        self.parent.settings["COGS"]["REACTIONS_THREADS"] = self.w_settings
+
+        await update_sets(self, interaction)
+
+    @button(label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger)
+    async def to_back_callback(self, btn: Button, interaction: disnake.Interaction):
+        do_nothing(btn)
+        if not await is_admin(interaction):
+            return
+
+        await stud_interaction(interaction)
+        await GuildSettings.create_autoroles_view(self.parent)
+
+    @button(label="Настроить")
+    async def open_reaction_set_callback(self, btn: Button, interaction: disnake.Interaction):
+        do_nothing(btn)
+        if not await is_admin(interaction):
+            return
+
+        if self.option is None:
+            await interaction.response.send_message(
+                "Сначала выбери канал", delete_after=1, ephemeral=True
+            )
+        else:
+            await interaction.response.send_modal(OptionThreadModal(self.parent, self.option))
+
+    @button(label="Вкл", style=disnake.ButtonStyle.green)
+    async def enable_callback(self, btn: Button, interaction: disnake.Interaction):
+        do_nothing(btn)
+        if not await is_admin(interaction):
+            return
+
+        if self.option is None:
+            await interaction.response.send_message(
+                "Сначала выбери канал", delete_after=1, ephemeral=True
+            )
+        else:
+            self.w_settings[self.option]["THREAD"] = True
+            await update_sets(self, interaction, switch_to=True)
+
+            logger.debug(
+                f"Set THREAD for channel {self.option} for guild {interaction.guild.name} was switched to True"
+            )
+
+    @button(label="Выкл", style=disnake.ButtonStyle.danger)
+    async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
+        do_nothing(btn)
+        if not await is_admin(interaction):
+            return
+
+        if self.option is None:
+            await interaction.response.send_message(
+                "Сначала выбери канал", delete_after=1, ephemeral=True
+            )
+        else:
+            self.w_settings[self.option]["THREAD"] = False
+            await update_sets(self, interaction, switch_to=False)
+
+            logger.debug(
+                f"Set THREAD for channel {self.option} for guild {interaction.guild.name} was switched to False"
+            )
+
+    @button(label="Удалить", style=disnake.ButtonStyle.danger)
+    async def open_farewell_set_callback(self, btn: Button, interaction: disnake.Interaction):
+        do_nothing(btn)
+        if not await is_admin(interaction):
+            return
+
+        if self.option is not None:
+            del self.w_settings[self.option]
+            await update_sets(self, interaction)
+        await GuildSettings.create_autoroles_view(self.parent)
+
+
+class RoleOptionModal(Modal):
+    def __init__(self, parent, option):
+        self.parent = parent
+        self.option = option
+        self.settings = parent.settings
+        self.w_settings: dict = parent.settings["COGS"]["SPECIAL"]
+        self.route: str = "SPECIAL"
+        self.gdb = self.parent.gdb
+        components = [
+            TextInput(
+                label="title",
+                value=" ".join(self.w_settings[self.option]["REACTIONS"]),
+                custom_id="title",
+            )
+        ]
+        super().__init__(title="Настройка реакций", components=components)
+
+    async def callback(self, interaction: ModalInteraction):
+        if not await is_admin(interaction):
+            return
+
+        # Change this
+        self.w_settings["ROLES"] = interaction.text_values["title"]
+
+        await update_sets(self, interaction)
+
+
 class GuildSetReactionsThreadsView:
     def __init__(self, parent, options):
         self.parent = parent
@@ -1447,10 +1743,10 @@ class GuildSetReactionsThreadsView:
 
         self.add_option_btn = Button(label="+", style=disnake.ButtonStyle.green)
 
-        self.view_manager.add_item(self.home_screen_btn)
-        self.view_manager.add_item(self.add_option_btn)
         self.home_screen_btn.callback = self.home_screen_callback
         self.add_option_btn.callback = self.add_option_callback
+        self.view_manager.add_item(self.home_screen_btn)
+        self.view_manager.add_item(self.add_option_btn)
 
         if self.options != "не задан":
             self.options = self.options.split(", ")
@@ -1491,7 +1787,6 @@ class GuildSetReactionsThreadsView:
 
         option = interaction.component.custom_id
         channel = interaction.component.label
-        print(option, channel)
         await stud_interaction(interaction)
         await self.parent.interaction.edit_original_response(
             embed=disnake.Embed.from_dict(create_option_embed(channel)),
@@ -1723,19 +2018,19 @@ def create_farewell_embed():
 
 def create_autoupdate_embed():
     embed = {
-        "title": "AUTOUPDATE",
-        "description": "тут надо чёт написать",
+        "title": "Таблицы лидеров с автоматическим обновлением 📊",
+        "description": "Бот отправляет сообщения с таблицами лидеров по очкам и количеству сообщений за последнюю неделю и автоматически обновляет их примерно раз в минуту",
         "color": 0x2B2D31,
         "timestamp": datetime.datetime.now().isoformat(),
         "author": None,
         "fields": [
             {
                 "name": "Базовые настройки 💼",
-                "value": "тут надо чёт написать",
+                "value": "В боте заложены базовые сообщения, поэтому можешь просто выбрать, в каком канале будут отправлены сообщения (желательно выбирать канал, где других сообщений не будет)",
             },
             {
                 "name": "Кастомные настройки 🔖",
-                "value": "тут надо чёт написать",
+                "value": "Выбери тип таблицы, которую хочешь настроить, включить или выключить ⚙️",
             },
         ],
     }
@@ -1744,19 +2039,19 @@ def create_autoupdate_embed():
 
 def create_autoupdate_scores_embed():
     embed = {
-        "title": "AUTOUPDATE_SCORES",
-        "description": "тут надо чёт написать",
+        "title": "Таблица лидеров по очкам за месяц 🏷️",
+        "description": "Бот отправляет и автоматически обновляет сообщение с таблицей лидеров по очкам примерно раз в минуту",
         "color": 0x2B2D31,
         "timestamp": datetime.datetime.now().isoformat(),
         "author": None,
         "fields": [
             {
                 "name": "Базовые настройки 💼",
-                "value": "тут надо чёт написать",
+                "value": "В боте уже заложено базовое сообщение, поэтому можешь просто включить или выключить функцию",
             },
             {
                 "name": "Кастомные настройки 🔖",
-                "value": "тут надо чёт написать",
+                "value": "Нажми на кнопку `Настроить` и измени поле `Лимит таблицы` так, как тебе нужно (от 0 до 20)",
             },
         ],
     }
@@ -1765,19 +2060,19 @@ def create_autoupdate_scores_embed():
 
 def create_autoupdate_messages_embed():
     embed = {
-        "title": "AUTOUPDATE_MESSAGES",
-        "description": "тут надо чёт написать",
+        "title": "Таблица лидеров по сообщениям за неделю 🏷️",
+        "description": "Бот отправляет и автоматически обновляет сообщение с таблицей лидеров по сообщениям примерно раз в минуту",
         "color": 0x2B2D31,
         "timestamp": datetime.datetime.now().isoformat(),
         "author": None,
         "fields": [
             {
                 "name": "Базовые настройки 💼",
-                "value": "тут надо чёт написать",
+                "value": "В боте уже заложено базовое сообщение, поэтому можешь просто включить или выключить функцию",
             },
             {
                 "name": "Кастомные настройки 🔖",
-                "value": "тут надо чёт написать",
+                "value": "Нажми на кнопку `Настроить` и измени поле `Лимит таблицы` так, как тебе нужно (от 0 до 20)",
             },
         ],
     }
@@ -1786,19 +2081,16 @@ def create_autoupdate_messages_embed():
 
 def create_scores_embed():
     embed = {
-        "title": "SCORES",
-        "description": "тут надо чёт написать",
+        "title": "Система очков ⚖️",
+        "description": "Система очков - оценка участников путём присваивания им очков за любую активность (участие в ивентах, играх и т.п.)",
         "color": 0x2B2D31,
         "timestamp": datetime.datetime.now().isoformat(),
         "author": None,
         "fields": [
             {
                 "name": "Базовые настройки 💼",
-                "value": "тут надо чёт написать",
-            },
-            {
-                "name": "Кастомные настройки 🔖",
-                "value": "тут надо чёт написать",
+                "value": "Нажми `Вкл` / `Выкл`, если хочешь / не хочешь использовать систему очков на своём сервере\n"
+                "Функция включает в себя команды `/add, /remove, /set` с соответствующими подкомандами, а также `/топ, /реп, /reset` ⚙️",
             },
         ],
     }
@@ -1807,19 +2099,16 @@ def create_scores_embed():
 
 def create_experience_embed():
     embed = {
-        "title": "EXPERIENCE",
-        "description": "тут надо чёт написать",
+        "title": "Система опыта ⌛",
+        "description": "Система опыта - поуровневая оценка активности участников на сервере путём присваивания им очков опыта за сообщения (для получения опыта необходимо написать хотя бы одно сообщения за последнюю минуту)",
         "color": 0x2B2D31,
         "timestamp": datetime.datetime.now().isoformat(),
         "author": None,
         "fields": [
             {
                 "name": "Базовые настройки 💼",
-                "value": "тут надо чёт написать",
-            },
-            {
-                "name": "Кастомные настройки 🔖",
-                "value": "тут надо чёт написать",
+                "value": "Нажми `Вкл` / `Выкл`, если хочешь / не хочешь использовать систему опыта на своём сервере\n"
+                "Функция включает в себя команды `/add, /remove, /set` с соответствующими подкомандами ⚙️",
             },
         ],
     }
@@ -1971,6 +2260,48 @@ def create_moderation_embed():
         ],
     }
 
+    return embed
+
+
+def create_roles_embed():
+    embed = {
+        "title": "ROLES",
+        "description": "тут надо чёт написать",
+        "color": 0x2B2D31,
+        "timestamp": datetime.datetime.now().isoformat(),
+        "author": None,
+        "fields": [
+            {
+                "name": "Базовые настройки 💼",
+                "value": "тут надо чёт написать",
+            },
+            {
+                "name": "Кастомные настройки 🔖",
+                "value": "тут надо чёт написать",
+            },
+        ],
+    }
+    return embed
+
+
+def create_roles_option_embed():
+    embed = {
+        "title": "ROLES_OPTION",
+        "description": "тут надо чёт написать",
+        "color": 0x2B2D31,
+        "timestamp": datetime.datetime.now().isoformat(),
+        "author": None,
+        "fields": [
+            {
+                "name": "Базовые настройки 💼",
+                "value": "тут надо чёт написать",
+            },
+            {
+                "name": "Кастомные настройки 🔖",
+                "value": "тут надо чёт написать",
+            },
+        ],
+    }
     return embed
 
 
@@ -2239,15 +2570,11 @@ class GuildsManage(commands.Cog):
 
                 elif value == "scores":
                     await stud_interaction(interaction)
-                    await GuildSettings.create_scores_view(
-                        self.parent[str(interaction.guild.id)]
-                    )
+                    await GuildSettings.create_scores_view(self.parent[str(interaction.guild.id)])
 
                 elif value == "experience":
                     await stud_interaction(interaction)
-                    await GuildSettings.create_exp_view(
-                        self.parent[str(interaction.guild.id)]
-                    )
+                    await GuildSettings.create_exp_view(self.parent[str(interaction.guild.id)])
 
                 elif value == "games":
                     await stud_interaction(interaction)
@@ -2268,6 +2595,12 @@ class GuildsManage(commands.Cog):
                 elif value == "adding_reactions_threads":
                     await stud_interaction(interaction)
                     await GuildSettings.create_auto_reactions_threads_view(
+                        self.parent[str(interaction.guild.id)]
+                    )
+
+                elif value == "roles":
+                    await stud_interaction(interaction)
+                    await GuildSettings.create_autoroles_view(
                         self.parent[str(interaction.guild.id)]
                     )
 

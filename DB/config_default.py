@@ -76,14 +76,15 @@ GUILD_CONFIG = {
                 # {
                 #     "ROLES_HAVE": [None],
                 #     "ROLES_GET": [None],
-                # }
+                #     "TITLE": None,
+                # },
             ],
             "EVENT_REWARDING": {
                 "CHANNEL": None,
                 "TIME": 10,
                 "VOICES": [],
-                "ROLES": [
-                    # {"ROLES": [], "SCORES": None},
+                "REWARDS": [
+                    # {"ROLES": [], "AMOUNT": None},
                     {"ROLES": "everyone", "AMOUNT": 1},
                 ],
             },
