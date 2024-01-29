@@ -72,13 +72,14 @@ GUILD_CONFIG = {
         },
         "GAMES": {"CHANNELS": [], "ROULETTE": {"CHANCE": 60}},
         "SPECIAL": {
-            "ROLES": [
-                # {
-                #     "ROLES_HAVE": [None],
-                #     "ROLES_GET": [None],
-                #     "TITLE": None,
+            "ROLES": {
+                # "None": {
+                #     "ROLES_HAVE": None | list,
+                #     "ROLES_GET": None | list,
+                #     "TITLE_UPDATED": bool = False,
+                #     "ENABLED": bool = True,
                 # },
-            ],
+            },
             "EVENT_REWARDING": {
                 "CHANNEL": None,
                 "TIME": 10,
