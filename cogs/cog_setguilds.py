@@ -1582,6 +1582,11 @@ class ModerationModal(Modal):
 
 
 class AutoRolesSetsView:
+    new_option_data = {"ROLES_HAVE": None,
+                       "ROLES_GET": None,
+                       "TITLE_UPDATED": False,
+                       "ENABLED": True}
+
     def __init__(self, parent):
         super().__init__()
         self.parent = parent
@@ -1603,15 +1608,8 @@ class AutoRolesSetsView:
         self.view_manager.add_item(self.home_screen_btn)
         self.view_manager.add_item(self.add_option_btn)
 
-        index = 0
-
-        for i in self.w_settings["ROLES"]:
-            if i["TITLE"] is None:
-                btn = Button(label=index, custom_id=index)
-                index += 1
-            else:
-                btn = Button(label=i["TITLE"], custom_id=i["TITLE"])
-
+        for i in [*self.w_settings["ROLES"].keys()]:
+            btn = Button(label=i, custom_id=i)
             btn.callback = self.role_btn_callback
             self.view_manager.add_item(btn)
 
@@ -1632,10 +1630,21 @@ class AutoRolesSetsView:
         if not await is_admin(interaction):
             return
 
+        max_ = 0
+        for i in [*self.w_settings["ROLES"].keys()]:
+            if not self.w_settings["ROLES"][i]["TITLE_UPDATED"]:
+                max_ = int(i) + 1
+
+        if max_ == 0:
+            max_ += 1
+
+        max_ = str(max_)
+        self.w_settings["ROLES"][max_] = self.new_option_data
+
         await stud_interaction(interaction)
         await self.parent.interaction.edit_original_response(
             embed=disnake.Embed.from_dict(create_roles_option_embed()),
-            view=RolesOptionSetsView(self.parent),
+            view=RolesOptionSetsView(self.parent, option=max_),
         )
 
     async def role_btn_callback(self, interaction: disnake.Interaction):
@@ -1644,21 +1653,20 @@ class AutoRolesSetsView:
 
         await stud_interaction(interaction)
 
-        id = interaction.component.custom_id
-        for option in self.w_settings["ROLES"]:
-            if option["TITLE"] == id:
-                await self.parent.interaction.edit_original_response(
-                    embed=disnake.Embed.from_dict(create_roles_option_embed()),
-                    view=RolesOptionSetsView(self.parent, option=option),
-                )
+        option = interaction.component.custom_id
+        await self.parent.interaction.edit_original_response(
+            embed=disnake.Embed.from_dict(create_roles_option_embed()),
+            view=RolesOptionSetsView(self.parent, option=option),
+        )
 
 
 class RolesOptionSetsView(View):
-    def __init__(self, parent, option=None):
+
+    def __init__(self, parent, option: str):
         super().__init__()
-        self.parent = parent
+        self.parent: GuildSettings = parent
+        self.settings: dict = parent.settings
         self.option = option
-        self.settings = parent.settings
         self.w_settings: dict = parent.settings["COGS"]["SPECIAL"]
         self.route: str = "SPECIAL"
         self.gdb = self.parent.gdb
@@ -1667,6 +1675,7 @@ class RolesOptionSetsView(View):
         placeholder="Какие роли нужно иметь",
         custom_id="roles_have",
         min_values=1,
+        max_values=25,
     )
     async def roles_have_callback(
         self, selectMenu: Select, interaction: disnake.ApplicationCommandInteraction
@@ -1674,19 +1683,13 @@ class RolesOptionSetsView(View):
         if not await is_admin(interaction):
             return
 
-        if self.option is None:
-            self.w_settings[selectMenu.values[0].id] = {
-                "ROLES_HAVE": [None],
-                "ROLES_GET": [None],
-                "TITLE": None,
-            }
-        else:
-            self.w_settings[selectMenu.values[0].id] = self.w_settings.pop(self.option)
+        values: list[disnake.Role] = selectMenu.values
+        roles = []
+        if values is not None:
+            for value in values:
+                roles.append(value.id)
 
-        values = selectMenu.values
-        self.option = values[0].id if values is not None else None
-
-        self.parent.settings["COGS"]["REACTIONS_THREADS"] = self.w_settings
+        self.w_settings["ROLES"][self.option]["ROLES_HAVE"] = roles if len(roles) > 0 else None
 
         await update_sets(self, interaction)
 
@@ -1694,6 +1697,7 @@ class RolesOptionSetsView(View):
         placeholder="Чтобы получить эти роли",
         custom_id="roles_get",
         min_values=1,
+        max_values=25,
     )
     async def roles_get_callback(
         self, selectMenu: Select, interaction: disnake.ApplicationCommandInteraction
@@ -1701,15 +1705,13 @@ class RolesOptionSetsView(View):
         if not await is_admin(interaction):
             return
 
-        if self.option is None:
-            self.w_settings[selectMenu.values[0].id] = {"REACTIONS": [], "THREAD": False}
-        else:
-            self.w_settings[selectMenu.values[0].id] = self.w_settings.pop(self.option)
+        values: list[disnake.Role] = selectMenu.values
+        roles = []
+        if values is not None:
+            for value in values:
+                roles.append(value.id)
 
-        values = selectMenu.values
-        self.option = values[0].id if values is not None else None
-
-        self.parent.settings["COGS"]["REACTIONS_THREADS"] = self.w_settings
+        self.w_settings["ROLES"][self.option]["ROLES_GET"] = roles if len(roles) > 0 else None
 
         await update_sets(self, interaction)
 
@@ -1730,14 +1732,9 @@ class RolesOptionSetsView(View):
         if not await is_admin(interaction):
             return
 
-        if self.option is None:
-            await interaction.response.send_message(
-                "Сначала выбери канал", delete_after=1, ephemeral=True
-            )
-        else:
-            await interaction.response.send_modal(
-                OptionThreadModal(self.parent, self.option)
-            )
+        await interaction.response.send_modal(
+            RoleOptionModal(self.parent, self.option)
+        )
 
     @button(label="Вкл", style=disnake.ButtonStyle.green)
     async def enable_callback(self, btn: Button, interaction: disnake.Interaction):
@@ -1745,17 +1742,12 @@ class RolesOptionSetsView(View):
         if not await is_admin(interaction):
             return
 
-        if self.option is None:
-            await interaction.response.send_message(
-                "Сначала выбери канал", delete_after=1, ephemeral=True
-            )
-        else:
-            self.w_settings[self.option]["THREAD"] = True
-            await update_sets(self, interaction, switch_to=True)
+        self.w_settings["ROLES"][self.option]["ENABLED"] = True
+        await update_sets(self, interaction, switch_to=True)
 
-            logger.debug(
-                f"Set THREAD for channel {self.option} for guild {interaction.guild.name} was switched to True"
-            )
+        logger.debug(
+            f"Set ENABLED for roles option {self.option} for guild {interaction.guild.name} was switched to True"
+        )
 
     @button(label="Выкл", style=disnake.ButtonStyle.danger)
     async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
@@ -1763,17 +1755,12 @@ class RolesOptionSetsView(View):
         if not await is_admin(interaction):
             return
 
-        if self.option is None:
-            await interaction.response.send_message(
-                "Сначала выбери канал", delete_after=1, ephemeral=True
-            )
-        else:
-            self.w_settings[self.option]["THREAD"] = False
-            await update_sets(self, interaction, switch_to=False)
+        self.w_settings["ROLES"][self.option]["ENABLED"] = False
+        await update_sets(self, interaction, switch_to=False)
 
-            logger.debug(
-                f"Set THREAD for channel {self.option} for guild {interaction.guild.name} was switched to False"
-            )
+        logger.debug(
+            f"Set ENABLED for roles option {self.option} for guild {interaction.guild.name} was switched to False"
+        )
 
     @button(label="Удалить", style=disnake.ButtonStyle.danger)
     async def open_farewell_set_callback(
@@ -1783,25 +1770,26 @@ class RolesOptionSetsView(View):
         if not await is_admin(interaction):
             return
 
-        if self.option is not None:
-            del self.w_settings[self.option]
-            await update_sets(self, interaction)
+        logger.debug(f"{self.w_settings['ROLES'].pop(self.option)} was deleted from guild {interaction.guild.name}")
+
+        await update_sets(self, interaction)
         await GuildSettings.create_autoroles_view(self.parent)
 
 
 class RoleOptionModal(Modal):
     def __init__(self, parent, option):
-        self.parent = parent
-        self.option = option
-        self.settings = parent.settings
+        self.parent: GuildSettings = parent
+        self.option: str = option
+        self.settings: dict = parent.settings
         self.w_settings: dict = parent.settings["COGS"]["SPECIAL"]
         self.route: str = "SPECIAL"
-        self.gdb = self.parent.gdb
+        self.gdb: GuildsDBase = self.parent.gdb
         components = [
             TextInput(
                 label="title",
-                value=" ".join(self.w_settings[self.option]["REACTIONS"]),
+                value=self.option,
                 custom_id="title",
+                max_length=80,
             )
         ]
         super().__init__(title="Настройка реакций", components=components)
@@ -1810,8 +1798,11 @@ class RoleOptionModal(Modal):
         if not await is_admin(interaction):
             return
 
-        # Change this
-        self.w_settings["ROLES"] = interaction.text_values["title"]
+        new_title: str = interaction.text_values["title"]
+        if new_title.strip() != self.option:
+            self.w_settings["ROLES"][new_title] = self.w_settings["ROLES"].pop(self.option)
+            self.w_settings["ROLES"][new_title]["TITLE_UPDATE"] = True
+            self.option = new_title
 
         await update_sets(self, interaction)
 
