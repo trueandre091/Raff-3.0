@@ -1592,6 +1592,7 @@ class AutoRolesSetsView:
         self.parent = parent
         self.settings: dict = parent.settings
         self.w_settings: dict = self.settings["COGS"]["SPECIAL"]
+        self.route = "SPECIAL"
         self.toggle: str = "ROLES"
         self.gdb: GuildsDBase = parent.gdb
         self.enc: JsonEncoder = parent.enc
@@ -1640,8 +1641,9 @@ class AutoRolesSetsView:
 
         max_ = str(max_)
         self.w_settings["ROLES"][max_] = self.new_option_data
+        await update_sets(self, interaction)
 
-        await stud_interaction(interaction)
+        # await stud_interaction(interaction)
         await self.parent.interaction.edit_original_response(
             embed=disnake.Embed.from_dict(create_roles_option_embed()),
             view=RolesOptionSetsView(self.parent, option=max_),
@@ -1799,9 +1801,9 @@ class RoleOptionModal(Modal):
             return
 
         new_title: str = interaction.text_values["title"]
-        if new_title.strip() != self.option:
+        if new_title != self.option:
             self.w_settings["ROLES"][new_title] = self.w_settings["ROLES"].pop(self.option)
-            self.w_settings["ROLES"][new_title]["TITLE_UPDATE"] = True
+            self.w_settings["ROLES"][new_title]["TITLE_UPDATED"] = True
             self.option = new_title
 
         await update_sets(self, interaction)
