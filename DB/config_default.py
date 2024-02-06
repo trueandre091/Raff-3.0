@@ -84,10 +84,18 @@ GUILD_CONFIG = {
                 "CHANNEL": None,
                 "TIME": 10,
                 "VOICES": [],
-                "REWARDS": [
-                    # {"ROLES": [], "AMOUNT": None},
-                    {"ROLES": "everyone", "AMOUNT": 1},
-                ],
+                "REWARDS": {
+                    # "TITLE" {"ROLES": list = None,
+                    #          "AMOUNT": int = 1,
+                    #          "TITLE_UPDATED": bool = False,
+                    #          "ENABLED": bool = True,},
+                    "everyone": {
+                        "ROLES": ["everyone"],
+                        "AMOUNT": 1,
+                        "TITLE_UPDATED": False,
+                        "ENABLED": True,
+                    },
+                },
             },
         },
         "ORDERS": {"CHANNEL": None, "ROLE": None},
