@@ -6,7 +6,6 @@ from disnake.ui import View, button, select, Button, Modal, TextInput
 from disnake.ui import Select, channel_select, role_select, ChannelSelect
 from disnake import SelectOption, ModalInteraction
 
-import datetime
 from bot import update, settings
 from DB.DataBase import GuildsDBase
 from DB.JSONEnc import JsonEncoder
@@ -14,6 +13,9 @@ from DB.config_default import GUILD_CONFIG
 from DB.models import Guilds
 
 import random
+from datetime import datetime
+
+TIMEOUT = 1800
 
 
 async def is_admin(interaction: disnake.Interaction) -> bool:
@@ -63,6 +65,7 @@ async def stud_interaction(interaction: disnake.ApplicationCommandInteraction):
         "Да, мой господин",
         "Есть сэр!",
         "Так точно!",
+        "Сию секунду!",
     ]
     await interaction.response.send_message(
         random.choice(phrases), delete_after=0.01, ephemeral=True
@@ -173,6 +176,54 @@ async def toggle_set(self, interaction: disnake.Interaction, switch_to: bool):
         await interaction.response.send_message(
             "Не удалось обновить настройки", delete_after=1, ephemeral=True
         )
+
+
+class Confirmation(View):
+    confirm_embed = disnake.Embed.from_dict(
+        {
+            "title": "Ты уверен?",
+            "description": "Это действие нельзя будет отменить!",
+            "color": 0x2B2D31,
+            "timestamp": datetime.now().isoformat(),
+            "author": None,
+            "fields": [
+                {
+                    "name": "Не торопись",
+                    "value": "Кнопки станут доступны через 10 сек",
+                },
+            ],
+        }
+    )
+
+    def __init__(self, parent):
+        self.parent = parent
+        self.send_time = datetime.now()
+        super().__init__(timeout=TIMEOUT)
+
+    async def timer(self):
+        return (datetime.now() - self.send_time).seconds > 10
+
+    @button(label="Да", custom_id="confirm", style=disnake.ButtonStyle.danger)
+    async def confirm_callback(self, btn: Button, interaction: disnake.Interaction):
+        do_nothing(btn)
+        if not await is_admin(interaction):
+            return
+
+        if not await self.timer():
+            await interaction.response.send_message(
+                "Подожди 10 секунд", delete_after=1, ephemeral=True
+            )
+            return
+
+        await self.parent.confirm_action(interaction, True)
+
+    @button(label="Нет", custom_id="refute", style=disnake.ButtonStyle.green)
+    async def refute_callback(self, btn: Button, interaction: disnake.Interaction):
+        do_nothing(btn)
+        if not await is_admin(interaction):
+            return
+
+        await self.parent.confirm_action(interaction, False)
 
 
 class GuildSettings:
@@ -424,9 +475,10 @@ class GuildSetsGeneralView:
 
 class GuildSetsHomeScreenView(View):
     def __init__(self, parent):
-        super().__init__(timeout=3600)
+        super().__init__(timeout=TIMEOUT)
         self.parent = parent
         self.settings: dict = parent.settings
+        self.confirm: Confirmation = Confirmation(self)
         self.gdb: GuildsDBase = parent.gdb
         self.enc: JsonEncoder = parent.enc
 
@@ -485,32 +537,48 @@ class GuildSetsHomeScreenView(View):
         await stud_interaction(interaction)
         await GuildSettings.create_general_view(self.parent)
 
+    async def confirm_action(self, interaction: disnake.Interaction, confirm: bool):
+        if confirm:
+            enc = self.enc
+            self.parent.settings = enc.get_default_cfg()
+            self.parent.settings["GUILD_ID"] = interaction.guild.id
+            res = await self.gdb.update_guild(
+                guild_id=interaction.guild.id,
+                guild_sets=enc.code_to_json(self.parent.settings),
+            )
+            if res:
+                await interaction.response.send_message(
+                    "Настройки сброшены успешно!", delete_after=1, ephemeral=True
+                )
+                logger.debug(f"All settings for guild {interaction.guild.name} were reset")
+            else:
+                await interaction.response.send_message(
+                    "Не удалось выполнить команду :(", delete_after=1, ephemeral=True
+                )
+                logger.error(f"Can't reset settings for guild {interaction.guild.name}")
+        else:
+            await interaction.response.send_message(
+                "Действие отменено", delete_after=1, ephemeral=True
+            )
+
+        await GuildSettings.create_home_view(self.parent)
+
     @button(label="Сбросить", style=disnake.ButtonStyle.danger)
     async def reset_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction):
             return
 
-        enc = self.enc
-        self.parent.settings = enc.get_default_cfg()
-        self.parent.settings["GUILD_ID"] = interaction.guild.id
-        res = await self.gdb.update_guild(
-            guild_id=interaction.guild.id,
-            guild_sets=enc.code_to_json(self.parent.settings),
+        await stud_interaction(interaction)
+
+        await self.parent.interaction.edit_original_response(
+            embed=self.confirm.confirm_embed, view=self.confirm
         )
-        if res:
-            await interaction.response.send_message(
-                "Настройки сброшены успешно!", delete_after=1, ephemeral=True
-            )
-        else:
-            await interaction.response.send_message(
-                "Не удалось выполнить команду :(", delete_after=1, ephemeral=True
-            )
 
 
 class GuildSetsGreetView(View):
     def __init__(self, parent):
-        super().__init__()
+        super().__init__(timeout=TIMEOUT)
         self.parent = parent
         self.settings: dict = parent.settings
         self.w_settings: dict = parent.settings["COGS"]["WELCOME"]
@@ -616,7 +684,7 @@ class GreetModal(Modal):
                 custom_id="color",
             ),
         ]
-        super().__init__(title="Настройка Приветствий", components=options)
+        super().__init__(title="Настройка Приветствий", components=options, timeout=TIMEOUT)
 
     async def callback(self, interaction: ModalInteraction):
         if not await is_admin(interaction):
@@ -633,7 +701,7 @@ class GreetModal(Modal):
 
 class GuildSetsFarewellView(View):
     def __init__(self, parent):
-        super().__init__()
+        super().__init__(timeout=TIMEOUT)
         self.parent = parent
         self.settings: dict = parent.settings
         self.w_settings: dict = parent.settings["COGS"]["FAREWELL"]
@@ -710,7 +778,7 @@ class FarewellModal(Modal):
                 custom_id="message",
             ),
         ]
-        super().__init__(title="Настройка Прощаний", components=components)
+        super().__init__(title="Настройка Прощаний", components=components, timeout=TIMEOUT)
 
     async def callback(self, interaction: ModalInteraction):
         if not await is_admin(interaction):
@@ -723,7 +791,7 @@ class FarewellModal(Modal):
 
 class AutoupdateSetsView(View):
     def __init__(self, parent):
-        super().__init__()
+        super().__init__(timeout=TIMEOUT)
         self.parent = parent
         self.settings: dict = parent.settings
         self.w_settings: dict = parent.settings["COGS"]["AUTOUPDATE"]
@@ -794,7 +862,7 @@ class AutoupdateSetsView(View):
 
 class ScoresUpdateSetsView(View):
     def __init__(self, parent):
-        super().__init__()
+        super().__init__(timeout=TIMEOUT)
         self.parent = parent
         self.settings: dict = parent.settings
         self.w_settings: dict = parent.settings["COGS"]["AUTOUPDATE"]
@@ -848,7 +916,7 @@ class ScoresUpdateSetsView(View):
 
 class MessagesUpdateSetsView(View):
     def __init__(self, parent):
-        super().__init__()
+        super().__init__(timeout=TIMEOUT)
         self.parent = parent
         self.settings: dict = parent.settings
         self.w_settings: dict = parent.settings["COGS"]["AUTOUPDATE"]
@@ -931,7 +999,7 @@ class AutoUpdateModal(Modal):
                 ),
             ]
 
-        super().__init__(title=self.modal_title, components=self.components)
+        super().__init__(title=self.modal_title, components=self.components, timeout=TIMEOUT)
 
     async def callback(self, interaction: ModalInteraction):
         if not await is_admin(interaction):
@@ -947,7 +1015,7 @@ class AutoUpdateModal(Modal):
 
 class GuildSetsFeedbackView(View):
     def __init__(self, parent):
-        super().__init__()
+        super().__init__(timeout=TIMEOUT)
         self.parent = parent
         self.settings: dict = parent.settings
         self.w_settings: dict = parent.settings["COGS"]["REQUESTS"]
@@ -1059,7 +1127,7 @@ class FeedbackModal(Modal):
                 custom_id="color",
             ),
         ]
-        super().__init__(title="Обратная связь", components=components)
+        super().__init__(title="Обратная связь", components=components, timeout=TIMEOUT)
 
     async def callback(self, interaction: ModalInteraction):
         if not await is_admin(interaction):
@@ -1075,7 +1143,7 @@ class FeedbackModal(Modal):
 
 class ScoresSetsView(View):
     def __init__(self, parent):
-        super().__init__()
+        super().__init__(timeout=TIMEOUT)
         self.parent = parent
         self.settings: dict = parent.settings
         self.toggle: str = "SCORES"
@@ -1114,7 +1182,7 @@ class ScoresSetsView(View):
 
 class ExpSetsView(View):
     def __init__(self, parent):
-        super().__init__()
+        super().__init__(timeout=TIMEOUT)
         self.parent = parent
         self.settings: dict = parent.settings
         self.toggle: str = "EXPERIENCE"
@@ -1153,7 +1221,7 @@ class ExpSetsView(View):
 
 class GuildSetsGamesView(View):
     def __init__(self, parent):
-        super().__init__()
+        super().__init__(timeout=TIMEOUT)
         self.parent = parent
         self.settings: dict = parent.settings
         self.w_settings: dict = parent.settings["COGS"]["GAMES"]
@@ -1251,7 +1319,7 @@ class GuildSetsGamesView(View):
 
 class SetBlackJackView(View):
     def __init__(self, parent):
-        super().__init__()
+        super().__init__(timeout=TIMEOUT)
         self.parent = parent
         self.settings = parent.settings
         self.toggle = "GAMES"
@@ -1290,7 +1358,7 @@ class SetBlackJackView(View):
 
 class SetRouletteView(View):
     def __init__(self, parent):
-        super().__init__()
+        super().__init__(timeout=TIMEOUT)
         self.parent = parent
         self.settings = parent.settings
         self.toggle = "GAMES"
@@ -1329,7 +1397,7 @@ class SetRouletteView(View):
 
 class GuildSetNearestEventsView(View):
     def __init__(self, parent):
-        super().__init__()
+        super().__init__(timeout=TIMEOUT)
         self.parent = parent
         self.settings: dict = parent.settings
         self.w_settings: dict = parent.settings["COGS"]["NEAREST_EVENTS"]
@@ -1408,7 +1476,9 @@ class NearestEventModal(Modal):
                 max_length=512,
             )
         ]
-        super().__init__(title="Настройка Доски ближайших событий", components=components)
+        super().__init__(
+            title="Настройка Доски ближайших событий", components=components, timeout=TIMEOUT
+        )
 
     async def callback(self, interaction: ModalInteraction):
         if not await is_admin(interaction):
@@ -1421,7 +1491,7 @@ class NearestEventModal(Modal):
 
 class GuildSetModerationView(View):
     def __init__(self, parent):
-        super().__init__()
+        super().__init__(timeout=TIMEOUT)
         self.parent = parent
         self.settings = parent.settings
         self.w_settings: dict = parent.settings["COGS"]["MODERATION"]
@@ -1505,7 +1575,7 @@ class ModerationModal(Modal):
                 max_length=4,
             )
         ]
-        super().__init__(title="Настройки модерации", components=components)
+        super().__init__(title="Настройки модерации", components=components, timeout=TIMEOUT)
 
     async def callback(self, interaction: ModalInteraction):
         if not await is_admin(interaction):
@@ -1525,7 +1595,6 @@ class EventRewardingView:
     }
 
     def __init__(self, parent):
-        super().__init__()
         self.parent = parent
         self.settings: dict = parent.settings
         self.w_settings: dict = self.settings["COGS"]["SPECIAL"]
@@ -1534,7 +1603,7 @@ class EventRewardingView:
         self.gdb: GuildsDBase = parent.gdb
         self.enc: JsonEncoder = parent.enc
 
-        self.view_manager = View()
+        self.view_manager = View(timeout=TIMEOUT)
         self.select_channel = ChannelSelect(
             custom_id="select_channel",
             min_values=0,
@@ -1573,9 +1642,7 @@ class EventRewardingView:
             view=self.view_manager,
         )
 
-    async def channel_select_callback(
-        self, interaction: disnake.MessageInteraction
-    ):
+    async def channel_select_callback(self, interaction: disnake.MessageInteraction):
         if not await is_admin(interaction):
             return
 
@@ -1584,9 +1651,7 @@ class EventRewardingView:
 
         await update_sets(self, interaction)
 
-    async def channel_voice_select_callback(
-        self, interaction: disnake.MessageInteraction
-    ):
+    async def channel_voice_select_callback(self, interaction: disnake.MessageInteraction):
         if not await is_admin(interaction):
             return
 
@@ -1642,9 +1707,10 @@ class EventRewardingView:
 
 class RoleRewardOptionView(View):
     def __init__(self, parent, option: str):
-        super().__init__()
+        super().__init__(timeout=TIMEOUT)
         self.parent: GuildSettings = parent
         self.settings: dict = parent.settings
+        self.confirm = Confirmation(self)
         self.option = option
         self.w_settings: dict = parent.settings["COGS"]["SPECIAL"]
         self.route: str = "SPECIAL"
@@ -1668,7 +1734,9 @@ class RoleRewardOptionView(View):
             for value in values:
                 roles.append(value.id)
 
-        self.w_settings["EVENT_REWARDING"]["REWARDS"][self.option]["ROLES"] = roles if len(roles) > 0 else None
+        self.w_settings["EVENT_REWARDING"]["REWARDS"][self.option]["ROLES"] = (
+            roles if len(roles) > 0 else None
+        )
 
         await update_sets(self, interaction)
 
@@ -1715,18 +1783,35 @@ class RoleRewardOptionView(View):
             f"Set ENABLED for rewarding roles option {self.option} for guild {interaction.guild.name} was switched to False"
         )
 
+    async def confirm_action(self, interaction: disnake.Interaction, confirm: bool):
+        if confirm:
+            logger.debug(
+                f"{self.w_settings['EVENT_REWARDING']['REWARDS'].pop(self.option)} was deleted from guild {interaction.guild.name}"
+            )
+
+            await update_sets(self, interaction)
+        else:
+            await interaction.response.send_message(
+                "Действие отменено", delete_after=1, ephemeral=True
+            )
+
+        await GuildSettings.create_rewards_view(self.parent)
+
     @button(label="Удалить", style=disnake.ButtonStyle.danger)
     async def open_farewell_set_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction):
             return
 
-        logger.debug(
-            f"{self.w_settings['EVENT_REWARDING']['REWARDS'].pop(self.option)} was deleted from guild {interaction.guild.name}"
-        )
+        if self.option == "everyone":
+            await interaction.response.send_message(
+                "Роль everyone нельзя удалить, но можно отключить", ephemeral=True
+            )
+            return
 
-        await update_sets(self, interaction)
-        await GuildSettings.create_rewards_view(self.parent)
+        await self.parent.interaction.edit_original_response(
+            embed=self.confirm.confirm_embed, view=self.confirm
+        )
 
 
 class RoleRewardOptionModal(Modal):
@@ -1749,9 +1834,9 @@ class RoleRewardOptionModal(Modal):
                 value=self.w_settings["EVENT_REWARDING"]["REWARDS"][self.option]["AMOUNT"],
                 custom_id="amount",
                 max_length=5,
-            )
+            ),
         ]
-        super().__init__(title="Настройка награждений", components=components)
+        super().__init__(title="Настройка награждений", components=components, timeout=TIMEOUT)
 
     async def callback(self, interaction: ModalInteraction):
         if not await is_admin(interaction):
@@ -1767,11 +1852,15 @@ class RoleRewardOptionModal(Modal):
             return
 
         if self.option == "everyone":
-            await interaction.response.send_message("Роль everyone нельзя переименовать", ephemeral=True)
-            return 
+            await interaction.response.send_message(
+                "Роль everyone нельзя переименовать", ephemeral=True
+            )
+            return
 
         if new_title != self.option:
-            self.w_settings["EVENT_REWARDING"]["REWARDS"][new_title] = self.w_settings["EVENT_REWARDING"]["REWARDS"].pop(self.option)
+            self.w_settings["EVENT_REWARDING"]["REWARDS"][new_title] = self.w_settings[
+                "EVENT_REWARDING"
+            ]["REWARDS"].pop(self.option)
             self.w_settings["EVENT_REWARDING"]["REWARDS"][new_title]["TITLE_UPDATED"] = True
             self.option = new_title
 
@@ -1789,7 +1878,6 @@ class AutoRolesSetsView:
     }
 
     def __init__(self, parent):
-        super().__init__()
         self.parent = parent
         self.settings: dict = parent.settings
         self.w_settings: dict = self.settings["COGS"]["SPECIAL"]
@@ -1798,7 +1886,7 @@ class AutoRolesSetsView:
         self.gdb: GuildsDBase = parent.gdb
         self.enc: JsonEncoder = parent.enc
 
-        self.view_manager = View()
+        self.view_manager = View(timeout=TIMEOUT)
         self.home_screen_btn = Button(label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger)
         self.add_option_btn = Button(label="+", style=disnake.ButtonStyle.green)
 
@@ -1863,10 +1951,11 @@ class AutoRolesSetsView:
 
 class RolesOptionSetsView(View):
     def __init__(self, parent, option: str):
-        super().__init__()
+        super().__init__(timeout=TIMEOUT)
         self.parent: GuildSettings = parent
         self.settings: dict = parent.settings
         self.option = option
+        self.confirm: Confirmation = Confirmation(self)
         self.w_settings: dict = parent.settings["COGS"]["SPECIAL"]
         self.route: str = "SPECIAL"
         self.gdb = self.parent.gdb
@@ -1958,18 +2047,29 @@ class RolesOptionSetsView(View):
             f"Set ENABLED for roles option {self.option} for guild {interaction.guild.name} was switched to False"
         )
 
+    async def confirm_action(self, interaction: disnake.Interaction, confirm: bool):
+        if confirm:
+            logger.debug(
+                f"{self.w_settings['ROLES'].pop(self.option)} was deleted from guild {interaction.guild.name}"
+            )
+            # del self.w_settings[self.option]
+            await update_sets(self, interaction)
+        else:
+            await interaction.response.send_message(
+                "Действие отменено", delete_after=1, ephemeral=True
+            )
+
+        await GuildSettings.create_autoroles_view(self.parent)
+
     @button(label="Удалить", style=disnake.ButtonStyle.danger)
     async def open_farewell_set_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
         if not await is_admin(interaction):
             return
 
-        logger.debug(
-            f"{self.w_settings['ROLES'].pop(self.option)} was deleted from guild {interaction.guild.name}"
+        await self.parent.interaction.edit_original_response(
+            embed=self.confirm.confirm_embed, view=self.confirm
         )
-
-        await update_sets(self, interaction)
-        await GuildSettings.create_autoroles_view(self.parent)
 
 
 class RoleOptionModal(Modal):
@@ -1988,7 +2088,7 @@ class RoleOptionModal(Modal):
                 max_length=80,
             )
         ]
-        super().__init__(title="Настройка реакций", components=components)
+        super().__init__(title="Настройка реакций", components=components, timeout=TIMEOUT)
 
     async def callback(self, interaction: ModalInteraction):
         if not await is_admin(interaction):
@@ -2010,7 +2110,7 @@ class GuildSetReactionsThreadsView:
         self.settings = parent.settings
         self.channels_id = [*self.settings["COGS"]["REACTIONS_THREADS"].keys()]
         self.toggle = "REACTIONS_THREADS"
-        self.view_manager = View()
+        self.view_manager = View(timeout=TIMEOUT)
 
         self.home_screen_btn = Button(label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger)
 
@@ -2069,10 +2169,11 @@ class GuildSetReactionsThreadsView:
 
 class OptionThreadView(View):
     def __init__(self, parent, option=None):
-        super().__init__()
+        super().__init__(timeout=TIMEOUT)
         self.parent = parent
         self.option = option
         self.settings = parent.settings
+        self.confirm: Confirmation = Confirmation(self)
         self.w_settings: dict = parent.settings["COGS"]["REACTIONS_THREADS"]
         self.route: str = "REACTIONS_THREADS"
         self.gdb = self.parent.gdb
@@ -2159,6 +2260,20 @@ class OptionThreadView(View):
                 f"Set THREAD for channel {self.option} for guild {interaction.guild.name} was switched to False"
             )
 
+    async def confirm_action(self, interaction: disnake.Interaction, confirm: bool):
+        if confirm:
+            logger.debug(
+                f"{self.w_settings.pop(self.option)} was deleted from guild {interaction.guild.name}"
+            )
+            # del self.w_settings[self.option]
+            await update_sets(self, interaction)
+        else:
+            await interaction.response.send_message(
+                "Действие отменено", delete_after=1, ephemeral=True
+            )
+
+        await GuildSettings.create_auto_reactions_threads_view(self.parent)
+
     @button(label="Удалить", style=disnake.ButtonStyle.danger)
     async def open_farewell_set_callback(self, btn: Button, interaction: disnake.Interaction):
         do_nothing(btn)
@@ -2166,9 +2281,14 @@ class OptionThreadView(View):
             return
 
         if self.option is not None:
-            del self.w_settings[self.option]
-            await update_sets(self, interaction)
-        await GuildSettings.create_auto_reactions_threads_view(self.parent)
+            await self.parent.interaction.edit_original_response(
+                embed=self.confirm.confirm_embed, view=self.confirm
+            )
+
+        else:
+            await interaction.response.send_message(
+                "Сначала выбери канал", delete_after=1, ephemeral=True
+            )
 
 
 class OptionThreadModal(Modal):
@@ -2186,7 +2306,7 @@ class OptionThreadModal(Modal):
                 custom_id="reacts",
             )
         ]
-        super().__init__(title="Настройка реакций", components=components)
+        super().__init__(title="Настройка реакций", components=components, timeout=TIMEOUT)
 
     async def callback(self, interaction: ModalInteraction):
         if not await is_admin(interaction):
@@ -2212,7 +2332,7 @@ def create_hello_embed():
         "просто написав `/настройка_бот`\n(не переживай, настраивать бота могут только администраторы "
         "сервера)",
         "color": 0x2B2D31,
-        "timestamp": datetime.datetime.now().isoformat(),
+        "timestamp": datetime.now().isoformat(),
     }
     return embed
 
@@ -2239,7 +2359,7 @@ def create_general_embed(data: dict):
         f"**15.** Автороли - {on if data['GENERAL']['ROLES'] else off}\n\n"
         f"**16.** Авто добавление очков за присутствие на событии - {on if data['GENERAL']['EVENT_REWARDING'] else off}\n\n",
         "color": 0x2B2D31,
-        "timestamp": datetime.datetime.now().isoformat(),
+        "timestamp": datetime.now().isoformat(),
     }
 
     return embed
@@ -2250,7 +2370,7 @@ def create_welcome_embed():
         "title": "Приветствие 👋",
         "description": "Бот приветствует каждого нового участника в отдельном канале",
         "color": 0x2B2D31,
-        "timestamp": datetime.datetime.now().isoformat(),
+        "timestamp": datetime.now().isoformat(),
         "author": None,
         "fields": [
             {
@@ -2272,7 +2392,7 @@ def create_farewell_embed():
         "title": "Прощание 💀",
         "description": "Бот уведомляет об уходе участника в отдельном канале",
         "color": 0x2B2D31,
-        "timestamp": datetime.datetime.now().isoformat(),
+        "timestamp": datetime.now().isoformat(),
         "author": None,
         "fields": [
             {
@@ -2294,7 +2414,7 @@ def create_autoupdate_embed():
         "title": "Таблицы лидеров с автоматическим обновлением 📊",
         "description": "Бот отправляет сообщения с таблицами лидеров по очкам и количеству сообщений за последнюю неделю и автоматически обновляет их примерно раз в минуту",
         "color": 0x2B2D31,
-        "timestamp": datetime.datetime.now().isoformat(),
+        "timestamp": datetime.now().isoformat(),
         "author": None,
         "fields": [
             {
@@ -2315,7 +2435,7 @@ def create_autoupdate_scores_embed():
         "title": "Таблица лидеров по очкам за месяц 🏷️",
         "description": "Бот отправляет и автоматически обновляет сообщение с таблицей лидеров по очкам примерно раз в минуту",
         "color": 0x2B2D31,
-        "timestamp": datetime.datetime.now().isoformat(),
+        "timestamp": datetime.now().isoformat(),
         "author": None,
         "fields": [
             {
@@ -2336,7 +2456,7 @@ def create_autoupdate_messages_embed():
         "title": "Таблица лидеров по сообщениям за неделю 🏷️",
         "description": "Бот отправляет и автоматически обновляет сообщение с таблицей лидеров по сообщениям примерно раз в минуту",
         "color": 0x2B2D31,
-        "timestamp": datetime.datetime.now().isoformat(),
+        "timestamp": datetime.now().isoformat(),
         "author": None,
         "fields": [
             {
@@ -2357,7 +2477,7 @@ def create_scores_embed():
         "title": "Система очков ⚖️",
         "description": "Система очков - оценка участников путём присваивания им очков за любую активность (участие в ивентах, играх и т.п.)",
         "color": 0x2B2D31,
-        "timestamp": datetime.datetime.now().isoformat(),
+        "timestamp": datetime.now().isoformat(),
         "author": None,
         "fields": [
             {
@@ -2375,7 +2495,7 @@ def create_experience_embed():
         "title": "Система опыта ⌛",
         "description": "Система опыта - поуровневая оценка активности участников на сервере путём присваивания им очков опыта за сообщения (для получения опыта необходимо написать хотя бы одно сообщения за последнюю минуту)",
         "color": 0x2B2D31,
-        "timestamp": datetime.datetime.now().isoformat(),
+        "timestamp": datetime.now().isoformat(),
         "author": None,
         "fields": [
             {
@@ -2394,7 +2514,7 @@ def create_feedback_embed():
         "description": "Бот принимает запросы участников (по любой теме с её указанием), отправляет в отдельный канал "
         "с выбором кнопок: ответить (бот отправляет ответ в лс запросившему) или отклонить запрос; включена система напоминания о неотвеченных запросах",
         "color": 0x2B2D31,
-        "timestamp": datetime.datetime.now().isoformat(),
+        "timestamp": datetime.now().isoformat(),
         "author": None,
         "fields": [
             {
@@ -2418,7 +2538,7 @@ def create_feedback_embed():
 #         "description": "Система очков - оценка участников путём присваивания им очков за любую активность (участие в ивентах, играх и т.п.)\n"
 #         "Система опыта - поуровневая оценка активности участников на сервере путём присваивания им очков опыта за сообщения",
 #         "color": 0x2B2D31,
-#         "timestamp": datetime.datetime.now().isoformat(),
+#         "timestamp": datetime.now().isoformat(),
 #         "author": None,
 #         "fields": [
 #             {
@@ -2436,7 +2556,7 @@ def create_games_embed():
         "title": "Игры 🎰",
         "description": "Бот предлагает азартные игры с возможностью поставить очки (система очков)",
         "color": 0x2B2D31,
-        "timestamp": datetime.datetime.now().isoformat(),
+        "timestamp": datetime.now().isoformat(),
         "author": None,
         "fields": [
             {
@@ -2459,7 +2579,7 @@ def create_blackjack_embed():
         "description": "BlackJack - одна из самых популярных карточных игр в казино по всему миру. "
         "Цель - набрать как можно больше количество очков, но не больше 21-го, и обыграть бота.",
         "color": 0x2B2D31,
-        "timestamp": datetime.datetime.now().isoformat(),
+        "timestamp": datetime.now().isoformat(),
         "author": None,
         "fields": [
             {
@@ -2477,7 +2597,7 @@ def create_roulette_embed():
         "title": "Roulette 🎲",
         "description": "Рулетка - стандартная азартная игра с случайной вероятностью выиграть очки",
         "color": 0x2B2D31,
-        "timestamp": datetime.datetime.now().isoformat(),
+        "timestamp": datetime.now().isoformat(),
         "author": None,
         "fields": [
             {
@@ -2495,7 +2615,7 @@ def create_nearest_event_embed():
         "title": "Доска ближайших событий 📢",
         "description": "Бот отправляет сообщение с созданными событиями на сервере с разделением на категории и авто обновлением",
         "color": 0x2B2D31,
-        "timestamp": datetime.datetime.now().isoformat(),
+        "timestamp": datetime.now().isoformat(),
         "author": None,
         "fields": [
             {
@@ -2519,7 +2639,7 @@ def create_moderation_embed():
         "title": "Модерация ⚔️",
         "description": "1. Защита от спама gif",
         "color": 0x2B2D31,
-        "timestamp": datetime.datetime.now().isoformat(),
+        "timestamp": datetime.now().isoformat(),
         "author": None,
         "fields": [
             {
@@ -2541,7 +2661,7 @@ def create_rewards_embed() -> dict:
         "title": "тута надо что-то написать (main rewards view)",
         "description": "тута надо что-то написать",
         "color": 0x2B2D31,
-        "timestamp": datetime.datetime.now().isoformat(),
+        "timestamp": datetime.now().isoformat(),
         "author": None,
         "fields": [
             {
@@ -2558,7 +2678,7 @@ def create_rewards_option_embed() -> dict:
         "title": "тута надо что-то написать (reward option)",
         "description": "тута надо что-то написать",
         "color": 0x2B2D31,
-        "timestamp": datetime.datetime.now().isoformat(),
+        "timestamp": datetime.now().isoformat(),
         "author": None,
         "fields": [
             {
@@ -2575,7 +2695,7 @@ def create_roles_embed():
         "title": "Автоматическая выдача ролей 🎭",
         "description": "Бот будет выдавать выбранные роли, если у участника будет хотя бы одна роль из выбранного списка",
         "color": 0x2B2D31,
-        "timestamp": datetime.datetime.now().isoformat(),
+        "timestamp": datetime.now().isoformat(),
         "author": None,
         "fields": [
             {
@@ -2592,7 +2712,7 @@ def create_roles_option_embed():
         "title": "Автоматическая выдача ролей 🎭",
         "description": "Бот будет выдавать выбранные роли, если у участника будет хотя бы одна роль из выбранного списка",
         "color": 0x2B2D31,
-        "timestamp": datetime.datetime.now().isoformat(),
+        "timestamp": datetime.now().isoformat(),
         "author": None,
         "fields": [
             {
@@ -2611,7 +2731,7 @@ def create_reactions_threads_embed():
         "title": "Автореакции и Автоветки ♾️",
         "description": "Бот автоматически добавляет реакции и создает ветки к каждому сообщению в определённых каналах",
         "color": 0x2B2D31,
-        "timestamp": datetime.datetime.now().isoformat(),
+        "timestamp": datetime.now().isoformat(),
         "author": None,
         "fields": [
             {
@@ -2630,7 +2750,7 @@ def create_option_embed(option_channel=None):
         "title": "Автореакции и Автоветки",
         "description": "Бот автоматически добавляет реакции и создает ветки к каждому сообщению в определённых каналах",
         "color": 0x2B2D31,
-        "timestamp": datetime.datetime.now().isoformat(),
+        "timestamp": datetime.now().isoformat(),
         "author": None,
         "fields": [
             {
@@ -2654,7 +2774,7 @@ async def create_all_sets_embed(data, interaction):
         "title": "Статус функций",
         "description": "Здесь отображаются все настройки и их статус",
         "color": 0x2B2D31,
-        "timestamp": datetime.datetime.now().isoformat(),
+        "timestamp": datetime.now().isoformat(),
         "fields": [
             {
                 "name": "Приветствие",
