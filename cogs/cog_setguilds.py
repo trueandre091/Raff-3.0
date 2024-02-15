@@ -340,6 +340,18 @@ class GuildSettings:
     async def create_rewards_view(self):
         await EventRewardingView(self).send_view(),
 
+    # -------SPECIAL FOR HOMEY TEMPLE-------
+
+    async def create_orders_view(self):
+        await self.interaction.edit_original_response(
+            embed=disnake.Embed.from_dict(create_orders_embed()), view=OrdersView(self)
+        )
+
+    async def create_boosts_view(self):
+        await self.interaction.edit_original_response(
+            embed=disnake.Embed.from_dict(create_boosts_embed()), view=BoostsCountingView(self)
+        )
+
 
 class GuildSetsGeneralView:
     def __init__(self, parent):
@@ -432,6 +444,18 @@ class GuildSetsGeneralView:
                         description="тута надо что-то написать",
                         emoji="🎤",
                         value="voice_rewards",
+                    ),
+                    SelectOption(
+                        label="ORDERS",
+                        description="тута надо что-то написать",
+                        emoji="🔔",
+                        value="orders",
+                    ),
+                    SelectOption(
+                        label="BOOSTS",
+                        description="тута надо что-то написать",
+                        emoji="⚡",
+                        value="boosts",
                     ),
                 ],
             )
@@ -2324,6 +2348,147 @@ class OptionThreadModal(Modal):
         await update_sets(self, interaction)
 
 
+class OrdersView(View):
+    def __init__(self, parent):
+        super().__init__(timeout=TIMEOUT)
+        self.parent: GuildSettings = parent
+        self.settings: dict = parent.settings
+        self.w_settings: dict = parent.settings["COGS"]["ORDERS"]
+        self.route: str = "ORDERS"
+        self.toggle = "ORDERS"
+        self.gdb = self.parent.gdb
+
+    @channel_select(
+        channel_types=[disnake.ChannelType.text],
+        placeholder="Где принимаются заказы?",
+        custom_id="orders_ch_select",
+        min_values=0,
+        max_values=25,
+    )
+    async def callback(self, selectMenu: Select, interaction: disnake.Interaction):
+        if not await is_admin(interaction):
+            return
+
+        values: list[disnake.TextChannel] | None = selectMenu.values
+        channels_ids = []
+        if values is not None:
+            channels_ids = [channel.id for channel in values]
+
+        self.w_settings["CHANNEL"] = channels_ids
+        logger.info(f"Channel for ORDERS for guild {interaction.guild.name} was updated")
+
+        await update_sets(self, interaction)
+
+    @role_select(
+        placeholder="Кто будет принимать заказы?",
+        custom_id="roles",
+        min_values=0,
+        max_values=25,
+    )
+    async def roles_callback(
+        self, selectMenu: Select, interaction: disnake.ApplicationCommandInteraction
+    ):
+        if not await is_admin(interaction):
+            return
+
+        values: list[disnake.Role] | None = selectMenu.values
+        roles_ids = []
+        if values is not None:
+            roles_ids = [role.id for role in values]
+
+        self.w_settings["ROLE"] = roles_ids
+        await update_sets(self, interaction)
+
+        logger.info(f"Role for ORDERS for guild {interaction.guild.name} was updated")
+
+    @button(label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger)
+    async def to_back_callback(self, btn: Button, interaction: disnake.Interaction):
+        do_nothing(btn)
+        if not await is_admin(interaction):
+            return
+
+        await stud_interaction(interaction)
+        await GuildSettings.create_general_view(self.parent)
+
+    @button(label="Вкл", style=disnake.ButtonStyle.green)
+    async def enable_callback(self, btn: Button, interaction: disnake.Interaction):
+        do_nothing(btn)
+        if not await is_admin(interaction):
+            return
+
+        await toggle_set(self, interaction, True)
+
+        logger.info(f"ORDERS was enabled for guild {interaction.guild.name}")
+
+    @button(label="Выкл", style=disnake.ButtonStyle.danger)
+    async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
+        do_nothing(btn)
+        if not await is_admin(interaction):
+            return
+
+        await toggle_set(self, interaction, False)
+
+        logger.info(f"ORDERS was disabled for guild {interaction.guild.name}")
+
+
+class BoostsCountingView(View):
+    def __init__(self, parent):
+        super().__init__(timeout=TIMEOUT)
+        self.parent: GuildSettings = parent
+        self.settings: dict = parent.settings
+        self.w_settings: dict = parent.settings["COGS"]["BOOSTS_COUNTING"]
+        self.route: str = "BOOSTS_COUNTING"
+        self.toggle = "BOOSTS"
+        self.gdb = self.parent.gdb
+
+    @channel_select(
+        channel_types=[disnake.ChannelType.text],
+        placeholder="не помню чё это ваще, но вроде надо",
+        custom_id="orders_ch_select",
+        min_values=0,
+        max_values=1,
+    )
+    async def callback(self, selectMenu: Select, interaction: disnake.Interaction):
+        if not await is_admin(interaction):
+            return
+
+        value: list[disnake.TextChannel] | None = selectMenu.values
+
+        self.w_settings["REMINDER"] = value[0].id if value is not None else None
+        logger.info(f"REMINDER for BOOSTS COUNTING for guild {interaction.guild.name} was updated")
+
+        await update_sets(self, interaction)
+
+    @button(label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger)
+    async def to_back_callback(self, btn: Button, interaction: disnake.Interaction):
+        do_nothing(btn)
+        if not await is_admin(interaction):
+            return
+
+        await stud_interaction(interaction)
+        await GuildSettings.create_general_view(self.parent)
+
+    @button(label="Вкл", style=disnake.ButtonStyle.green)
+    async def enable_callback(self, btn: Button, interaction: disnake.Interaction):
+        do_nothing(btn)
+        if not await is_admin(interaction):
+            return
+
+        await toggle_set(self, interaction, True)
+
+        logger.info(f"BOOSTS COUNTING was enabled for guild {interaction.guild.name}")
+
+    @button(label="Выкл", style=disnake.ButtonStyle.danger)
+    async def disable_callback(self, btn: Button, interaction: disnake.Interaction):
+        do_nothing(btn)
+        if not await is_admin(interaction):
+            return
+
+        await toggle_set(self, interaction, False)
+
+        logger.info(f"BOOSTS COUNTING was disabled for guild {interaction.guild.name}")
+
+
 def create_hello_embed():
     embed = {
         "title": "Привет! 📍",
@@ -2768,6 +2933,42 @@ def create_option_embed(option_channel=None):
     return embed
 
 
+def create_orders_embed():
+    embed = {
+        "title": "ORDERS EMBED",
+        "description": "тута нада чёта написать",
+        "color": 0x2B2D31,
+        "timestamp": datetime.now().isoformat(),
+        "author": None,
+        "fields": [
+            {
+                "name": "Базовые настройки 💼",
+                "value": "и тут",
+            },
+        ],
+    }
+
+    return embed
+
+
+def create_boosts_embed():
+    embed = {
+        "title": "BOOSTS COUNTING EMBED",
+        "description": "тута нада чёта написать",
+        "color": 0x2B2D31,
+        "timestamp": datetime.now().isoformat(),
+        "author": None,
+        "fields": [
+            {
+                "name": "Базовые настройки 💼",
+                "value": "и тут",
+            },
+        ],
+    }
+
+    return embed
+
+
 async def create_all_sets_embed(data, interaction):
     COGS = data["COGS"]
     embed = {
@@ -3030,6 +3231,30 @@ class GuildsManage(commands.Cog):
                 elif value == "voice_rewards":
                     await stud_interaction(interaction)
                     await GuildSettings.create_rewards_view(self.parent[str(interaction.guild.id)])
+
+                elif value == "orders":
+                    # await stud_interaction(interaction)
+                    # await GuildSettings.create_orders_view(self.parent[str(interaction.guild.id)])
+
+                    if interaction.guild.id == 785312593614209055:
+                        await stud_interaction(interaction)
+                        await GuildSettings.create_orders_view(
+                            self.parent[str(interaction.guild.id)]
+                        )
+                    else:
+                        await interaction.response.send_message("Данная функция только для сервера Homey Temple", ephemeral=True)
+
+                elif value == "boosts":
+                    # await stud_interaction(interaction)
+                    # await GuildSettings.create_boosts_view(self.parent[str(interaction.guild.id)])
+
+                    if interaction.guild.id == 785312593614209055:
+                        await stud_interaction(interaction)
+                        await GuildSettings.create_boosts_view(
+                            self.parent[str(interaction.guild.id)]
+                        )
+                    else:
+                        await interaction.response.send_message("Данная функция только для сервера Homey Temple", ephemeral=True)
 
             if "fn_" in interaction.component.custom_id:
                 if not await is_admin(interaction):
