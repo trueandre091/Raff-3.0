@@ -1,12 +1,9 @@
-from os import getcwd
 import disnake
 from disnake.ext import commands, tasks
 from datetime import datetime, timezone, timedelta
 
 from cogs.cog_guilds_functions import GDB, DB, find_guilds_by_param, guild_sets_check
 from cogs.cog_special import top_create_embed
-
-FOLDER = getcwd()
 
 
 class AutoUpdateMessagesTop(commands.Cog):

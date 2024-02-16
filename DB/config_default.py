@@ -12,7 +12,7 @@ GUILD_CONFIG = {
         "ORDERS": False,
         "REQUESTS": False,
         "SCORES": False,
-        "BOOSTS": False,
+        "BOOSTS_COUNTING": False,
         "REACTIONS_THREADS": False,
         "ROLES": False,
         "EVENT_REWARDING": False,

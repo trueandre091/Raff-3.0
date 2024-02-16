@@ -1,4 +1,3 @@
-from os import getcwd
 import disnake
 from disnake.ext import commands
 
@@ -6,8 +5,6 @@ from cogs import counter_functions
 from cogs.cog_special import convert_ex_to_lvl, top_create_embed
 from cogs.cog_guilds_functions import DB, guild_sets_check, is_none
 from bot import set, add, remove
-
-FOLDER = getcwd()
 
 
 class ScoresOperations(commands.Cog):

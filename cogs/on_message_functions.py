@@ -81,13 +81,13 @@ async def reactions_threads_check(message: disnake.Message, settings: dict) -> N
 async def boosts_check(message: disnake.Message, settings: dict) -> None:
     """Checking if it's a boost (and counting number of them through separate function if so)"""
     if (
-        not settings["GENERAL"]["BOOSTS"]
-        or not settings["BOOSTS"]["BOTS"]
-        or settings["BOOSTS"]["REMINDER"] is None
+        not settings["GENERAL"]["BOOSTS_COUNTING"]
+        or not settings["COGS"]["BOOSTS_COUNTING"]["BOTS"]
+        or settings["COGS"]["BOOSTS_COUNTING"]["REMINDER"] is None
     ):
         return
 
-    settings = settings["BOOSTS"]
+    settings = settings["BOOSTS_COUNTING"]
 
     if message.author.id in settings["BOTS"].values():
         if message.author.id == settings["BOTS"]["SD.C Monitoring"]:

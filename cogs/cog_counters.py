@@ -1,10 +1,7 @@
-from os import getcwd
 import disnake
 from disnake.ext import commands
 from cogs.cog_guilds_functions import guild_sets_check, GDB
 from bot import set
-
-FOLDER = getcwd()
 
 
 class CheckCommands(commands.Cog):

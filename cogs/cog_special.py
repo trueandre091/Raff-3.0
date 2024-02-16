@@ -108,13 +108,19 @@ class OnSpecialEvents(commands.Cog):
                     role = guild.get_role(role_id)
                     if role is None:
                         continue
-                    await after.add_roles(role)
+                    try:
+                        await after.add_roles(role)
+                    except disnake.errors.Forbidden:
+                        pass
             else:
                 for role_id in settings["ROLES_GET"]:
                     role = guild.get_role(role_id)
                     if role is None:
                         continue
-                    await after.remove_roles(role)
+                    try:
+                        await after.remove_roles(role)
+                    except disnake.errors.Forbidden:
+                        pass
 
     @commands.Cog.listener()
     async def on_member_join(self, member: disnake.Member):
