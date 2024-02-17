@@ -1732,16 +1732,19 @@ class EventRewardingView:
         self.home_screen_btn = Button(
             label="Назад", emoji="🔙", style=disnake.ButtonStyle.danger
         )
+        self.set_time = Button(label="Настроить", style=disnake.ButtonStyle.grey)
         self.add_option_btn = Button(label="+", style=disnake.ButtonStyle.green)
 
         self.select_channel.callback = self.channel_select_callback
         self.select_voice_channels.callback = self.channel_voice_select_callback
         self.home_screen_btn.callback = self.home_screen_callback
+        self.set_time.callback = self.set_time_callback
         self.add_option_btn.callback = self.add_option_callback
 
         self.view_manager.add_item(self.select_channel)
         self.view_manager.add_item(self.select_voice_channels)
         self.view_manager.add_item(self.home_screen_btn)
+        self.view_manager.add_item(self.set_time)
         self.view_manager.add_item(self.add_option_btn)
 
         for i in [*self.w_settings["EVENT_REWARDING"]["REWARDS"].keys()]:
@@ -1787,6 +1790,14 @@ class EventRewardingView:
         await stud_interaction(interaction)
         await GuildSettings.create_general_view(self.parent)
 
+    async def set_time_callback(self, interaction: disnake.Interaction):
+        if not await is_admin(interaction):
+            return
+
+        await interaction.response.send_modal(EventRewardingModal(self.parent))
+
+        await update_sets(self, interaction)
+
     async def add_option_callback(self, interaction: disnake.Interaction):
         if not await is_admin(interaction):
             return
@@ -1824,6 +1835,33 @@ class EventRewardingView:
         )
 
 
+class EventRewardingModal(Modal):
+    def __init__(self, parent):
+        self.parent = parent
+        self.settings = parent.settings
+        self.w_settings: dict = parent.settings["COGS"]["SPECIAL"]["EVENT_REWARDING"]
+        self.route: str = "EVENT_REWARDING"
+        self.gdb = self.parent.gdb
+        components = [
+            TextInput(
+                label="Сколько минут нужно быть участнику?",
+                value=self.w_settings["TIME"],
+                custom_id="time_for_rewarding",
+                max_length=4,
+            )
+        ]
+        print(self.w_settings["TIME"])
+        super().__init__(title="Настройка выдачи", components=components, timeout=TIMEOUT)
+
+    async def callback(self, interaction: ModalInteraction):
+        if not await is_admin(interaction):
+            return
+
+        self.w_settings["TIME"] = int(interaction.text_values["time_for_rewarding"])
+
+        await update_sets(self, interaction)
+
+
 class RoleRewardOptionView(View):
     def __init__(self, parent, option: str):
         super().__init__(timeout=TIMEOUT)
@@ -1839,7 +1877,6 @@ class RoleRewardOptionView(View):
         placeholder="Какую роль настроить?",
         custom_id="roles",
         min_values=1,
-        max_values=25,
     )
     async def roles_callback(
         self, selectMenu: Select, interaction: disnake.ApplicationCommandInteraction
