@@ -195,7 +195,7 @@ async def count_experience(message: disnake.Message, settings: dict):
         role = None
         for role_set in settings:
             if role_set["ROLE"] and role_set["AMOUNT"]:
-                all_roles_id.append(role_set["ROLE_ID"])
+                all_roles_id.append(role_set["ROLE"])
                 if lvl2 >= role_set["AMOUNT"]:
                     try:
                         if lvl2 > role["AMOUNT"]:
