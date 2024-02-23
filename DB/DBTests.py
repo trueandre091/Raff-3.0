@@ -41,7 +41,7 @@ async def test_add_some_users(users_echo=False):
 async def test_get_user(users_echo=False):
     db = UserDBase(users_echo)
 
-    data = {"ds_id": 785364734786}
+    data = {"ds_id": 529291000418402314}
 
     await db.get_user(data)
 
@@ -57,7 +57,7 @@ async def test_get_some_users(users_echo=False):
 async def test_get_user_with_guilds(users_echo=False):
     db = UserDBase(users_echo)
 
-    data = {"ds_id": 529291000418402314}
+    data = {"ds_id": 520600815535128587}
 
     res = await db.get_user_with_guilds(data)
 
@@ -298,7 +298,7 @@ async def test_delete_relationship(rel_echo=False):
 
 
 async def main():
-    users_echo = False
+    users_echo = True
 
     # USERS TESTS
     # await test_add_user(users_echo)
@@ -307,7 +307,7 @@ async def main():
     # await test_get_user(users_echo)
     # await test_get_some_users(users_echo)
 
-    # await test_get_user_with_guilds(users_echo)
+    await test_get_user_with_guilds(users_echo)
     # await test_get_some_users_with_guilds(users_echo)
 
     # await test_get_all_users(users_echo)
@@ -338,7 +338,7 @@ async def main():
     # await test_guild_get_top_users_by_scores(guilds_echo)
     # await test_guild_get_top_users_by_messages(guilds_echo)
 
-    await test_get_sets(guilds_echo)
+    # await test_get_sets(guilds_echo)
 
     ###################################################
 
