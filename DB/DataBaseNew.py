@@ -52,13 +52,16 @@ class User:
     def __init__(
         self,
         ds_id: int,
+        guild_id: int = None,
         username: str = None,
         load: bool = True,
         load_guilds: bool = False,
         load_sem: bool = False,
     ):
         self._ds_id: int = ds_id
-        self._username: str | None = username
+        self._username: str = username
+        self.req_guild_id = guild_id
+        self._db_user: Users | None = None
 
         self._guilds: list[Guild] = list()
         self._SEMs: list[SEM] = list()
@@ -68,12 +71,18 @@ class User:
 
         self._load: bool = load
         self._load_sem: bool = load_sem
-        self._load_guilds: bool = True if self._load_sem or load_guilds else False
+        self._load_guilds: bool = True if self._load_sem or self.req_guild_id or load_guilds else False
 
         self._conn: DBConnection = DBConnection()
 
         if self._load:
-            self.load_info(self._load_guilds, self._load_sem)
+            self.add(self.req_guild_id, self._load_guilds, self._load_sem)
+
+    def __del__(self):
+        asyncio.get_event_loop().create_task(self.update())
+
+    def __eq__(self, other) -> bool:
+        return self.ds_id == other.ds_id
 
     @property
     def ds_id(self) -> int | None:
@@ -103,7 +112,7 @@ class User:
 
     @property
     def SEMs(self):
-        return self.SEMs
+        return self._SEMs
 
     @SEMs.setter
     def SEMs(self, new_SEMs):
@@ -119,7 +128,46 @@ class User:
         """User record update time"""
         return self.__updated_at
 
-    def load_info(self, load_guilds: bool = False, load_sem: bool = False):
+    @property
+    def db_user(self) -> Users | None:
+        """DB Users model"""
+        return self._db_user
+
+    @db_user.setter
+    def db_user(self, new_db_user: Users):
+        self._db_user = new_db_user
+
+    def add(self, guild_id: int | None, load_guilds: bool, load_sem: bool):
+        with self._conn.Session() as session:
+            try:
+                user = Users(ds_id=self._ds_id, username=self._username)
+
+                session.add(user)
+                session.commit()
+
+                self.db_user = user
+                self._username = user.username
+                self.__updated_at = user.updated_at
+                self.__created_at = user.created_at
+
+            except IntegrityError:
+                session.rollback()
+                user = asyncio.get_event_loop().create_task(self.load_info(load_guilds, load_sem))
+                if user is not None:
+                    logger.debug("User already in database")
+                else:
+                    logger.exception(
+                        "Something went wrong when get user for add function\n",
+                        IntegrityError,
+                    )
+
+            except Exception as e:
+                logger.exception("Something went wrong when adding user", e)
+
+            if guild_id is not None:
+                asyncio.get_event_loop().create_task(self.add_relationship(guild_id))
+
+    async def load_info(self, load_guilds: bool = False, load_sem: bool = False):
         with self._conn.Session() as session:
             try:
                 if load_sem:
@@ -149,10 +197,11 @@ class User:
                                         guild.guild_name,
                                         guild.count_members,
                                         guild.guild_sets,
+                                        guild
                                     )
                                     guild_list.append(guild)
                                     SEMs_list.append(
-                                        SEM(sem.scores, sem.experience, sem.messages, guild)
+                                        SEM(guild, sem.scores, sem.experience, sem.messages, sem)
                                     )
 
                     self._guilds = guild_list
@@ -167,6 +216,9 @@ class User:
 
                     user = session.scalars(query).first()
 
+                    if not user:
+                        raise "User not found"
+
                     guild_list = []
 
                     for guild in user.guilds:
@@ -176,6 +228,7 @@ class User:
                                 guild.guild_name,
                                 guild.count_members,
                                 guild.guild_sets,
+                                guild
                             )
                         )
 
@@ -185,12 +238,46 @@ class User:
                     query = select(Users).filter_by(ds_id=self._ds_id)
                     user = session.scalars(query).first()
 
+                    if not user:
+                        raise "User not found"
+
+                self.db_user = user
                 self._username = user.username
                 self.__updated_at = user.updated_at
                 self.__created_at = user.created_at
 
+                return self
+
             except Exception as e:
                 logger.exception("Error when get info about user", e)
+                return None
+
+    # async def update(self):
+    #     with self._conn.Session() as session:
+    #         user = self._db_user
+    #         sem = self.SEMs
+
+    async def add_relationship(self, guild_id: int):
+        if guild_id in self._guilds:
+            return
+
+        with self._conn.Session() as session:
+            try:
+                query = select(Guilds).filter_by(guild_id=guild_id)
+                guild = session.scalars(query).first()
+
+                if not guild:
+                    logger.error(f"Guild {guild_id=} not found")
+                    return
+
+            except Exception as e:
+                logger.exception(f"Something went wrong when get guild {guild_id=}", e)
+                return
+
+        guild: Guild = Guild(guild_id, guild.guild_name, guild.count_members, guild.guild_sets, guild)
+        self._guilds.append(guild)
+
+        return guild
 
 
 class Guild:
@@ -200,11 +287,13 @@ class Guild:
         guild_name: str = None,
         count_members: int = None,
         guild_sets: dict = None,
+        db_guild: Guilds = None
     ):
         self._guild_id: int = guild_id
         self._guild_name: str | None = guild_name
         self._count_members: int | None = count_members
         self._guild_sets: dict | None = guild_sets
+        self._db_guild: Guilds | None = db_guild
 
         self._users: list[User] | None = None
 
@@ -248,24 +337,36 @@ class Guild:
         self._guild_sets = new_guild_sets
 
     @property
-    def created_at(self):
+    def created_at(self) -> datetime:
+        """Record creation time"""
         return self.__created_at
 
     @property
-    def updated_at(self):
+    def updated_at(self) -> datetime:
+        """Record update time"""
         return self.__updated_at
+
+    @property
+    def db_guild(self) -> Guilds:
+        """DB Guilds model"""
+        return self._db_guild
+
+    @db_guild.setter
+    def db_guild(self, new_db_guild) -> Guilds:
+        self._db_guild = new_db_guild
 
 
 class SEM:
-    def __init__(self, scores: int, experience: int, messages: int, guild: Guild):
+    def __init__(self, guild: Guild, scores: int = 0, experience: int = 0, messages: int = 0, db_sem: Guild_User = None):
         self._scores: int = scores
         self._experience: int = experience
         self._messages: int = messages
         self._guild: Guild = guild
+        self._db_sem: Guild_User | None = db_sem
 
     @property
     def scores(self) -> int:
-        """User scores"""
+        """Amount of scores for THIS user on THIS Guild"""
         return self._scores
 
     @scores.setter
@@ -274,7 +375,7 @@ class SEM:
 
     @property
     def experience(self) -> int:
-        """User experience"""
+        """Amount of experience for THIS user on THIS Guild"""
         return self._experience
 
     @experience.setter
@@ -283,9 +384,23 @@ class SEM:
 
     @property
     def messages(self) -> int:
-        """User messages"""
+        """Amount of messages for THIS user on THIS Guild"""
         return self._messages
 
     @messages.setter
     def messages(self, new_messages: int):
         self._messages = new_messages
+
+    @property
+    def guild(self):
+        """Guild for THIS SEM"""
+        return self._guild
+
+    @property
+    def db_sem(self) -> Guild_User | None:
+        """DB record about scores, exp and messages"""
+        return self._db_sem
+
+    @db_sem.setter
+    def db_sem(self, new_db_sem: Guild_User):
+        self._db_sem = new_db_sem
