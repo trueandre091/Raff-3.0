@@ -1,6 +1,5 @@
 import ast
 import asyncio
-from asgiref.sync import async_to_sync
 from loguru import logger
 
 from sqlalchemy import select
@@ -79,7 +78,7 @@ class User:
             self.add(self.req_guild_id, self._load_guilds, self._load_sem)
 
     def __del__(self):
-        asyncio.get_event_loop().create_task(self.update())
+        self.update()
 
     def __eq__(self, other) -> bool:
         return self.ds_id == other.ds_id
@@ -152,22 +151,22 @@ class User:
 
             except IntegrityError:
                 session.rollback()
-                user = asyncio.get_event_loop().create_task(self.load_info(load_guilds, load_sem))
+                user = self.load_info(load_guilds, load_sem)
                 if user is not None:
-                    logger.debug("User already in database")
+                    logger.debug(f"User {self.ds_id} already in database")
                 else:
                     logger.exception(
-                        "Something went wrong when get user for add function\n",
+                        f"Something went wrong when get user {self.ds_id} for add function\n",
                         IntegrityError,
                     )
 
             except Exception as e:
-                logger.exception("Something went wrong when adding user", e)
+                logger.exception(f"Something went wrong when adding user {self.ds_id}", e)
 
             if guild_id is not None:
                 asyncio.get_event_loop().create_task(self.add_relationship(guild_id))
 
-    async def load_info(self, load_guilds: bool = False, load_sem: bool = False):
+    def load_info(self, load_guilds: bool = False, load_sem: bool = False):
         with self._conn.Session() as session:
             try:
                 if load_sem:
@@ -183,7 +182,8 @@ class User:
                     user = session.scalars(query).first()
 
                     if not user or not sem_res:
-                        raise "User or sem not found"
+                        logger.error("User {self.ds_id} or sem not found")
+                        return
 
                     guild_list = []
                     SEMs_list = []
@@ -217,7 +217,8 @@ class User:
                     user = session.scalars(query).first()
 
                     if not user:
-                        raise "User not found"
+                        logger.error(f"User {self.ds_id} not found")
+                        return
 
                     guild_list = []
 
@@ -239,7 +240,8 @@ class User:
                     user = session.scalars(query).first()
 
                     if not user:
-                        raise "User not found"
+                        logger.error(f"User {self.ds_id} not found")
+                        return
 
                 self.db_user = user
                 self._username = user.username
@@ -252,10 +254,47 @@ class User:
                 logger.exception("Error when get info about user", e)
                 return None
 
-    # async def update(self):
-    #     with self._conn.Session() as session:
-    #         user = self._db_user
-    #         sem = self.SEMs
+    def update(self):
+        if self._db_user is None:
+            return
+
+        with self._conn.Session() as session:
+            user = select(Users).filter_by(ds_id=self.ds_id)
+            user = session.scalars(user).first()
+
+            if not user:
+                logger.error(f"User {self.ds_id} not found")
+                return
+
+            guilds_list = []
+            if len(self.guilds) > 0:
+                for guild in self.guilds:
+                    guild = select(Guilds).filter_by(guild_id=guild.guild_id)
+                    guild = session.scalars(guild).first()
+
+                    if not guild:
+                        logger.error(f"Guild {guild.guild_id} not found")
+                        return
+
+                    guilds_list.append(guild)
+
+            if len(self.SEMs) > 0:
+                for sem in self.SEMs:
+                    db_sem = select(Guild_User).where(Guild_User.ds_id == self.ds_id, Guild_User.guild_id == sem.guild.guild_id)
+                    db_sem = session.scalars(db_sem).first()
+
+                    db_sem.scores = sem.scores
+                    db_sem.experience = sem.experience
+                    db_sem.messages = sem.messages
+
+                    if not db_sem:
+                        logger.error(f"SEM for user {self.ds_id} not found")
+                        return
+
+            user.username = self.username
+            user.guilds = guilds_list
+
+            session.commit()
 
     async def add_relationship(self, guild_id: int):
         if guild_id in self._guilds:
@@ -363,6 +402,12 @@ class SEM:
         self._messages: int = messages
         self._guild: Guild = guild
         self._db_sem: Guild_User | None = db_sem
+
+    # def __eq__(self, other):
+    #     pass
+    #
+    # def __del__(self):
+    #     pass
 
     @property
     def scores(self) -> int:
