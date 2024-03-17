@@ -1,5 +1,3 @@
-import ast
-import asyncio
 from loguru import logger
 
 from sqlalchemy import select
@@ -54,14 +52,13 @@ class User:
         ds_id: int,
         guild_id: int = None,
         username: str = None,
-        load: bool = True,
         load_guilds: bool = False,
         load_sem: bool = False,
         db_user: Users = None,
     ):
         self._ds_id: int = ds_id
         self._username: str = username
-        self.req_guild_id = guild_id
+        self.guild_id = guild_id
         self._db_user: Users | None = db_user
 
         self._guilds: list[Guild] = list()
@@ -70,16 +67,12 @@ class User:
         self.__created_at: datetime | None = None
         self.__updated_at: datetime | None = None
 
-        self._load: bool = load
         self._load_sem: bool = load_sem
-        self._load_guilds: bool = (
-            True if self._load_sem or self.req_guild_id or load_guilds else False
-        )
+        self._load_guilds: bool = True if self._load_sem or self.guild_id or load_guilds else False
 
         self._conn: DBConnection = DBConnection()
 
-        if self._load:
-            self.add(self.req_guild_id, self._load_guilds, self._load_sem)
+        self.add(self.guild_id, self._load_guilds, self._load_sem)
 
     def __del__(self):
         self.update()
@@ -146,7 +139,7 @@ class User:
     def add(self, guild_id: int | None, load_guilds: bool, load_sem: bool):
         with self._conn.Session() as session:
             try:
-                user = Users(ds_id=self._ds_id, username=self._username)
+                user = Users(ds_id=self.ds_id, username=self.username)
 
                 session.add(user)
                 session.commit()
@@ -160,18 +153,18 @@ class User:
                 session.rollback()
                 user = self.load(load_guilds, load_sem)
                 if user is not None:
-                    logger.debug(f"User {self.ds_id} already in database")
+                    logger.debug(f"User {self} already in database")
                 else:
                     logger.exception(
-                        f"Something went wrong when get user {self.ds_id} for add function\n",
+                        f"Something went wrong when get user {self} for add function\n",
                         IntegrityError,
                     )
 
             except Exception as e:
-                logger.exception(f"Something went wrong when adding user {self.ds_id}", e)
+                logger.exception(f"Something went wrong when adding user {self}", e)
 
             if guild_id is not None:
-                asyncio.get_event_loop().create_task(self.add_relationship(guild_id))
+                self.add_relationship(guild_id)
 
     def load(self, load_guilds: bool = False, load_sem: bool = False):
         with self._conn.Session() as session:
@@ -188,8 +181,8 @@ class User:
                     sem_res = session.scalars(query_scm).all()
                     user = session.scalars(query).first()
 
-                    if not user or not sem_res:
-                        logger.error("User {self.ds_id} or sem not found")
+                    if not user or sem_res is None:
+                        logger.error(f"User {self} or sem not found")
                         return
 
                     guild_list = []
@@ -230,7 +223,7 @@ class User:
                     user = session.scalars(query).first()
 
                     if not user:
-                        logger.error(f"User {self.ds_id} not found")
+                        logger.error(f"User {self} not found")
                         return
 
                     guild_list = []
@@ -242,7 +235,7 @@ class User:
                                 guild.guild_name,
                                 guild.count_members,
                                 guild.guild_sets,
-                                guild,
+                                db_guild=guild,
                             )
                         )
 
@@ -253,63 +246,72 @@ class User:
                     user = session.scalars(query).first()
 
                     if not user:
-                        logger.error(f"User {self.ds_id} not found")
+                        logger.error(f"User {self} not found")
                         return
 
                 self.db_user = user
-                self._username = user.username
+                self.username = user.username
                 self.__updated_at = user.updated_at
                 self.__created_at = user.created_at
 
                 return self
 
             except Exception as e:
-                logger.exception("Error when get info about user", e)
+                logger.exception(f"Error when get info about user {self}", e)
                 return None
 
     def update(self):
         with self._conn.Session() as session:
-            user = select(Users).filter_by(ds_id=self.ds_id)
-            user = session.scalars(user).first()
+            try:
+                user = select(Users).filter_by(ds_id=self.ds_id)
+                user = session.scalars(user).first()
 
-            if not user:
-                logger.error(f"User {self.ds_id} not found")
-                return
+                if not user:
+                    logger.error(f"User {self} not found")
+                    return
 
-            guilds_list = []
-            if len(self.guilds) > 0:
-                for guild in self.guilds:
-                    guild = select(Guilds).filter_by(guild_id=guild.guild_id)
-                    guild = session.scalars(guild).first()
+                guilds_list = []
+                if len(self.guilds) > 0:
+                    for guild in self.guilds:
+                        # if guild == self.guild_id:
+                        #     continue
+                        # overload?
 
-                    if not guild:
-                        logger.error(f"Guild {guild.guild_id} not found")
-                        return
+                        guild = select(Guilds).filter_by(guild_id=guild.guild_id)
+                        guild = session.scalars(guild).first()
 
-                    guilds_list.append(guild)
+                        if not guild:
+                            logger.error(f"Guild {guild.guild_id} not found")
+                            return
 
-            if len(self.SEMs) > 0:
-                for sem in self.SEMs:
-                    db_sem = select(Guild_User).where(
-                        Guild_User.ds_id == self.ds_id, Guild_User.guild_id == sem.guild.guild_id
-                    )
-                    db_sem = session.scalars(db_sem).first()
+                        guilds_list.append(guild)
 
-                    db_sem.scores = sem.scores
-                    db_sem.experience = sem.experience
-                    db_sem.messages = sem.messages
+                if len(self.SEMs) > 0:
+                    for sem in self.SEMs:
+                        db_sem = select(Guild_User).where(
+                            Guild_User.ds_id == self.ds_id,
+                            Guild_User.guild_id == sem.guild.guild_id,
+                        )
+                        db_sem = session.scalars(db_sem).first()
 
-                    if not db_sem:
-                        logger.error(f"SEM for user {self.ds_id} not found")
-                        return
+                        if not db_sem:
+                            logger.error(f"SEM for user {self} not found")
+                            return
 
-            user.username = self.username
-            user.guilds = guilds_list
+                        db_sem.scores = sem.scores
+                        db_sem.experience = sem.experience
+                        db_sem.messages = sem.messages
 
-            session.commit()
+                user.username = self.username
+                user.guilds = guilds_list
 
-    async def add_relationship(self, guild_id: int):
-        if guild_id in self._guilds:
+                session.commit()
+
+            except Exception as e:
+                logger.exception(f"Something went wrong when update user {self}", e)
+
+    def add_relationship(self, guild_id: int):
+        if guild_id in self.guilds:
             return
 
         with self._conn.Session() as session:
@@ -318,17 +320,17 @@ class User:
                 guild = session.scalars(query).first()
 
                 if not guild:
-                    logger.error(f"Guild {guild_id=} not found")
+                    logger.error(f"Guild {self} not found")
                     return
 
             except Exception as e:
-                logger.exception(f"Something went wrong when get guild {guild_id=}", e)
+                logger.exception(f"Something went wrong when get guild {self}", e)
                 return
 
         guild: Guild = Guild(
-            guild_id, guild.guild_name, guild.count_members, guild.guild_sets, guild
+            guild_id, guild.guild_name, guild.count_members, guild.guild_sets, db_guild=guild
         )
-        self._guilds.append(guild)
+        self.guilds.append(guild)
 
         return guild
 
@@ -340,7 +342,6 @@ class Guild:
         guild_name: str = None,
         count_members: int = None,
         guild_sets: dict = None,
-        load: bool = True,
         load_users: bool = False,
         load_tops: bool = False,
         load_limit: int = 20,
@@ -363,13 +364,20 @@ class Guild:
         self._conn: DBConnection = DBConnection()
         self._enc: JsonEncoder = JsonEncoder()
 
-        self.load: bool = load
-        self.load_tops: bool = load_tops
-        self.load_users: bool = load_users or self.load_tops
-        self.load_limit: int = load_limit
+        self._load_tops: bool = load_tops
+        self._load_users: bool = load_users or self._load_tops
+        self._load_limit: int = load_limit
 
-        if self.load:
-            ...
+        self.add()
+
+    def __del__(self):
+        self.update()
+
+    def __eq__(self, other):
+        return self.guild_id == other.guild_id
+
+    def __repr__(self) -> str:
+        return f"<Guild {self.guild_name}, {self.guild_id}>"
 
     @property
     def guild_id(self) -> int:
@@ -399,7 +407,7 @@ class Guild:
         self._count_members = new_count_members
 
     @property
-    def guild_sets(self) -> dict | str:
+    def guild_sets(self) -> dict:
         """Settings of Guild"""
 
         if isinstance(self._guild_sets, dict):
@@ -409,14 +417,14 @@ class Guild:
             return self._enc.code_from_json(self._guild_sets)
 
         else:
-            raise AttributeError("Guild sets must be dict or str type")
+            return None
 
     @guild_sets.setter
     def guild_sets(self, new_guild_sets: dict | str):
-        if isinstance(self._guild_sets, dict):
+        if isinstance(new_guild_sets, dict):
             self._guild_sets = self._enc.code_to_json(new_guild_sets)
 
-        elif isinstance(self._guild_sets, str):
+        elif isinstance(new_guild_sets, str):
             self._guild_sets = new_guild_sets
 
         else:
@@ -453,7 +461,7 @@ class Guild:
         return self._top_scores
 
     @top_scores.setter
-    def top_scores(self, new_top_scores: list[SEM]):
+    def top_scores(self, new_top_scores: list[SEMs]):
         self._top_scores = new_top_scores
 
     @property
@@ -461,7 +469,7 @@ class Guild:
         return self._top_scores
 
     @top_messages.setter
-    def top_messages(self, new_top_messages: list[SEM]):
+    def top_messages(self, new_top_messages: list[SEMs]):
         self._top_scores = new_top_messages
 
     @property
@@ -474,15 +482,44 @@ class Guild:
         self._db_guild = new_db_guild
 
     def add(self):
-        pass
+        with self._conn.Session() as session:
+            try:
+                guild = Guilds(
+                    guild_id=self.guild_id,
+                    guild_name=self.guild_name,
+                    count_members=self.count_members,
+                )
+
+                session.add(guild)
+                session.commit()
+
+                self.guild_id = guild.guild_id
+                self.guild_name = guild.guild_name
+                self._count_members = guild.count_members
+                self.guild_sets = guild.guild_sets
+                self.__created_at = guild.created_at
+                self.__updated_at = guild.updated_at
+
+            except IntegrityError:
+                session.rollback()
+                guild = self.load()
+                if guild is not None:
+                    logger.debug(f"Guild {self} already in database")
+                else:
+                    logger.exception(
+                        f"Something went wrong when get guild {self} for add function\n",
+                        IntegrityError,
+                    )
+
+            except Exception as e:
+                logger.exception(f"Something went wrong when add guild {self}", e)
+                return
 
     def load(self):
-        if not self.load:
-            return
 
         with self._conn.Session() as session:
             try:
-                if self.load_top:
+                if self._load_tops:
                     query = (
                         select(Guilds)
                         .options(selectinload(Guilds.users))
@@ -494,8 +531,8 @@ class Guild:
                     sem_res: list[Guild_User] = session.scalars(query_scm).all()
                     guild: Guilds = session.scalars(query).first()
 
-                    if not guild or not sem_res:
-                        logger.error(f"Guild {self.guild_id} or sem not found")
+                    if not guild or sem_res is None:
+                        logger.error(f"Guild {self} or sem not found")
                         return
 
                     users_list = []
@@ -526,13 +563,13 @@ class Guild:
                     self.top_scores = sorted(self.SEMs, key=lambda x: x.scores, reverse=True)
                     self.top_messages = sorted(self.SEMs, key=lambda x: x.messages, reverse=True)
 
-                    if len(self.top_scores) > self.load_limit:
-                        self.top_scores = self.top_scores[: self.load_limit]
+                    if len(self.top_scores) > self._load_limit:
+                        self.top_scores = self.top_scores[: self._load_limit]
 
-                    if len(self.top_messages) > self.load_limit:
-                        self.top_messages = self.top_messages[: self.load_limit]
+                    if len(self.top_messages) > self._load_limit:
+                        self.top_messages = self.top_messages[: self._load_limit]
 
-                elif self.load_users:
+                elif self._load_users:
                     query = (
                         select(Guilds)
                         .options(selectinload(Guilds.users))
@@ -542,8 +579,17 @@ class Guild:
                     guild: Guilds = session.scalars(query).first()
 
                     if not guild:
-                        logger.error(f"Can't find guild {self.guild_id}")
+                        logger.error(f"Can't find guild {self}")
                         return
+
+                    if guild.users is not None:
+                        users_list = []
+                        for u in guild.users:
+                            users_list.append(User(ds_id=u.ds_id, username=u.username, db_user=u))
+
+                        print()
+
+                        self.users = users_list
 
                 else:
                     query = select(Guilds).filter_by(guild_id=self.guild_id)
@@ -551,15 +597,38 @@ class Guild:
                     guild = session.scalars(query).first()
 
                     if not guild:
-                        logger.error(f"Can't find guild {self.guild_id}")
+                        logger.error(f"Can't find guild {self}")
                         return
 
                 self.guild_name = guild.guild_name
                 self.count_members = guild.count_members
                 self.guild_sets = guild.guild_sets
+                self.__created_at = guild.created_at
+                self.__updated_at = guild.updated_at
+
+                return self
 
             except Exception as e:
-                logger.exception(f"Something went wrong when get guild {self.guild_id=}", e)
+                logger.exception(f"Something went wrong when get guild {self}", e)
+
+    def update(self):
+        with self._conn.Session() as session:
+            try:
+                guild = select(Guilds).filter_by(guild_id=self.guild_id)
+                guild = session.scalars(guild).first()
+
+                if guild is None:
+                    logger.error(f"Error was occurred when update guild {self}")
+                    return
+
+                guild.guild_name = self.guild_name
+                guild.guild_sets = self._enc.code_to_json(self.guild_sets)
+                guild.count_members = self.count_members
+
+                session.commit()
+
+            except Exception as e:
+                logger.exception(f"Something went wrong when update guild {self}", e)
 
 
 class SEM:
