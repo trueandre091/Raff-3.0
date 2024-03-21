@@ -29,7 +29,8 @@ class Guild_User(Base):
 
     __tablename__ = "guild_user"
 
-    repr_cols_num = 5
+    repr_cols = ("ds_id", "guild_id",)
+    repr_cols_num = 0
 
     ds_id: Mapped[int] = mapped_column(ForeignKey("users.ds_id"), primary_key=True)
     guild_id: Mapped[int] = mapped_column(ForeignKey("guilds.guild_id"), primary_key=True)
