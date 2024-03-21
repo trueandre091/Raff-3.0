@@ -1,11 +1,14 @@
 import time
-import asyncio
-from DataBaseNew import User, Guild
+from DataBaseNew import UserDBase, GuildDBase
 
 
 def users_tests():
-    user1 = User(520600815535128587, guild_id=1189637072030531695, load_sem=True)
-    # print(user1)
+    guild = guilds_test()
+    user1 = UserDBase(520600815535128587, 520600815535128587, guild=guild, load_sem=True)
+    print(user1.SEMs)
+    for SEM in user1.SEMs:
+        if SEM == guild:
+            print("True")
     # user2 = User(529291000418402314, load_guilds=True)
     # user3 = User(797035045985452032)
 
@@ -19,20 +22,23 @@ def users_tests():
 
 
 def guilds_test():
-    guild = Guild(1189637072030531695)
-    guild.guild_name = "Тест1"
+    guild = GuildDBase(1189637072030531695, "Тест1", 2, load_tops=True)
+    print(guild)
+    # guild.guild_name = "Тест1"
     # print(guild.guild_sets)
     # print(guild)
     # guild.update()
 
+    return guild
 
-async def main():
-    users_tests()
-    # guilds_test()
+
+def main():
+    # users_tests()
+    guilds_test()
 
 
 if __name__ == "__main__":
     s = time.perf_counter()
-    asyncio.run(main())
+    main()
     f = time.perf_counter()
     print(f"Total script time: {f - s}")
